@@ -1,5 +1,6 @@
 export * from './colors';
 export * from './ministries';
+export * from './functions';
 export * from './typography';
 export * from './spacing';
 
