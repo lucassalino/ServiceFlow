@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "../../lib/supabase/client";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -30,9 +31,25 @@ export default function Register() {
   async function handleRegister() {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name.trim() } },
+    });
+
     setLoading(false);
-    router.replace("/(tabs)");
+
+    if (error) {
+      Alert.alert("Erro ao cadastrar", error.message);
+      return;
+    }
+
+    Alert.alert(
+      "Conta criada!",
+      "Verifique seu email para confirmar o cadastro.",
+      [{ text: "OK", onPress: () => router.replace("/(auth)/login") }]
+    );
   }
 
   return (
@@ -40,7 +57,6 @@ export default function Register() {
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          {/* Header */}
           <View className="px-5 pt-4 flex-row items-center">
             <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-card rounded-xl items-center justify-center border border-border">
               <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
@@ -53,9 +69,7 @@ export default function Register() {
                 <Text className="text-3xl">✝️</Text>
               </View>
               <Text className="text-textPrimary text-2xl font-bold">Criar conta</Text>
-              <Text className="text-textSecondary text-sm mt-1 text-center">
-                Junte-se ao ServiceFlow
-              </Text>
+              <Text className="text-textSecondary text-sm mt-1 text-center">Junte-se ao ServiceFlow</Text>
             </View>
 
             <Input label="Nome completo" iconName="person-outline" placeholder="Seu nome" value={name} onChangeText={setName} autoCapitalize="words" error={errors.name} />

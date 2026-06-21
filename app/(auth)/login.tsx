@@ -1,9 +1,10 @@
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { supabase } from "../../lib/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,8 +25,19 @@ export default function Login() {
   async function handleLogin() {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
     setLoading(false);
+
+    if (error) {
+      Alert.alert("Erro ao entrar", error.message === "Invalid login credentials"
+        ? "Email ou senha incorretos."
+        : error.message
+      );
+      return;
+    }
+
     router.replace("/(tabs)");
   }
 
@@ -34,7 +46,6 @@ export default function Login() {
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          {/* Brand */}
           <View className="items-center pt-16 pb-12 px-6">
             <View className="w-20 h-20 bg-primary/15 rounded-3xl items-center justify-center mb-5 border border-primary/30">
               <Text className="text-4xl">✝️</Text>
@@ -43,7 +54,6 @@ export default function Login() {
             <Text className="text-textSecondary text-sm mt-1">Gestão de escalas ministeriais</Text>
           </View>
 
-          {/* Form */}
           <View className="flex-1 px-6">
             <Text className="text-textPrimary text-xl font-bold mb-1">Entrar</Text>
             <Text className="text-textSecondary text-sm mb-8">Acesse sua conta para continuar</Text>
