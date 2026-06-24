@@ -1,17 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, MapPin, Clock } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Pencil, Trash2, MapPin, Clock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEvents, useDeleteEvent } from '@/hooks/useEvents';
 import type { Event } from '@/types/models';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { formatDate, formatTime } from '@/lib/utils';
 import { EventDialog } from './EventDialog';
 
 interface Props { orgId: string }
+
+type StatusFilter = 'all' | 'upcoming' | 'past' | 'published' | 'draft';
+
+const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'upcoming', label: 'Próximos' },
+  { value: 'past', label: 'Passados' },
+  { value: 'published', label: 'Publicados' },
+  { value: 'draft', label: 'Rascunhos' },
+];
 
 export function EventsClient({ orgId: _orgId }: Props) {
   const { data: events = [], isLoading } = useEvents();
@@ -20,6 +32,8 @@ export function EventsClient({ orgId: _orgId }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selected, setSelected] = useState<Event | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   function handleNew() { setSelected(null); setDialogOpen(true); }
   function handleEdit(e: Event) { setSelected(e); setDialogOpen(true); }
@@ -35,7 +49,28 @@ export function EventsClient({ orgId: _orgId }: Props) {
     }
   }
 
-  const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
+  const filtered = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const q = search.trim().toLowerCase();
+
+    return events.filter((event) => {
+      if (q) {
+        const matchesText =
+          event.name.toLowerCase().includes(q) ||
+          (event.location?.toLowerCase().includes(q) ?? false);
+        if (!matchesText) return false;
+      }
+      switch (statusFilter) {
+        case 'upcoming': return event.date >= today;
+        case 'past': return event.date < today;
+        case 'published': return event.is_published;
+        case 'draft': return !event.is_published;
+        default: return true;
+      }
+    });
+  }, [events, search, statusFilter]);
+
+  const sorted = [...filtered].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div className="p-6 space-y-6">
@@ -47,6 +82,28 @@ export function EventsClient({ orgId: _orgId }: Props) {
         </Button>
       </div>
 
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar por nome ou local…"
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -55,10 +112,14 @@ export function EventsClient({ orgId: _orgId }: Props) {
         </div>
       ) : sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <p className="text-sm text-muted-foreground">Nenhum evento criado.</p>
-          <Button variant="outline" className="mt-4 gap-2" onClick={handleNew}>
-            <Plus className="h-4 w-4" />Criar primeiro evento
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            {search || statusFilter !== 'all' ? 'Nenhum evento encontrado.' : 'Nenhum evento criado.'}
+          </p>
+          {!search && statusFilter === 'all' && (
+            <Button variant="outline" className="mt-4 gap-2" onClick={handleNew}>
+              <Plus className="h-4 w-4" />Criar primeiro evento
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">

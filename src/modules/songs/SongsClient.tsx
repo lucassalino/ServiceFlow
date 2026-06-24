@@ -8,6 +8,7 @@ import { useMinistries } from '@/hooks/useMinistries';
 import type { Song } from '@/types/models';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { SongDialog } from './SongDialog';
@@ -21,6 +22,7 @@ export function SongsClient() {
   const [selected, setSelected] = useState<Song | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
   const [search, setSearch] = useState('');
+  const [ministryFilter, setMinistryFilter] = useState<string>('all');
 
   const ministryMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -30,11 +32,12 @@ export function SongsClient() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return songs;
-    return songs.filter((s) =>
-      s.name.toLowerCase().includes(q) || (s.artist?.toLowerCase().includes(q) ?? false),
-    );
-  }, [songs, search]);
+    return songs.filter((s) => {
+      if (ministryFilter !== 'all' && s.ministry_id !== ministryFilter) return false;
+      if (!q) return true;
+      return s.name.toLowerCase().includes(q) || (s.artist?.toLowerCase().includes(q) ?? false);
+    });
+  }, [songs, search, ministryFilter]);
 
   function handleNew() { setSelected(null); setDialogOpen(true); }
   function handleEdit(song: Song) { setSelected(song); setDialogOpen(true); }
@@ -60,9 +63,22 @@ export function SongsClient() {
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Pesquisar por nome ou artista…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Pesquisar por nome ou artista…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={ministryFilter} onValueChange={setMinistryFilter}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Ministério" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os ministérios</SelectItem>
+            {ministries.map((m) => (
+              <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -75,9 +91,9 @@ export function SongsClient() {
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Music className="mb-2 h-8 w-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {search ? 'Nenhuma música encontrada.' : 'Nenhuma música adicionada.'}
+            {search || ministryFilter !== 'all' ? 'Nenhuma música encontrada.' : 'Nenhuma música adicionada.'}
           </p>
-          {!search && (
+          {!search && ministryFilter === 'all' && (
             <Button variant="outline" className="mt-4 gap-2" onClick={handleNew}>
               <Plus className="h-4 w-4" />Adicionar primeira
             </Button>
