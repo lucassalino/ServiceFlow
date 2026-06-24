@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarDays, Users, LayoutGrid, MapPin } from 'lucide-react';
+import { CalendarDays, Users, LayoutGrid, MapPin, Music, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDate, formatTime } from '@/lib/utils';
@@ -10,6 +10,8 @@ interface DashboardClientProps {
   upcomingEvents: Event[];
   memberCount: number;
   ministryCount: number;
+  songCount: number;
+  pendingConfirmations: number;
   orgId: string;
 }
 
@@ -17,11 +19,13 @@ export function DashboardClient({
   upcomingEvents,
   memberCount,
   ministryCount,
+  songCount,
+  pendingConfirmations,
 }: DashboardClientProps) {
   return (
     <div className="space-y-8">
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -57,7 +61,35 @@ export function DashboardClient({
             <p className="text-2xl font-bold">{ministryCount}</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Músicas
+            </CardTitle>
+            <Music className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{songCount}</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Pending confirmations alert */}
+      {pendingConfirmations > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600" />
+            <p className="text-sm">
+              <span className="font-semibold">{pendingConfirmations}</span>{' '}
+              {pendingConfirmations === 1
+                ? 'pessoa ainda não confirmou a escala'
+                : 'pessoas ainda não confirmaram a escala'}{' '}
+              nos próximos eventos.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upcoming Events */}
       <div className="space-y-4">

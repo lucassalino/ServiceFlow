@@ -28,15 +28,14 @@ export function useCreateOrganization() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const { data: org, error: orgError } = await supabase
-        .from('organizations').insert({ name, invite_code: inviteCode })
-        .select().single();
-      if (orgError) throw new Error(orgError.message);
-      const { error: memberError } = await supabase
-        .from('organization_members')
-        .insert({ org_id: org.id, user_id: user.id, role: 'admin', is_active: true });
-      if (memberError) throw new Error(memberError.message);
-      // subscriptions table managed separately
+      const { data, error } = await supabase.rpc('create_org_with_member', {
+        org_name: name,
+        invite_code: inviteCode,
+        user_id: user.id,
+      });
+      if (error) throw new Error(error.message);
+      const org = Array.isArray(data) ? data[0] : data;
+      if (!org) throw new Error('Erro ao criar organização');
       return org as Organization;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['org-memberships'] }),

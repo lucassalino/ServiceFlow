@@ -43,3 +43,8 @@ export interface Song {
   lyrics: string | null; chords: string | null; youtube_url: string | null;
   created_at: string; updated_at: string;
 }
+export interface AppNotification {
+  id: string; user_id: string; event_id: string | null;
+  message: string; is_read: boolean; sent_at: string;
+  event?: Pick<Event, 'id' | 'name' | 'date'>;
+}

@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, X, Check, Users, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, X, Check, Users, ChevronDown, ChevronRight, Send } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
+import { usePublishEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useOrgMembers } from '@/hooks/useMembers';
+import { useNotifyEventSchedules } from '@/hooks/useNotifications';
 import {
   useEventMinistries,
   useEventSchedules,
@@ -21,6 +23,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Ministry, EventMinistry, EventSchedule } from '@/types/models';
@@ -154,8 +166,7 @@ function AddPersonDialog({
             <ScrollArea className="max-h-40 border rounded-md">
               <div className="p-1">
                 {available.map((m) => {
-                  const profile = (m as unknown as { profile: { full_name: string; email: string } }).profile;
-                  const name = profile?.full_name ?? m.user_id;
+                  const name = m.profile?.full_name ?? m.user_id;
                   return (
                     <button
                       key={m.user_id}
@@ -218,6 +229,7 @@ function MinistrySlot({
 }) {
   const [expanded, setExpanded] = useState(true);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
 
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const removeMinistry = useRemoveMinistryFromEvent();
@@ -225,10 +237,10 @@ function MinistrySlot({
   const confirmSchedule = useConfirmSchedule();
 
   async function handleRemoveMinistry() {
-    if (!confirm(`Remover ${em.ministry.name} deste evento?`)) return;
     try {
       await removeMinistry.mutateAsync({ id: em.id, eventId });
       toast.success('Ministério removido');
+      setConfirmRemoveOpen(false);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
@@ -285,7 +297,7 @@ function MinistrySlot({
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleRemoveMinistry}
+          onClick={() => setConfirmRemoveOpen(true)}
           disabled={removeMinistry.isPending}
           className="h-8 text-destructive hover:text-destructive"
         >
@@ -310,8 +322,7 @@ function MinistrySlot({
             </div>
           ) : (
             schedules.map((schedule) => {
-              const profile = (schedule as unknown as { profile: { full_name: string; avatar_url: string | null } }).profile;
-              const name = profile?.full_name ?? schedule.user_id;
+              const name = schedule.profile?.full_name ?? schedule.user_id;
               return (
                 <div key={schedule.id} className="flex items-center gap-3 px-4 py-2.5 bg-background hover:bg-muted/30 transition-colors">
                   <Avatar className="h-8 w-8">
@@ -364,6 +375,27 @@ function MinistrySlot({
         eventMinistryId={em.id}
         assignedUserIds={assignedUserIds}
       />
+
+      <AlertDialog open={confirmRemoveOpen} onOpenChange={setConfirmRemoveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover ministério do evento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {em.ministry.name} e todas as pessoas escaladas neste ministério serão removidas deste evento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleRemoveMinistry}
+              disabled={removeMinistry.isPending}
+            >
+              {removeMinistry.isPending ? 'A remover…' : 'Remover'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -376,8 +408,32 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   const [addMinistryOpen, setAddMinistryOpen] = useState(false);
 
   const { data: eventMinistries = [], isLoading: emLoading } = useEventMinistries(selectedEventId);
+  const publishEvent = usePublishEvent();
+  const notifySchedules = useNotifyEventSchedules();
 
   const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;
+
+  async function handlePublishAndNotify() {
+    if (!selectedEvent) return;
+    try {
+      if (!selectedEvent.is_published) {
+        await publishEvent.mutateAsync({ id: selectedEvent.id, publish: true });
+      }
+      const result = await notifySchedules.mutateAsync({
+        eventId: selectedEvent.id,
+        eventName: selectedEvent.name,
+      });
+      if (result.notified === 0) {
+        toast.info('Escala publicada. Ainda não há pessoas escaladas para notificar.');
+      } else {
+        toast.success(
+          `Escala publicada e ${result.notified} ${result.notified === 1 ? 'pessoa notificada' : 'pessoas notificadas'}.`,
+        );
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao publicar escala');
+    }
+  }
 
   // Sort events: upcoming first
   const sortedEvents = [...events].sort(
@@ -450,6 +506,20 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                 ) : (
                   <Badge variant="secondary">Rascunho</Badge>
                 )}
+                <Button
+                  onClick={handlePublishAndNotify}
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  disabled={publishEvent.isPending || notifySchedules.isPending}
+                >
+                  <Send className="h-4 w-4" />
+                  {publishEvent.isPending || notifySchedules.isPending
+                    ? 'A publicar…'
+                    : selectedEvent.is_published
+                    ? 'Notificar escala'
+                    : 'Publicar e notificar'}
+                </Button>
                 <Button onClick={() => setAddMinistryOpen(true)} size="sm" className="gap-1">
                   <Plus className="h-4 w-4" />
                   Ministério

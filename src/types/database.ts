@@ -19,41 +19,150 @@ export type Database = {
         Row: { id: string; org_id: string; user_id: string; role: string; is_active: boolean; joined_at: string };
         Insert: { id?: string; org_id: string; user_id: string; role?: string; is_active?: boolean; joined_at?: string };
         Update: { id?: string; org_id?: string; user_id?: string; role?: string; is_active?: boolean };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "organization_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       ministries: {
         Row: { id: string; org_id: string; name: string; icon: string; color: string; created_at: string; updated_at: string };
         Insert: { id?: string; org_id: string; name: string; icon?: string; color?: string; created_at?: string; updated_at?: string };
         Update: { id?: string; org_id?: string; name?: string; icon?: string; color?: string; updated_at?: string };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "ministries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       events: {
         Row: { id: string; org_id: string; name: string; date: string; time: string; location: string | null; color: string | null; description: string | null; observations: string | null; is_published: boolean; created_by: string; created_at: string; updated_at: string };
         Insert: { id?: string; org_id: string; name: string; date: string; time: string; location?: string | null; color?: string | null; description?: string | null; observations?: string | null; is_published?: boolean; created_by: string; created_at?: string; updated_at?: string };
         Update: { id?: string; name?: string; date?: string; time?: string; location?: string | null; color?: string | null; description?: string | null; observations?: string | null; is_published?: boolean; updated_at?: string };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "events_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       event_ministries: {
         Row: { id: string; event_id: string; ministry_id: string };
         Insert: { id?: string; event_id: string; ministry_id: string };
         Update: { id?: string; event_id?: string; ministry_id?: string };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "event_ministries_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_ministries_ministry_id_fkey";
+            columns: ["ministry_id"];
+            isOneToOne: false;
+            referencedRelation: "ministries";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       event_schedules: {
         Row: { id: string; event_ministry_id: string; user_id: string; functions: string[]; confirmed: boolean | null };
         Insert: { id?: string; event_ministry_id: string; user_id: string; functions?: string[]; confirmed?: boolean | null };
         Update: { id?: string; user_id?: string; functions?: string[]; confirmed?: boolean | null };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "event_schedules_event_ministry_id_fkey";
+            columns: ["event_ministry_id"];
+            isOneToOne: false;
+            referencedRelation: "event_ministries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_schedules_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       songs: {
         Row: { id: string; org_id: string; name: string; artist: string | null; musical_key: string | null; bpm: number | null; ministry_id: string | null; lyrics: string | null; chords: string | null; youtube_url: string | null; created_at: string; updated_at: string };
         Insert: { id?: string; org_id: string; name: string; artist?: string | null; musical_key?: string | null; bpm?: number | null; ministry_id?: string | null; lyrics?: string | null; chords?: string | null; youtube_url?: string | null; created_at?: string; updated_at?: string };
         Update: { id?: string; name?: string; artist?: string | null; musical_key?: string | null; bpm?: number | null; ministry_id?: string | null; lyrics?: string | null; chords?: string | null; youtube_url?: string | null; updated_at?: string };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "songs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "songs_ministry_id_fkey";
+            columns: ["ministry_id"];
+            isOneToOne: false;
+            referencedRelation: "ministries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: { id: string; user_id: string; event_id: string | null; message: string; is_read: boolean; sent_at: string };
+        Insert: { id?: string; user_id: string; event_id?: string | null; message: string; is_read?: boolean; sent_at?: string };
+        Update: { id?: string; is_read?: boolean };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_org_with_member: {
+        Args: { org_name: string; invite_code: string; user_id: string };
+        Returns: { id: string; name: string; invite_code: string; logo_url: string | null; created_at: string; updated_at: string }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
