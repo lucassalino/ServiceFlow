@@ -18,7 +18,7 @@ import {
   useConfirmSchedule,
 } from '@/hooks/useSchedule';
 import { MEMBER_FUNCTIONS, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -38,10 +38,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Ministry, EventMinistry, EventSchedule } from '@/types/models';
 
 interface Props { orgId: string }
-
-function getInitials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-}
 
 // ── Add Ministry Dialog ──────────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { OrgInitializer } from '@/modules/organizations/OrgInitializer';
+import type { Organization, OrganizationMember, UserProfile } from '@/types/models';
 
 interface Props {
   children: React.ReactNode;
@@ -23,8 +24,13 @@ export default async function OrgLayout({ children, params }: Props) {
 
   if (!membership) redirect('/');
 
+  const typedMembership = membership as OrganizationMember & {
+    organization: Organization;
+    profile: UserProfile;
+  };
+
   return (
-    <OrgInitializer membership={membership as any}>
+    <OrgInitializer membership={typedMembership}>
       <div className="flex h-screen overflow-hidden">
         <Sidebar orgId={orgId} />
         <main className="flex-1 overflow-y-auto bg-background">

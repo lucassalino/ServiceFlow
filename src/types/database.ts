@@ -162,6 +162,10 @@ export type Database = {
         Args: { org_name: string; invite_code: string; user_id: string };
         Returns: { id: string; name: string; invite_code: string; logo_url: string | null; created_at: string; updated_at: string }[];
       };
+      delete_own_account: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
