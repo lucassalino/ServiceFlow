@@ -24,19 +24,44 @@ export const MINISTRY_COLORS = [
 ] as const;
 
 export const MEMBER_FUNCTIONS = [
-  { key: 'vocalist',        label: 'Vocal',        emoji: '🎤' },
-  { key: 'back_vocal',      label: 'Back Vocal',   emoji: '🎙️' },
-  { key: 'guitarist',       label: 'Guitarra',     emoji: '🎸' },
-  { key: 'bass',            label: 'Baixo',        emoji: '🎸' },
-  { key: 'drummer',         label: 'Bateria',      emoji: '🥁' },
-  { key: 'keys',            label: 'Teclado',      emoji: '🎹' },
-  { key: 'acoustic',        label: 'Acústica',     emoji: '🪕' },
-  { key: 'sound_operator',  label: 'Som',          emoji: '🎚️' },
-  { key: 'camera_operator', label: 'Câmera',       emoji: '📹' },
-  { key: 'media',           label: 'Multimédia',   emoji: '💻' },
-  { key: 'reception',       label: 'Recepção',     emoji: '👋' },
-  { key: 'teacher',         label: 'Professor',    emoji: '📚' },
-  { key: 'auxiliary',       label: 'Auxiliar',     emoji: '🤝' },
+  // Liderança / Coordenação
+  { key: 'coordination',    label: 'Coordenação',      emoji: '🎯' },
+  // Louvor - Vocal
+  { key: 'worship_leader',  label: 'Ministro (Vocal)', emoji: '🙌' },
+  { key: 'back_vocal',      label: 'Backvocal',        emoji: '🎙️' },
+  // Louvor - Instrumentos
+  { key: 'drummer',         label: 'Bateria',          emoji: '🥁' },
+  { key: 'bass',            label: 'Baixo',            emoji: '🎸' },
+  { key: 'acoustic',        label: 'Violão',           emoji: '🪕' },
+  { key: 'keys',            label: 'Teclado/Piano',    emoji: '🎹' },
+  { key: 'guitarist',       label: 'Guitarra',         emoji: '🎸' },
+  { key: 'percussion',      label: 'Percussão',        emoji: '🪘' },
+  { key: 'violin',          label: 'Violino',          emoji: '🎻' },
+  { key: 'trumpet',         label: 'Trompete',         emoji: '🎺' },
+  { key: 'flute',           label: 'Flauta',           emoji: '🪈' },
+  // Técnica
+  { key: 'sound_operator',  label: 'Mesa de som',      emoji: '🎚️' },
+  { key: 'media',           label: 'Mídia',            emoji: '💻' },
+  { key: 'live_stream',     label: 'Transmissão',      emoji: '📡' },
+  { key: 'camera_operator', label: 'Câmera',           emoji: '📹' },
+  { key: 'projection',      label: 'Projeção/Slides',  emoji: '🖥️' },
+  { key: 'photography',     label: 'Fotografia',       emoji: '📷' },
+  { key: 'lighting',        label: 'Iluminação',       emoji: '💡' },
+  // Ensino / Palavra
+  { key: 'preacher',        label: 'Pregador',         emoji: '📢' },
+  { key: 'teacher',         label: 'Professor',        emoji: '📚' },
+  // Oração
+  { key: 'intercessor',     label: 'Intercessor',      emoji: '🙏' },
+  { key: 'vigil_leader',    label: 'Líder de vigília', emoji: '🌙' },
+  // Artes / expressão
+  { key: 'dance',           label: 'Dança',            emoji: '💃' },
+  { key: 'drama',           label: 'Teatro',           emoji: '🎭' },
+  // Suporte
+  { key: 'reception',       label: 'Recepção',         emoji: '👋' },
+  { key: 'kitchen',         label: 'Cozinha',          emoji: '🍳' },
+  { key: 'decoration',      label: 'Decoração',        emoji: '🎨' },
+  { key: 'security',        label: 'Segurança',        emoji: '🔐' },
+  { key: 'auxiliary',       label: 'Auxiliar',         emoji: '🤝' },
 ] as const;
 
 export function getFunctionLabel(key: string): string {
@@ -46,6 +71,27 @@ export function getFunctionLabel(key: string): string {
 export function getFunctionEmoji(key: string): string {
   return MEMBER_FUNCTIONS.find((f) => f.key === key)?.emoji ?? '•';
 }
+
+export const PRESET_MINISTRIES = [
+  {
+    name: 'Louvor',
+    icon: '🎵',
+    color: '#4A5A6A',
+    functions: ['coordination', 'worship_leader', 'back_vocal', 'drummer', 'bass', 'acoustic', 'keys', 'guitarist', 'percussion', 'sound_operator', 'media', 'live_stream'],
+  },
+  {
+    name: 'Infantil',
+    icon: '🎁',
+    color: '#4A6A6A',
+    functions: ['teacher', 'auxiliary'],
+  },
+  {
+    name: 'Oração',
+    icon: '🙏',
+    color: '#6A5A4A',
+    functions: ['intercessor', 'vigil_leader'],
+  },
+] as const;
 
 export const SONG_KEYS = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',

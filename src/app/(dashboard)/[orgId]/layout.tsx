@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { AppShell } from '@/components/layout/AppShell';
 import { OrgInitializer } from '@/modules/organizations/OrgInitializer';
 import type { Organization, OrganizationMember, UserProfile } from '@/types/models';
 
@@ -31,12 +31,9 @@ export default async function OrgLayout({ children, params }: Props) {
 
   return (
     <OrgInitializer membership={typedMembership}>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar orgId={orgId} />
-        <main className="flex-1 overflow-y-auto bg-background">
-          {children}
-        </main>
-      </div>
+      <AppShell orgId={orgId}>
+        {children}
+      </AppShell>
     </OrgInitializer>
   );
 }

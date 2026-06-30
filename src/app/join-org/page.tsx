@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/supabase/client';
+import { joinOrganization } from './actions';
 
 const schema = z.object({
   invite_code: z.string().min(1, 'Código de convite obrigatório'),
@@ -19,7 +18,6 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function JoinOrgPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -31,51 +29,10 @@ export default function JoinOrgPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const supabase = createClient();
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        toast.error('Utilizador não autenticado');
-        return;
-      }
-
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('invite_code', data.invite_code.toUpperCase())
-        .single();
-
-      if (orgError || !org) {
-        toast.error('Código de convite inválido');
-        return;
-      }
-
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('organization_members')
-        .select('id')
-        .eq('org_id', org.id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (existing) {
-        toast.error('Já és membro desta organização');
-        router.push(`/${org.id}/dashboard`);
-        return;
-      }
-
-      const { error: memberError } = await supabase
-        .from('organization_members')
-        .insert({ org_id: org.id, user_id: user.id, role: 'member' });
-
-      if (memberError) {
-        toast.error(memberError.message);
-        return;
-      }
-
-      toast.success('Entraste na organização!');
-      router.push(`/${org.id}/dashboard`);
-    } catch {
+      const result = await joinOrganization(data.invite_code);
+      if (result?.error) toast.error(result.error);
+    } catch (err) {
+      if (err && typeof err === 'object' && 'digest' in err) throw err;
       toast.error('Ocorreu um erro inesperado');
     } finally {
       setLoading(false);

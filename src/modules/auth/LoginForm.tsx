@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,7 +21,12 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-export function LoginForm({ className }: { className?: string }) {
+interface LoginFormProps {
+  className?: string;
+  forgotPasswordHref?: string;
+}
+
+export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -76,14 +82,14 @@ export function LoginForm({ className }: { className?: string }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={cn('flex flex-col gap-4', className)}
+      className={cn('flex flex-col gap-3.5', className)}
     >
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
-          placeholder="email@exemplo.com"
+          placeholder="Enter your email address"
           autoComplete="email"
           {...register('email')}
         />
@@ -93,11 +99,18 @@ export function LoginForm({ className }: { className?: string }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="password">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Password</Label>
+          {forgotPasswordHref && (
+            <Link href={forgotPasswordHref} className="auth-link">
+              Forgot Password?
+            </Link>
+          )}
+        </div>
         <Input
           id="password"
           type="password"
-          placeholder="••••••••"
+          placeholder="Password"
           autoComplete="current-password"
           {...register('password')}
         />
@@ -106,9 +119,9 @@ export function LoginForm({ className }: { className?: string }) {
         )}
       </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full mt-1">
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Entrar
+        Sign in
       </Button>
 
       <div className="relative">
@@ -116,7 +129,7 @@ export function LoginForm({ className }: { className?: string }) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">ou</span>
+          <span className="bg-background px-2 text-muted-foreground">OR</span>
         </div>
       </div>
 
@@ -128,7 +141,7 @@ export function LoginForm({ className }: { className?: string }) {
         className="w-full"
       >
         {googleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Entrar com Google
+        Continue with Google
       </Button>
     </form>
   );

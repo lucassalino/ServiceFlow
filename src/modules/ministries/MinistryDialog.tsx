@@ -1,140 +1,154 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useCreateMinistry, useUpdateMinistry } from '@/hooks/useMinistries';
-import { MINISTRY_ICONS, MINISTRY_COLORS } from '@/lib/constants';
+import { useMinistryMembers } from '@/hooks/useMembers';
+import { useOrgMembers } from '@/hooks/useMembers';
+import { upsertMinistryMembersAction } from '@/actions/members';
+import { MEMBER_FUNCTIONS } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 
-const schema = z.object({
-  name: z.string().min(1, 'Nome obrigatório'),
-  icon: z.string().min(1, 'Ícone obrigatório'),
-  color: z.string().min(1, 'Cor obrigatória'),
-});
-
-type FormData = z.infer<typeof schema>;
+type MinistryMemberEntry = { userId: string; functions: string[] };
+type OrgMemberWithProfile = {
+  user_id: string; is_active: boolean;
+  profile: { full_name: string; email: string; avatar_url: string | null };
+};
 
 interface Props {
   orgId: string;
-  ministry?: Ministry | null;
+  ministry: Ministry | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }
 
-export function MinistryDialog({ orgId: _orgId, ministry, open, onOpenChange }: Props) {
-  const createMinistry = useCreateMinistry();
-  const updateMinistry = useUpdateMinistry();
+export function MinistryDialog({ ministry, open, onOpenChange }: Props) {
+  const { data: orgMembers = [] } = useOrgMembers();
+  const { data: existingMinistryMembersData } = useMinistryMembers(ministry?.id ?? null);
+  const [members, setMembers] = useState<MinistryMemberEntry[]>([]);
+  const [saving, setSaving] = useState(false);
 
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: '', icon: MINISTRY_ICONS[0]?.emoji ?? '🎵', color: MINISTRY_COLORS[0] },
-  });
-
-  const selectedIcon = watch('icon');
-  const selectedColor = watch('color');
-
+  // Load existing members when dialog opens
   useEffect(() => {
-    if (open) {
-      reset(ministry
-        ? { name: ministry.name, icon: ministry.icon, color: ministry.color }
-        : { name: '', icon: MINISTRY_ICONS[0]?.emoji ?? '🎵', color: MINISTRY_COLORS[0] },
-      );
-    }
-  }, [open, ministry, reset]);
+    if (!open || !existingMinistryMembersData) return;
+    setMembers(existingMinistryMembersData.map((m) => ({ userId: m.user_id, functions: m.functions })));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, ministry?.id, existingMinistryMembersData]);
 
-  async function onSubmit(data: FormData) {
+  // Clear when closed
+  useEffect(() => { if (!open) setMembers([]); }, [open]);
+
+  function isSelected(userId: string) { return members.some((m) => m.userId === userId); }
+  function getFns(userId: string) { return members.find((m) => m.userId === userId)?.functions ?? []; }
+
+  function toggleMember(userId: string) {
+    setMembers((prev) =>
+      prev.some((m) => m.userId === userId)
+        ? prev.filter((m) => m.userId !== userId)
+        : [...prev, { userId, functions: [] }],
+    );
+  }
+
+  function toggleFn(userId: string, fn: string) {
+    setMembers((prev) => prev.map((m) => {
+      if (m.userId !== userId) return m;
+      const has = m.functions.includes(fn);
+      return { ...m, functions: has ? m.functions.filter((f) => f !== fn) : [...m.functions, fn] };
+    }));
+  }
+
+  // Functions available in this ministry (from ministry.functions catalog)
+  const availableFunctions = ministry?.functions?.length
+    ? MEMBER_FUNCTIONS.filter((f) => ministry.functions.includes(f.key))
+    : MEMBER_FUNCTIONS;
+
+  async function handleSave() {
+    if (!ministry) return;
+    setSaving(true);
     try {
-      if (ministry) {
-        await updateMinistry.mutateAsync({ id: ministry.id, ...data });
-        toast.success('Ministério actualizado');
-      } else {
-        await createMinistry.mutateAsync(data);
-        toast.success('Ministério criado');
-      }
+      await upsertMinistryMembersAction(ministry.id, members);
+      toast.success('Membros actualizados');
       onOpenChange(false);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
+    } finally {
+      setSaving(false);
     }
   }
 
+  const activeMembers = (orgMembers as unknown as OrgMemberWithProfile[]).filter((m) => m.is_active);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{ministry ? 'Editar Ministério' : 'Novo Ministério'}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {ministry && <span>{ministry.icon}</span>}
+            {ministry?.name ?? 'Ministério'}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">Seleciona os membros e as funções de cada um.</p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Preview */}
-          <div className="flex items-center justify-center py-2">
-            <div
-              className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow"
-              style={{ backgroundColor: selectedColor + '33', border: `2px solid ${selectedColor}` }}
-            >
-              {selectedIcon}
-            </div>
-          </div>
+        <div className="space-y-3">
+          <Label>Membros</Label>
+          {activeMembers.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Sem membros na organização.</p>
+          ) : (
+            <ScrollArea className="max-h-[50vh] rounded-md border">
+              <div className="p-2 space-y-0.5">
+                {activeMembers.map((member) => {
+                  const name = member.profile?.full_name || member.profile?.email || '?';
+                  const selected = isSelected(member.user_id);
+                  const fns = getFns(member.user_id);
 
-          <div className="space-y-1">
-            <Label htmlFor="name">Nome *</Label>
-            <Input id="name" {...register('name')} />
-            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-          </div>
+                  return (
+                    <div key={member.user_id}>
+                      <label className="flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer hover:bg-accent">
+                        <Checkbox checked={selected} onCheckedChange={() => toggleMember(member.user_id)} />
+                        <Avatar className="h-7 w-7 flex-shrink-0">
+                          {member.profile?.avatar_url && <AvatarImage src={member.profile.avatar_url} />}
+                          <AvatarFallback className="text-[10px]">{getInitials(name)}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm flex-1 truncate">{name}</span>
+                        {selected && fns.length > 0 && (
+                          <span className="text-xs text-muted-foreground shrink-0">{fns.length} função{fns.length !== 1 ? 'ões' : ''}</span>
+                        )}
+                      </label>
 
-          <div className="space-y-1">
-            <Label>Ícone *</Label>
-            <div className="flex flex-wrap gap-2">
-              {MINISTRY_ICONS.map(({ key, emoji }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setValue('icon', emoji)}
-                  className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-lg border text-xl transition-colors hover:bg-accent',
-                    selectedIcon === emoji && 'border-primary bg-accent',
-                  )}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-            {errors.icon && <p className="text-xs text-destructive">{errors.icon.message}</p>}
-          </div>
+                      {selected && availableFunctions.length > 0 && (
+                        <div className="ml-8 pb-1 grid grid-cols-2 gap-0.5">
+                          {availableFunctions.map((f) => (
+                            <label key={f.key}
+                              className="flex items-center gap-1.5 px-2 py-1.5 text-xs cursor-pointer rounded hover:bg-accent">
+                              <Checkbox
+                                checked={fns.includes(f.key)}
+                                onCheckedChange={() => toggleFn(member.user_id, f.key)}
+                              />
+                              <span>{f.emoji} {f.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
 
-          <div className="space-y-1">
-            <Label>Cor *</Label>
-            <div className="flex flex-wrap gap-2">
-              {MINISTRY_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setValue('color', color)}
-                  className={cn(
-                    'h-8 w-8 rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                    selectedColor === color && 'ring-2 ring-ring ring-offset-2 scale-110',
-                  )}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-            {errors.color && <p className="text-xs text-destructive">{errors.color.message}</p>}
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={isSubmitting || createMinistry.isPending || updateMinistry.isPending}>
-              {isSubmitting ? 'A guardar…' : ministry ? 'Guardar' : 'Criar'}
-            </Button>
-          </DialogFooter>
-        </form>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'A guardar…' : 'Guardar'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

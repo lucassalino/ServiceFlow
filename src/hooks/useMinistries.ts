@@ -1,37 +1,33 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Ministry } from '@/types/models';
+import {
+  fetchMinistriesAction,
+  createMinistryAction,
+  updateMinistryAction,
+  deleteMinistryAction,
+  toggleMinistryActiveAction,
+  importPresetMinistriesAction,
+} from '@/actions/ministries';
 
 export function useMinistries() {
   const { activeOrg } = useOrgStore();
   return useQuery({
     queryKey: ['ministries', activeOrg?.id],
     enabled: !!activeOrg?.id,
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase.from('ministries')
-        .select('*').eq('org_id', activeOrg!.id).order('name');
-      if (error) throw new Error(error.message);
-      return data as Ministry[];
-    },
+    queryFn: () => fetchMinistriesAction(activeOrg!.id),
   });
 }
 
-export interface MinistryPayload { name: string; icon: string; color: string; }
+export interface MinistryPayload { name: string; icon: string; color: string; functions?: string[] }
 
 export function useCreateMinistry() {
   const qc = useQueryClient();
   const { activeOrg } = useOrgStore();
   return useMutation({
-    mutationFn: async (payload: MinistryPayload) => {
-      const supabase = createClient();
-      const { data, error } = await supabase.from('ministries')
-        .insert({ ...payload, org_id: activeOrg!.id }).select().single();
-      if (error) throw new Error(error.message);
-      return data as Ministry;
-    },
+    mutationFn: (payload: MinistryPayload) =>
+      createMinistryAction(activeOrg!.id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ministries', activeOrg?.id] }),
   });
 }
@@ -40,13 +36,27 @@ export function useUpdateMinistry() {
   const qc = useQueryClient();
   const { activeOrg } = useOrgStore();
   return useMutation({
-    mutationFn: async ({ id, ...payload }: MinistryPayload & { id: string }) => {
-      const supabase = createClient();
-      const { error } = await supabase.from('ministries')
-        .update({ name: payload.name, icon: payload.icon, color: payload.color, updated_at: new Date().toISOString() })
-        .eq('id', id);
-      if (error) throw new Error(error.message);
-    },
+    mutationFn: ({ id, ...payload }: MinistryPayload & { id: string }) =>
+      updateMinistryAction(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['ministries', activeOrg?.id] }),
+  });
+}
+
+export function useToggleMinistryActive() {
+  const qc = useQueryClient();
+  const { activeOrg } = useOrgStore();
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      toggleMinistryActiveAction(id, isActive),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['ministries', activeOrg?.id] }),
+  });
+}
+
+export function useImportPresetMinistries() {
+  const qc = useQueryClient();
+  const { activeOrg } = useOrgStore();
+  return useMutation({
+    mutationFn: () => importPresetMinistriesAction(activeOrg!.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ministries', activeOrg?.id] }),
   });
 }
@@ -55,11 +65,9 @@ export function useDeleteMinistry() {
   const qc = useQueryClient();
   const { activeOrg } = useOrgStore();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const supabase = createClient();
-      const { error } = await supabase.from('ministries').delete().eq('id', id);
-      if (error) throw new Error(error.message);
-    },
+    mutationFn: (id: string) => deleteMinistryAction(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ministries', activeOrg?.id] }),
   });
 }
+
+export type { Ministry };

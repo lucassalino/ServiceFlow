@@ -17,7 +17,8 @@ export interface OrganizationMember {
 }
 export interface Ministry {
   id: string; org_id: string; name: string;
-  icon: string; color: string; created_at: string; updated_at: string;
+  icon: string; color: string; functions: string[];
+  is_active: boolean; created_at: string; updated_at: string;
 }
 export interface MinistryMember {
   id: string; ministry_id: string; user_id: string;
@@ -25,8 +26,8 @@ export interface MinistryMember {
 }
 export interface Event {
   id: string; org_id: string; name: string; date: string; time: string;
-  location: string | null; color: string | null; description: string | null;
-  observations: string | null; is_published: boolean;
+  location: string | null; color: string | null; cover_image_url: string | null;
+  description: string | null; observations: string | null; is_published: boolean;
   created_by: string; created_at: string; updated_at: string;
 }
 export interface EventMinistry {

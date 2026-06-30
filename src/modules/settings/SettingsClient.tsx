@@ -6,27 +6,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Camera, LogOut, Trash2 } from 'lucide-react';
+import { Camera, LogOut, Trash2, Copy, Check } from 'lucide-react';
+import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
+import { ProfileCardDialog } from '@/components/ui/profile-card-dialog';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
 import { useLeaveOrganization } from '@/hooks/useOrganizations';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { getInitials } from '@/lib/utils';
 
@@ -47,6 +40,32 @@ interface Props { orgId: string }
 
 const MAX_AVATAR_SIZE_MB = 2;
 
+function Section({ title, danger, children }: { title: string; danger?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: 'rgba(22,22,26,0.85)',
+      border: `1px solid ${danger ? 'rgba(239,68,68,0.22)' : 'rgba(255,255,255,0.08)'}`,
+      borderRadius: '0.875rem',
+      overflow: 'hidden',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+    }}>
+      <div style={{
+        padding: '0.9rem 1.25rem',
+        borderBottom: `1px solid ${danger ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.07)'}`,
+      }}>
+        <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: danger ? '#f87171' : '#ffffff', letterSpacing: '0.01em' }}>
+          {title}
+        </h2>
+      </div>
+      <div style={{ padding: '1.25rem' }}>{children}</div>
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '1rem 0' }} />;
+}
+
 export function SettingsClient({ orgId }: Props) {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -58,10 +77,14 @@ export function SettingsClient({ orgId }: Props) {
   const uploadAvatar = useUploadAvatar();
   const leaveOrg = useLeaveOrganization();
   const deleteAccount = useDeleteAccount();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [leaveOrgOpen, setLeaveOrgOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const profileForm = useForm<ProfileData>({
     resolver: zodResolver(profileSchema) as never,
@@ -74,21 +97,16 @@ export function SettingsClient({ orgId }: Props) {
   });
 
   useEffect(() => {
-    if (profile) {
-      profileForm.reset({ full_name: profile.full_name, phone: profile.phone });
-    }
+    if (profile) profileForm.reset({ full_name: profile.full_name, phone: profile.phone });
   }, [profile, profileForm]);
 
   useEffect(() => {
-    if (activeOrg) {
-      orgForm.reset({ name: activeOrg.name, logo_url: activeOrg.logo_url });
-    }
+    if (activeOrg) orgForm.reset({ name: activeOrg.name, logo_url: activeOrg.logo_url });
   }, [activeOrg, orgForm]);
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       toast.error('Usa uma imagem JPEG, PNG ou WebP');
       return;
@@ -97,12 +115,19 @@ export function SettingsClient({ orgId }: Props) {
       toast.error(`A imagem não pode exceder ${MAX_AVATAR_SIZE_MB}MB`);
       return;
     }
+    setCropSrc(URL.createObjectURL(file));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
 
-    const localPreview = URL.createObjectURL(file);
-    setAvatarPreview(localPreview);
-
+  async function handleCropConfirm(blob: Blob) {
+    if (!cropSrc) return;
+    URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    const preview = URL.createObjectURL(blob);
+    setAvatarPreview(preview);
     try {
-      const avatarUrl = await uploadAvatar.mutateAsync(file);
+      const croppedFile = new File([blob], 'avatar.webp', { type: 'image/webp' });
+      const avatarUrl = await uploadAvatar.mutateAsync(croppedFile);
       await updateProfile.mutateAsync({
         full_name: profileForm.getValues('full_name') || profile?.full_name || '',
         phone: profileForm.getValues('phone'),
@@ -112,10 +137,14 @@ export function SettingsClient({ orgId }: Props) {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao atualizar foto');
     } finally {
-      URL.revokeObjectURL(localPreview);
+      URL.revokeObjectURL(preview);
       setAvatarPreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  }
+
+  function handleCropCancel() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
   }
 
   async function onProfileSubmit(data: ProfileData) {
@@ -165,158 +194,241 @@ export function SettingsClient({ orgId }: Props) {
     }
   }
 
+  function handleCopyCode() {
+    const code = activeOrg?.invite_code;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+      toast.success('Código copiado!');
+    });
+  }
+
   const displayAvatar = avatarPreview ?? profile?.avatar_url ?? undefined;
 
   return (
-    <div className="p-6 space-y-6 max-w-xl">
-      <h1 className="text-2xl font-bold">Definições</h1>
+    <div className="dash-purple-bg">
+      <div className="p-5 md:p-8 max-w-2xl mx-auto space-y-5">
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Perfil</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={displayAvatar} />
-                <AvatarFallback className="text-base">
-                  {getInitials(profile?.full_name || 'U')}
-                </AvatarFallback>
-              </Avatar>
+        {/* ── Header ──────────────────────────────────── */}
+        <div className="pt-2">
+          <p className="text-xs font-semibold tracking-[0.16em] uppercase"
+            style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Conta
+          </p>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+            Definições
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Perfil e preferências da conta
+          </p>
+        </div>
+
+        {/* ── Profile ─────────────────────────────────── */}
+        <Section title="Perfil">
+          {/* Avatar row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                type="button"
+                onClick={() => setProfileCardOpen(true)}
+                disabled={uploadAvatar.isPending}
+                style={{ borderRadius: '50%', border: 'none', background: 'none', cursor: 'pointer', padding: 0, opacity: uploadAvatar.isPending ? 0.5 : 1 }}
+                aria-label="Ver foto de perfil"
+              >
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={displayAvatar} />
+                  <AvatarFallback className="text-base font-semibold"
+                    style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }}>
+                    {getInitials(profile?.full_name || 'U')}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadAvatar.isPending}
-                className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border bg-background shadow-sm hover:bg-accent transition-colors disabled:opacity-50"
                 aria-label="Alterar foto de perfil"
+                style={{
+                  position: 'absolute', bottom: '-2px', right: '-2px',
+                  width: '1.5rem', height: '1.5rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: '50%',
+                  background: 'rgba(30,30,36,0.95)',
+                  border: '1.5px solid rgba(255,255,255,0.18)',
+                  cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.7)',
+                }}
               >
-                <Camera className="h-3 w-3" />
+                <Camera style={{ width: '0.7rem', height: '0.7rem' }} />
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+                className="hidden" onChange={handleAvatarChange} />
             </div>
-            <div className="text-sm text-muted-foreground">
-              {uploadAvatar.isPending ? (
-                <p>A enviar foto…</p>
-              ) : (
-                <>
-                  <p>Toca no ícone para alterar a foto.</p>
-                  <p>JPEG, PNG ou WebP, até {MAX_AVATAR_SIZE_MB}MB.</p>
-                </>
-              )}
-            </div>
+            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.6 }}>
+              {uploadAvatar.isPending
+                ? 'A enviar foto…'
+                : `Clica na foto para ver o perfil.\nJPEG, PNG ou WebP, até ${MAX_AVATAR_SIZE_MB}MB.`}
+            </p>
           </div>
 
-          <Separator />
+          <Divider />
 
-          <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-            <div className="space-y-1">
+          <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="dark-inputs space-y-4">
+            <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input value={user?.email ?? ''} disabled className="opacity-60" />
+              <Input value={user?.email ?? ''} disabled />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="full_name">Nome completo</Label>
               <Input id="full_name" {...profileForm.register('full_name')} />
               {profileForm.formState.errors.full_name && (
-                <p className="text-xs text-destructive">{profileForm.formState.errors.full_name.message}</p>
+                <p className="text-destructive text-xs">{profileForm.formState.errors.full_name.message}</p>
               )}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="phone">Telemóvel</Label>
-              <Input id="phone" type="tel" {...profileForm.register('phone')} />
+              <Input id="phone" type="tel" placeholder="+351 900 000 000" {...profileForm.register('phone')} />
             </div>
-            <Button type="submit" disabled={profileForm.formState.isSubmitting || updateProfile.isPending}>
+            <button type="submit" className="dark-primary-btn"
+              disabled={profileForm.formState.isSubmitting || updateProfile.isPending}>
               {updateProfile.isPending ? 'A guardar…' : 'Guardar perfil'}
-            </Button>
+            </button>
           </form>
-        </CardContent>
-      </Card>
+        </Section>
 
-      {isAdmin && activeOrg && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Organização</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={orgForm.handleSubmit(onOrgSubmit)} className="space-y-4">
-              <div className="space-y-1">
-                <Label htmlFor="org_name">Nome</Label>
+        {/* ── Organisation (admin only) ────────────────── */}
+        {isAdmin && activeOrg && (
+          <Section title="Organização">
+            <form onSubmit={orgForm.handleSubmit(onOrgSubmit)} className="dark-inputs space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="org_name">Nome da organização</Label>
                 <Input id="org_name" {...orgForm.register('name')} />
                 {orgForm.formState.errors.name && (
-                  <p className="text-xs text-destructive">{orgForm.formState.errors.name.message}</p>
+                  <p className="text-destructive text-xs">{orgForm.formState.errors.name.message}</p>
                 )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <Label htmlFor="logo_url">URL do logótipo</Label>
                 <Input id="logo_url" placeholder="https://…" {...orgForm.register('logo_url')} />
               </div>
-              <Separator />
-              <div className="space-y-1">
+
+              <Divider />
+
+              <div className="space-y-1.5">
                 <Label>Código de convite</Label>
-                <div className="flex gap-2">
-                  <Input value={activeOrg.invite_code} readOnly className="font-mono" />
-                  <Button type="button" variant="outline" onClick={() => {
-                    navigator.clipboard.writeText(activeOrg.invite_code);
-                    toast.success('Código copiado');
-                  }}>Copiar</Button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Input value={activeOrg.invite_code} readOnly className="font-mono tracking-widest" />
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    aria-label="Copiar código"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '2.5rem', flexShrink: 0,
+                      background: 'rgba(255,255,255,0.07)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '0.5rem',
+                      color: codeCopied ? '#6ee7b7' : 'rgba(255,255,255,0.6)',
+                      cursor: 'pointer',
+                      transition: 'color 0.15s',
+                    }}
+                  >
+                    {codeCopied
+                      ? <Check style={{ width: '0.9rem', height: '0.9rem' }} />
+                      : <Copy style={{ width: '0.9rem', height: '0.9rem' }} />}
+                  </button>
                 </div>
-                <p className="text-xs text-muted-foreground">Partilha este código para convidar pessoas</p>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>
+                  Partilha este código para convidar pessoas
+                </p>
               </div>
-              <Button type="submit" disabled={orgForm.formState.isSubmitting}>
+
+              <button type="submit" className="dark-primary-btn" disabled={orgForm.formState.isSubmitting}>
                 {orgForm.formState.isSubmitting ? 'A guardar…' : 'Guardar organização'}
-              </Button>
+              </button>
             </form>
-          </CardContent>
-        </Card>
-      )}
+          </Section>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Esta organização</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Deixa de pertencer a {activeOrg?.name ?? 'esta organização'}. Podes voltar a entrar
-            mais tarde com o código de convite.
+        {/* ── Leave org ───────────────────────────────── */}
+        <Section title="Esta organização">
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+            Deixa de pertencer a <span style={{ color: 'rgba(255,255,255,0.65)' }}>{activeOrg?.name ?? 'esta organização'}</span>.
+            Podes voltar a entrar mais tarde com o código de convite.
           </p>
-          <Button
+          <button
             type="button"
-            variant="outline"
-            className="gap-2 text-destructive hover:text-destructive"
             onClick={() => setLeaveOrgOpen(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
+              background: 'rgba(239,68,68,0.08)', color: '#f87171',
+              border: '1px solid rgba(239,68,68,0.2)', borderRadius: '0.5rem', cursor: 'pointer',
+              transition: 'background 0.15s, border-color 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.15)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.35)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.2)';
+            }}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut style={{ width: '0.9rem', height: '0.9rem' }} />
             Saír da organização
-          </Button>
-        </CardContent>
-      </Card>
+          </button>
+        </Section>
 
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-destructive">Zona de perigo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Elimina permanentemente a tua conta e todos os dados associados (perfil,
-            participação em organizações, escalas, notificações). Esta ação não pode ser desfeita.
+        {/* ── Danger zone ─────────────────────────────── */}
+        <Section title="Zona de perigo" danger>
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+            Elimina permanentemente a tua conta e todos os dados associados — perfil,
+            participação em organizações, escalas e notificações. Esta ação não pode ser desfeita.
           </p>
-          <Button
+          <button
             type="button"
-            variant="destructive"
-            className="gap-2"
             onClick={() => setDeleteAccountOpen(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 1.125rem', fontSize: '0.85rem', fontWeight: 600,
+              background: 'rgba(239,68,68,0.15)', color: '#fca5a5',
+              border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.25)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.15)'; }}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 style={{ width: '0.9rem', height: '0.9rem' }} />
             Eliminar conta
-          </Button>
-        </CardContent>
-      </Card>
+          </button>
+        </Section>
+
+        <div style={{ height: '1rem' }} />
+      </div>
+
+      {/* ── Modals ──────────────────────────────────────── */}
+      <ProfileCardDialog
+        open={profileCardOpen}
+        onOpenChange={setProfileCardOpen}
+        name={profile?.full_name || 'Utilizador'}
+        email={user?.email}
+        avatarUrl={displayAvatar}
+        onChangePhoto={() => fileInputRef.current?.click()}
+      />
+
+      {cropSrc && (
+        <ImageCropDialog
+          open={!!cropSrc}
+          imageSrc={cropSrc}
+          shape="round"
+          aspect={1}
+          title="Recortar foto de perfil"
+          onConfirm={handleCropConfirm}
+          onCancel={handleCropCancel}
+        />
+      )}
 
       <AlertDialog open={leaveOrgOpen} onOpenChange={setLeaveOrgOpen}>
         <AlertDialogContent>
