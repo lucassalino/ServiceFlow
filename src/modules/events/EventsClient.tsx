@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
 import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEvents, useDeleteEvent } from '@/hooks/useEvents';
@@ -11,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { formatDate, formatTime } from '@/lib/utils';
-import { EventDialog } from './EventDialog';
+import { EventCreatePanel } from './EventCreatePanel';
 import { EventDetailPanel } from './EventDetailPanel';
+import { EventEditPanel } from './EventEditPanel';
 
 interface Props { orgId: string }
 
@@ -50,16 +52,16 @@ export function EventsClient({ orgId: _orgId }: Props) {
   const { activeMembership } = useOrgStore();
   const isAdmin = activeMembership?.role === 'admin';
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selected, setSelected] = useState<Event | null>(null);
+  const [createMode, setCreateMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
+  const [editMode, setEditMode] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
-  function handleNew() { setSelected(null); setDialogOpen(true); }
-  function handleEdit(e: Event) { setSelected(e); setDialogOpen(true); }
+  function handleNew() { setCreateMode(true); }
+  function handleEdit(_e: Event) { setEditMode(true); }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
@@ -93,18 +95,30 @@ export function EventsClient({ orgId: _orgId }: Props) {
 
   const sorted = [...filtered].sort((a, b) => a.date.localeCompare(b.date));
 
+  /* ── Create panel ────────────────────────────────────────────────────── */
+  if (createMode) {
+    return <EventCreatePanel onBack={() => setCreateMode(false)} />;
+  }
+
+  /* ── Edit panel ──────────────────────────────────────────────────────── */
+  if (detailEvent && editMode) {
+    return (
+      <EventEditPanel
+        event={detailEvent}
+        onBack={() => setEditMode(false)}
+      />
+    );
+  }
+
   /* ── Detail panel ─────────────────────────────────────────────────────── */
   if (detailEvent) {
     return (
-      <>
         <EventDetailPanel
           event={detailEvent}
           onBack={() => setDetailEvent(null)}
           isAdmin={isAdmin}
           onEdit={() => handleEdit(detailEvent)}
         />
-        <EventDialog event={selected} open={dialogOpen} onOpenChange={setDialogOpen} />
-      </>
     );
   }
 
@@ -254,8 +268,6 @@ export function EventsClient({ orgId: _orgId }: Props) {
       </div>
 
       {/* ── Dialogs ───────────────────────────────────── */}
-      <EventDialog event={selected} open={dialogOpen} onOpenChange={setDialogOpen} />
-
       <Dialog open={!!lightboxUrl} onOpenChange={(v) => { if (!v) setLightboxUrl(null); }}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-0 [&>button]:hidden">
           {lightboxUrl && (

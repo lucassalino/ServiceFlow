@@ -419,6 +419,7 @@ export type Database = {
           musical_key: string | null
           name: string
           org_id: string
+          spotify_url: string | null
           updated_at: string
           youtube_url: string | null
         }
@@ -433,6 +434,7 @@ export type Database = {
           musical_key?: string | null
           name: string
           org_id: string
+          spotify_url?: string | null
           updated_at?: string
           youtube_url?: string | null
         }
@@ -447,6 +449,7 @@ export type Database = {
           musical_key?: string | null
           name?: string
           org_id?: string
+          spotify_url?: string | null
           updated_at?: string
           youtube_url?: string | null
         }

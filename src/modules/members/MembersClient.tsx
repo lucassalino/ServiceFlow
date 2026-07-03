@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
+import { MemberDetailPanel } from './MemberDetailPanel';
 
 type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
@@ -69,6 +70,7 @@ export function MembersClient() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<MemberWithProfile | null>(null);
+  const [detailMember, setDetailMember] = useState<MemberWithProfile | null>(null);
 
   function handleCopyCode() {
     const code = activeOrg?.invite_code;
@@ -103,6 +105,17 @@ export function MembersClient() {
   const typedMembers = members as unknown as MemberWithProfile[];
   const active = typedMembers.filter((m) => m.is_active);
   const inactive = typedMembers.filter((m) => !m.is_active);
+
+  /* ── Detail panel ──────────────────────────────────────────────────────── */
+  if (detailMember) {
+    return (
+      <MemberDetailPanel
+        member={detailMember}
+        isAdmin={isAdmin}
+        onBack={() => setDetailMember(null)}
+      />
+    );
+  }
 
   return (
     <div className="dash-purple-bg">
@@ -161,9 +174,10 @@ export function MembersClient() {
                 <div
                   key={member.id}
                   className="events-dark-card"
+                  onClick={() => setDetailMember(member)}
                   style={{
                     opacity: member.is_active ? 1 : 0.5,
-                    cursor: 'default',
+                    cursor: 'pointer',
                   }}
                 >
                   {/* Avatar */}
@@ -198,7 +212,7 @@ export function MembersClient() {
                   </div>
 
                   {/* Role selector + deactivate */}
-                  <div className="flex items-center gap-2 flex-shrink-0 dark-inputs">
+                  <div className="flex items-center gap-2 flex-shrink-0 dark-inputs" onClick={(e) => e.stopPropagation()}>
                     {canManage(role, member.user_id) ? (
                       <Select value={role} onValueChange={(v) => handleRoleChange(member, v as OrgRole)}>
                         <SelectTrigger className="h-8 w-36 text-xs">

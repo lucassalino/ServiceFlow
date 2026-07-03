@@ -91,6 +91,18 @@ export const PRESET_MINISTRIES = [
     color: '#6A5A4A',
     functions: ['intercessor', 'vigil_leader'],
   },
+  {
+    name: 'Mídia',
+    icon: '💻',
+    color: '#4A5A6A',
+    functions: ['coordination', 'media', 'projection', 'photography', 'camera_operator'],
+  },
+  {
+    name: 'Transmissão',
+    icon: '📡',
+    color: '#3A3A38',
+    functions: ['coordination', 'live_stream', 'camera_operator', 'sound_operator', 'lighting'],
+  },
 ] as const;
 
 export const SONG_KEYS = [

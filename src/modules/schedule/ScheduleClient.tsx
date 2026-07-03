@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
   Plus, X, Check, Users, ChevronDown, ChevronRight,
-  Send, Pencil, CalendarDays, ArrowLeft,
+  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin,
 } from 'lucide-react';
 import { useEvents, usePublishEvent } from '@/hooks/useEvents';
 import { useOrgStore } from '@/stores/orgStore';
@@ -22,7 +22,7 @@ import {
   useUpdateEventSchedule,
 } from '@/hooks/useSchedule';
 import { MEMBER_FUNCTIONS, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
-import { formatDate, getInitials } from '@/lib/utils';
+import { formatDate, formatTime, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
@@ -325,7 +325,6 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
           {expanded
             ? <ChevronDown style={{ width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
             : <ChevronRight style={{ width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />}
-          <span style={{ fontSize: '1.125rem' }}>{em.ministry.icon}</span>
           <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{em.ministry.name}</span>
           <DarkBadge color={color}>
             <Users style={{ width: '0.65rem', height: '0.65rem' }} />
@@ -547,15 +546,18 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
         </div>
 
         {eventsLoading ? (
-          <div style={{ padding: '1rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
-            A carregar…
+          <div style={{ padding: '0.75rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} style={{ height: '4.5rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            ))}
           </div>
         ) : sortedEvents.length === 0 ? (
-          <div style={{ padding: '1rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
-            Sem eventos criados
+          <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+            <CalendarDays style={{ width: '1.75rem', height: '1.75rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.5rem' }} />
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Sem eventos</p>
           </div>
         ) : (
-          <ul style={{ padding: '0.375rem 0.5rem', margin: 0, listStyle: 'none' }}>
+          <ul style={{ padding: '0.625rem 0.5rem', margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
             {sortedEvents.map((event) => {
               const isSelected = selectedEventId === event.id;
               return (
@@ -563,44 +565,75 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                   <button
                     onClick={() => handleSelectEvent(event.id)}
                     style={{
-                      width: '100%', textAlign: 'left', padding: '0.625rem 0.625rem',
-                      borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
-                      background: isSelected ? 'rgba(255,255,255,0.1)' : 'transparent',
-                      color: isSelected ? '#ffffff' : 'rgba(255,255,255,0.5)',
-                      transition: 'background 0.12s, color 0.12s',
-                      position: 'relative',
-                      display: 'block',
+                      width: '100%', textAlign: 'left', padding: '0.625rem 0.75rem',
+                      borderRadius: '0.625rem', border: `1px solid ${isSelected ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'}`,
+                      cursor: 'pointer',
+                      background: isSelected ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
+                      color: '#fff',
+                      transition: 'background 0.12s, border-color 0.12s',
+                      display: 'flex', flexDirection: 'column', gap: '0.25rem',
+                      position: 'relative', overflow: 'hidden',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)';
-                        (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.8)';
+                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.12)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                        (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)';
+                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.07)';
                       }
                     }}
                   >
+                    {/* Selected left accent */}
                     {isSelected && (
                       <div style={{
-                        position: 'absolute', left: 0, top: '18%', height: '64%',
-                        width: '2.5px', borderRadius: '0 2px 2px 0',
-                        background: 'rgba(255,255,255,0.75)',
+                        position: 'absolute', left: 0, top: 0, bottom: 0,
+                        width: '3px', borderRadius: '0 2px 2px 0',
+                        background: 'rgba(255,255,255,0.6)',
                       }} />
                     )}
-                    <p style={{ fontSize: '0.825rem', fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {event.name}
-                    </p>
-                    <p style={{ fontSize: '0.7rem', marginTop: '0.2rem', color: 'rgba(255,255,255,0.3)' }}>
-                      {formatDate(event.date)}{event.time ? ` · ${event.time.slice(0, 5)}` : ''}
-                    </p>
-                    {event.location && (
-                      <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {event.location}
+
+                    {/* Name + status */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.375rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
+                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, flex: 1, minWidth: 0 }}>
+                        {event.name}
                       </p>
+                      <span style={{
+                        fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.35rem',
+                        borderRadius: '9999px', flexShrink: 0, letterSpacing: '0.04em',
+                        background: event.is_published ? 'rgba(110,231,183,0.15)' : 'rgba(255,255,255,0.07)',
+                        color: event.is_published ? '#6ee7b7' : 'rgba(255,255,255,0.38)',
+                        border: `1px solid ${event.is_published ? 'rgba(110,231,183,0.25)' : 'rgba(255,255,255,0.1)'}`,
+                      }}>
+                        {event.is_published ? 'Pub' : 'Rascunho'}
+                      </span>
+                    </div>
+
+                    {/* Date + time */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.38)' }}>
+                        <CalendarDays style={{ width: '0.65rem', height: '0.65rem', flexShrink: 0 }} />
+                        {formatDate(event.date)}
+                      </span>
+                      {event.time && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+                          <Clock style={{ width: '0.6rem', height: '0.6rem', flexShrink: 0 }} />
+                          {formatTime(event.time)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Location */}
+                    {event.location && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
+                        <MapPin style={{ width: '0.6rem', height: '0.6rem', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
+                        <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.28)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                          {event.location}
+                        </p>
+                      </div>
                     )}
                   </button>
                 </li>

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Youtube, Music, FileText, Guitar } from 'lucide-react';
 
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -20,7 +21,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -29,15 +29,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+const urlOrEmpty = z.string().url('URL inválida').nullable().or(z.literal('')).optional();
+
 const songSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   artist: z.string().nullable().optional(),
   musical_key: z.string().nullable().optional(),
   bpm: z.coerce.number().int().positive().nullable().optional(),
   ministry_id: z.string().nullable().optional(),
-  youtube_url: z.string().url('URL inválida').nullable().or(z.literal('')).optional(),
-  lyrics: z.string().nullable().optional(),
-  chords: z.string().nullable().optional(),
+  youtube_url: urlOrEmpty,
+  spotify_url: urlOrEmpty,
+  chords: urlOrEmpty,
+  lyrics: urlOrEmpty,
 });
 
 type SongFormValues = z.infer<typeof songSchema>;
@@ -63,7 +66,7 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<SongFormValues>({
-    resolver: zodResolver(songSchema),
+    resolver: zodResolver(songSchema) as never,
     defaultValues: {
       name: '',
       artist: '',
@@ -71,8 +74,9 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
       bpm: null,
       ministry_id: null,
       youtube_url: '',
-      lyrics: '',
+      spotify_url: '',
       chords: '',
+      lyrics: '',
     },
   });
 
@@ -89,8 +93,9 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
           bpm: song.bpm ?? null,
           ministry_id: song.ministry_id ?? null,
           youtube_url: song.youtube_url ?? '',
-          lyrics: song.lyrics ?? '',
+          spotify_url: song.spotify_url ?? '',
           chords: song.chords ?? '',
+          lyrics: song.lyrics ?? '',
         });
       } else {
         reset({
@@ -100,8 +105,9 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
           bpm: null,
           ministry_id: null,
           youtube_url: '',
-          lyrics: '',
+          spotify_url: '',
           chords: '',
+          lyrics: '',
         });
       }
     }
@@ -115,8 +121,9 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
       bpm: values.bpm ?? null,
       ministry_id: values.ministry_id || null,
       youtube_url: values.youtube_url || null,
-      lyrics: values.lyrics || null,
+      spotify_url: values.spotify_url || null,
       chords: values.chords || null,
+      lyrics: values.lyrics || null,
     };
 
     if (isEditing && song) {
@@ -124,16 +131,16 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
         { id: song.id, ...payload },
         {
           onSuccess: () => {
-            toast.success('Música atualizada com sucesso.');
+            toast.success('Música actualizada.');
             onOpenChange(false);
           },
-          onError: () => toast.error('Erro ao atualizar música.'),
+          onError: () => toast.error('Erro ao actualizar música.'),
         },
       );
     } else {
       createSong.mutate(payload, {
         onSuccess: () => {
-          toast.success('Música criada com sucesso.');
+          toast.success('Música criada.');
           onOpenChange(false);
         },
         onError: () => toast.error('Erro ao criar música.'),
@@ -145,134 +152,126 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl dark-inputs">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Música' : 'Nova Música'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+          {/* Nome + Artista */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="name">
-                Nome <span className="text-destructive">*</span>
-              </Label>
+              <Label htmlFor="name">Nome <span className="text-destructive">*</span></Label>
               <Input id="name" placeholder="Nome da música" {...register('name')} />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
-
             <div className="space-y-1.5">
               <Label htmlFor="artist">Artista</Label>
               <Input id="artist" placeholder="Nome do artista" {...register('artist')} />
             </div>
           </div>
 
+          {/* Tom + BPM + Ministério */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">
-              <Label htmlFor="musical_key">Tom</Label>
-              <Select
-                value={selectedKey ?? ''}
-                onValueChange={(val) => setValue('musical_key', val || null)}
-              >
-                <SelectTrigger id="musical_key">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
+              <Label>Tom</Label>
+              <Select value={selectedKey ?? ''} onValueChange={(v) => setValue('musical_key', v || null)}>
+                <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Nenhum</SelectItem>
-                  {SONG_KEYS.map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {key}
-                    </SelectItem>
-                  ))}
+                  {SONG_KEYS.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-1.5">
               <Label htmlFor="bpm">BPM</Label>
-              <Input
-                id="bpm"
-                type="number"
-                placeholder="120"
-                min={1}
-                max={300}
-                {...register('bpm')}
-              />
-              {errors.bpm && (
-                <p className="text-sm text-destructive">{errors.bpm.message}</p>
-              )}
+              <Input id="bpm" type="number" placeholder="120" min={1} max={300} {...register('bpm')} />
+              {errors.bpm && <p className="text-sm text-destructive">{errors.bpm.message}</p>}
             </div>
-
             <div className="space-y-1.5">
-              <Label htmlFor="ministry_id">Ministério</Label>
-              <Select
-                value={selectedMinistryId ?? ''}
-                onValueChange={(val) => setValue('ministry_id', val || null)}
-              >
-                <SelectTrigger id="ministry_id">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
+              <Label>Ministério</Label>
+              <Select value={selectedMinistryId ?? ''} onValueChange={(v) => setValue('ministry_id', v || null)}>
+                <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Nenhum</SelectItem>
                   {ministries?.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.icon} {m.name}
-                    </SelectItem>
+                    <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="youtube_url">URL do YouTube</Label>
-            <Input
-              id="youtube_url"
-              type="url"
-              placeholder="https://youtube.com/watch?v=..."
-              {...register('youtube_url')}
-            />
-            {errors.youtube_url && (
-              <p className="text-sm text-destructive">{errors.youtube_url.message}</p>
-            )}
-          </div>
+          {/* Links */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Links
+            </p>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="lyrics">Letra</Label>
-              <Textarea
-                id="lyrics"
-                placeholder="Letra da música..."
-                rows={8}
-                className="resize-none font-mono text-sm"
-                {...register('lyrics')}
+              <Label htmlFor="youtube_url" className="flex items-center gap-2">
+                <Youtube className="h-3.5 w-3.5" style={{ color: '#f87171' }} />
+                YouTube
+              </Label>
+              <Input
+                id="youtube_url"
+                type="url"
+                placeholder="https://youtube.com/watch?v=…"
+                {...register('youtube_url')}
               />
+              {errors.youtube_url && <p className="text-sm text-destructive">{errors.youtube_url.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="chords">Cifra</Label>
-              <Textarea
+              <Label htmlFor="spotify_url" className="flex items-center gap-2">
+                <Music className="h-3.5 w-3.5" style={{ color: '#1db954' }} />
+                Spotify
+              </Label>
+              <Input
+                id="spotify_url"
+                type="url"
+                placeholder="https://open.spotify.com/track/…"
+                {...register('spotify_url')}
+              />
+              {errors.spotify_url && <p className="text-sm text-destructive">{errors.spotify_url.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="chords" className="flex items-center gap-2">
+                <Guitar className="h-3.5 w-3.5" style={{ color: '#fcd34d' }} />
+                Cifra
+              </Label>
+              <Input
                 id="chords"
-                placeholder="Cifra da música..."
-                rows={8}
-                className="resize-none font-mono text-sm"
+                type="url"
+                placeholder="https://cifraclub.com.br/…"
                 {...register('chords')}
               />
+              {errors.chords && <p className="text-sm text-destructive">{errors.chords.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="lyrics" className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5" style={{ color: '#a5b4fc' }} />
+                Letra
+              </Label>
+              <Input
+                id="lyrics"
+                type="url"
+                placeholder="https://letras.mus.br/…"
+                {...register('lyrics')}
+              />
+              {errors.lyrics && <p className="text-sm text-destructive">{errors.lyrics.message}</p>}
             </div>
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isPending}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar música'}
+              {isPending ? 'A guardar…' : isEditing ? 'Guardar alterações' : 'Criar música'}
             </Button>
           </DialogFooter>
         </form>

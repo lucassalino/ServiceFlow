@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { ImagePlus, X, ZoomIn, Search, Check, ChevronLeft } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOrgStore } from '@/stores/orgStore';
 import { useCreateEvent, useUpdateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -93,6 +94,7 @@ interface Props {
 
 export function EventDialog({ event, open, onOpenChange }: Props) {
   const { activeOrg } = useOrgStore();
+  const qc = useQueryClient();
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
   const { data: ministries = [] } = useMinistries();
@@ -316,6 +318,9 @@ export function EventDialog({ event, open, onOpenChange }: Props) {
         if (selectedSongIds.length > 0) await setupEventSetlistAction(eventId, selectedSongIds);
         toast.success('Evento criado com sucesso');
       }
+      // Invalidate setlist cache so EventDetailPanel reflects changes immediately
+      qc.invalidateQueries({ queryKey: ['event-setlist', eventId] });
+      qc.invalidateQueries({ queryKey: ['event-ministries', eventId] });
       onOpenChange(false);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao guardar');

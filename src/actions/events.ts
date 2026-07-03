@@ -16,6 +16,7 @@ export interface EventPayload {
   name: string; date: string; time: string;
   location: string | null; color: string | null; cover_image_url?: string | null;
   description: string | null; observations: string | null;
+  is_published?: boolean;
 }
 
 export async function fetchEventsAction(orgId: string): Promise<Event[]> {

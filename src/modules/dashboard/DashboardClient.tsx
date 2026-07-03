@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import {
-  CalendarDays, Users, LayoutGrid, Music,
+  CalendarDays, Users, LayoutGrid,
   AlertCircle, MapPin, Clock, ArrowRight,
   CalendarCheck, BookOpen,
 } from 'lucide-react';
@@ -13,19 +13,9 @@ import type { Event } from '@/types/models';
 
 interface Props {
   upcomingEvents: Event[];
-  memberCount: number;
-  ministryCount: number;
-  songCount: number;
   pendingConfirmations: number;
   orgId: string;
 }
-
-const STATS = (orgId: string, props: Props) => [
-  { label: 'Próximos eventos', value: props.upcomingEvents.length, icon: CalendarDays, color: '#93c5fd', bg: 'rgba(147,197,253,0.15)', href: `/${orgId}/events` },
-  { label: 'Membros activos',  value: props.memberCount,           icon: Users,        color: '#6ee7b7', bg: 'rgba(110,231,183,0.15)', href: `/${orgId}/members` },
-  { label: 'Ministérios',      value: props.ministryCount,         icon: LayoutGrid,   color: '#c4b5fd', bg: 'rgba(196,181,253,0.15)', href: `/${orgId}/ministries` },
-  { label: 'Músicas',          value: props.songCount,             icon: Music,        color: '#fcd34d', bg: 'rgba(252,211,77,0.15)',  href: `/${orgId}/songs` },
-];
 
 const QUICK = (orgId: string) => [
   { label: 'Escalas',     icon: CalendarCheck, href: `/${orgId}/schedule`,    color: '#a5b4fc', bg: 'rgba(165,180,252,0.18)' },
@@ -48,8 +38,7 @@ function getNow() {
   });
 }
 
-export function DashboardClient(props: Props) {
-  const { upcomingEvents, pendingConfirmations, orgId } = props;
+export function DashboardClient({ upcomingEvents, pendingConfirmations, orgId }: Props) {
   const { activeMembership, activeOrg } = useOrgStore();
   const firstName = activeMembership?.profile?.full_name?.split(' ')[0] ?? 'Bem-vindo';
   const isAdmin = activeMembership?.role === 'admin';
@@ -152,21 +141,6 @@ export function DashboardClient(props: Props) {
           )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[...STATS(orgId, props)].reverse().map(({ label, value, icon: Icon, color, bg, href }) => (
-            <Link key={label} href={href} className="dash-glass-stat">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: bg, color }}>
-                <Icon style={{ width: '1.1rem', height: '1.1rem' }} />
-              </div>
-              <div>
-                <p className="text-2xl font-extrabold tracking-tight leading-none">{value}</p>
-                <p className="text-white/50 text-xs mt-1 leading-tight">{label}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
 
         {/* Quick links — desktop only */}
         <div className="hidden lg:block dash-glass-card p-5">

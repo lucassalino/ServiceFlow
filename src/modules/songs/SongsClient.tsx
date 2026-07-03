@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, Search, Music } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSongs, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -10,7 +10,8 @@ import type { Song } from '@/types/models';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { SongDialog } from './SongDialog';
+import { SongFormPanel } from './SongFormPanel';
+import { SongDetailPanel } from './SongDetailPanel';
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
@@ -34,15 +35,15 @@ export function SongsClient() {
   const { activeMembership } = useOrgStore();
   const isAdmin = activeMembership?.role === 'admin';
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selected, setSelected] = useState<Song | null>(null);
+  const [formSong, setFormSong] = useState<Song | null | 'new'>(null);
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
+  const [detailSong, setDetailSong] = useState<Song | null>(null);
   const [search, setSearch] = useState('');
   const [ministryFilter, setMinistryFilter] = useState<string>('all');
 
   const ministryMap = useMemo(() => {
-    const map = new Map<string, string>();
-    ministries.forEach((m) => map.set(m.id, m.name));
+    const map = new Map<string, { name: string; icon: string }>();
+    ministries.forEach((m) => map.set(m.id, { name: m.name, icon: m.icon }));
     return map;
   }, [ministries]);
 
@@ -55,8 +56,13 @@ export function SongsClient() {
     });
   }, [songs, search, ministryFilter]);
 
-  function handleNew() { setSelected(null); setDialogOpen(true); }
-  function handleEdit(song: Song) { setSelected(song); setDialogOpen(true); }
+  function handleNew() { setFormSong('new'); }
+  function handleEdit(song: Song) { setFormSong(song); }
+
+  function handleDeleteRequest(song: Song) {
+    setDetailSong(null);
+    setDeleteTarget(song);
+  }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
@@ -69,6 +75,61 @@ export function SongsClient() {
     }
   }
 
+  /* ── Form panel ───────────────────────────────────────────── */
+  if (formSong !== null) {
+    return (
+      <SongFormPanel
+        song={formSong === 'new' ? null : formSong}
+        onBack={() => setFormSong(null)}
+        onSaved={() => {
+          if (formSong !== 'new' && detailSong) {
+            const updated = songs.find((s) => s.id === (formSong as Song).id);
+            if (updated) setDetailSong(updated);
+          }
+        }}
+      />
+    );
+  }
+
+  /* ── Detail panel ─────────────────────────────────────────── */
+  if (detailSong) {
+    const ministry = detailSong.ministry_id ? ministryMap.get(detailSong.ministry_id) : undefined;
+    return (
+      <>
+        <SongDetailPanel
+          song={detailSong}
+          ministryName={ministry?.name}
+          ministryIcon={ministry?.icon}
+          onBack={() => setDetailSong(null)}
+          isAdmin={isAdmin}
+          onEdit={() => handleEdit(detailSong)}
+          onDelete={() => handleDeleteRequest(detailSong)}
+        />
+        <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remover música?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tens a certeza que queres remover <strong>{deleteTarget?.name}</strong>?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={confirmDelete}
+                disabled={deleteSong.isPending}
+              >
+                {deleteSong.isPending ? 'A remover…' : 'Remover'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
+
+  /* ── List ──────────────────────────────────────────────────── */
   return (
     <div className="dash-purple-bg">
       <div className="p-5 md:p-8 space-y-6">
@@ -148,22 +209,24 @@ export function SongsClient() {
           </div>
         ) : (
           <div className="space-y-2.5">
-            {filtered.map((song) => (
-              <SongRow
-                key={song.id}
-                song={song}
-                ministryName={song.ministry_id ? ministryMap.get(song.ministry_id) : undefined}
-                onEdit={() => handleEdit(song)}
-                onDelete={() => setDeleteTarget(song)}
-                isAdmin={isAdmin}
-              />
-            ))}
+            {filtered.map((song) => {
+              const ministry = song.ministry_id ? ministryMap.get(song.ministry_id) : undefined;
+              return (
+                <SongRow
+                  key={song.id}
+                  song={song}
+                  ministryName={ministry?.name}
+                  onClick={() => setDetailSong(song)}
+                  onEdit={() => handleEdit(song)}
+                  onDelete={() => setDeleteTarget(song)}
+                  isAdmin={isAdmin}
+                />
+              );
+            })}
           </div>
         )}
 
       </div>
-
-      <SongDialog song={selected} open={dialogOpen} onOpenChange={setDialogOpen} />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
         <AlertDialogContent>
@@ -192,28 +255,36 @@ export function SongsClient() {
 // ── Song row ─────────────────────────────────────────────────────────────────
 
 function SongRow({
-  song, ministryName, onEdit, onDelete, isAdmin,
+  song, ministryName, onClick, onEdit, onDelete, isAdmin,
 }: {
   song: Song;
   ministryName?: string;
+  onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
   isAdmin: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
 
+  const linkIcons = [
+    song.youtube_url && <Youtube key="yt" style={{ width: '0.8rem', height: '0.8rem', color: '#f87171' }} />,
+    song.spotify_url && <Music key="sp" style={{ width: '0.8rem', height: '0.8rem', color: '#1db954' }} />,
+    song.chords     && <Guitar key="ch" style={{ width: '0.8rem', height: '0.8rem', color: '#fcd34d' }} />,
+    song.lyrics     && <FileText key="ly" style={{ width: '0.8rem', height: '0.8rem', color: '#a5b4fc' }} />,
+  ].filter(Boolean);
+
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => isAdmin && onEdit()}
+      onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: '1rem',
         padding: '0.875rem 1rem',
         background: hovered ? 'rgba(35,35,40,0.9)' : 'rgba(22,22,26,0.85)',
         border: `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)'}`,
         borderRadius: '0.875rem',
-        cursor: isAdmin ? 'pointer' : 'default',
+        cursor: 'pointer',
         transition: 'background 0.15s, border-color 0.15s, transform 0.12s',
         transform: hovered ? 'translateY(-1px)' : 'none',
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -223,9 +294,9 @@ function SongRow({
       <div style={{
         width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        background: 'rgba(252,211,77,0.12)',
+        background: 'rgba(255,255,255,0.06)',
       }}>
-        <Music style={{ width: '1.1rem', height: '1.1rem', color: '#fcd34d' }} />
+        <Music style={{ width: '1.1rem', height: '1.1rem', color: 'rgba(255,255,255,0.35)' }} />
       </div>
 
       {/* Info */}
@@ -238,8 +309,8 @@ function SongRow({
         </p>
       </div>
 
-      {/* Chips */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      {/* Chips + link icons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {song.musical_key && <Chip>{song.musical_key}</Chip>}
         {song.bpm && <Chip>{song.bpm} BPM</Chip>}
         {ministryName && (
@@ -247,9 +318,14 @@ function SongRow({
             <Chip>{ministryName}</Chip>
           </span>
         )}
+        {linkIcons.length > 0 && (
+          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', opacity: 0.7 }}>
+            {linkIcons}
+          </div>
+        )}
       </div>
 
-      {/* Actions — admin only */}
+      {/* Actions — admin only, on hover */}
       {isAdmin && (
         <div
           style={{ display: 'flex', gap: '0.25rem', flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}

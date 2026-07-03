@@ -64,6 +64,43 @@ export async function toggleMemberActiveAction(memberId: string, isActive: boole
   if (error) throw new Error(error.message);
 }
 
+export async function fetchMemberMinistriesAction(
+  userId: string,
+): Promise<{ ministry_id: string; functions: string[] }[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('ministry_members')
+    .select('ministry_id, functions')
+    .eq('user_id', userId)
+    .eq('is_active', true);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as { ministry_id: string; functions: string[] }[];
+}
+
+export async function upsertMemberMinistriesAction(
+  userId: string,
+  orgId: string,
+  assignments: { ministryId: string; functions: string[] }[],
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+  const { data: orgMinistries } = await admin
+    .from('ministries').select('id').eq('org_id', orgId);
+  const orgMinistryIds = (orgMinistries ?? []).map((m: { id: string }) => m.id);
+  if (orgMinistryIds.length > 0) {
+    await admin.from('ministry_members')
+      .delete().eq('user_id', userId).in('ministry_id', orgMinistryIds);
+  }
+  if (assignments.length === 0) return;
+  const rows = assignments.map(({ ministryId, functions }) => ({
+    ministry_id: ministryId, user_id: userId, functions, is_active: true,
+  }));
+  const { error } = await admin.from('ministry_members').insert(rows);
+  if (error) throw new Error(error.message);
+}
+
 export async function upsertMinistryMembersAction(
   ministryId: string,
   members: { userId: string; functions: string[] }[],

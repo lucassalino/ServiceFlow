@@ -41,7 +41,8 @@ export interface EventSchedule {
 export interface Song {
   id: string; org_id: string; name: string; artist: string | null;
   musical_key: string | null; bpm: number | null; ministry_id: string | null;
-  lyrics: string | null; chords: string | null; youtube_url: string | null;
+  lyrics: string | null; chords: string | null;
+  youtube_url: string | null; spotify_url: string | null;
   created_at: string; updated_at: string;
 }
 export interface AppNotification {

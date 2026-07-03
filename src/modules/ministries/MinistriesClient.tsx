@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash2, PowerOff, Power, Download, LayoutGrid } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import {
   useMinistries, useDeleteMinistry,
-  useToggleMinistryActive, useImportPresetMinistries,
+  useToggleMinistryActive,
 } from '@/hooks/useMinistries';
-import { MEMBER_FUNCTIONS } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { MinistryDialog } from './MinistryDialog';
+import { MinistryMembersPanel } from './MinistryMembersPanel';
+import { MinistryDetailPanel } from './MinistryDetailPanel';
 
 type Tab = 'active' | 'inactive' | 'all';
 
@@ -22,36 +22,24 @@ const TABS: { value: Tab; label: string }[] = [
 ];
 
 export function MinistriesClient() {
-  const { activeOrg, activeMembership } = useOrgStore();
+  const { activeMembership } = useOrgStore();
   const isAdmin = activeMembership?.role === 'admin';
   const { data: ministries = [], isLoading } = useMinistries();
   const deleteMinistry = useDeleteMinistry();
   const toggleActive = useToggleMinistryActive();
-  const importPresets = useImportPresetMinistries();
 
   const [tab, setTab] = useState<Tab>('active');
-  const [editTarget, setEditTarget] = useState<Ministry | null>(null);
+  const [detailMinistry, setDetailMinistry] = useState<Ministry | null>(null);
+  const [membersMinistry, setMembersMinistry] = useState<Ministry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Ministry | null>(null);
 
   async function handleToggle(m: Ministry) {
     try {
       await toggleActive.mutateAsync({ id: m.id, isActive: !m.is_active });
       toast.success(m.is_active ? `"${m.name}" desactivado` : `"${m.name}" activado`);
+      if (detailMinistry?.id === m.id) setDetailMinistry({ ...m, is_active: !m.is_active });
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao actualizar');
-    }
-  }
-
-  async function handleImport() {
-    try {
-      const count = await importPresets.mutateAsync();
-      if (count === 0) {
-        toast.info('Todos os ministérios já foram carregados.');
-      } else {
-        toast.success(`${count} ministério${count !== 1 ? 's' : ''} carregado${count !== 1 ? 's' : ''}.`);
-      }
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao carregar');
     }
   }
 
@@ -61,6 +49,7 @@ export function MinistriesClient() {
       await deleteMinistry.mutateAsync(deleteTarget.id);
       toast.success('Ministério removido');
       setDeleteTarget(null);
+      if (detailMinistry?.id === deleteTarget.id) setDetailMinistry(null);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao remover');
     }
@@ -74,6 +63,53 @@ export function MinistriesClient() {
 
   const activeCount   = ministries.filter((m) =>  m.is_active).length;
   const inactiveCount = ministries.filter((m) => !m.is_active).length;
+
+  /* ── Members panel ────────────────────────────────────────────────────── */
+  if (membersMinistry) {
+    return (
+      <MinistryMembersPanel
+        ministry={membersMinistry}
+        onBack={() => setMembersMinistry(null)}
+      />
+    );
+  }
+
+  /* ── Detail panel ─────────────────────────────────────────────────────── */
+  if (detailMinistry) {
+    return (
+      <>
+        <MinistryDetailPanel
+          ministry={detailMinistry}
+          isAdmin={isAdmin}
+          onBack={() => setDetailMinistry(null)}
+          onEdit={() => setMembersMinistry(detailMinistry)}
+          onToggle={() => handleToggle(detailMinistry)}
+          onDelete={() => setDeleteTarget(detailMinistry)}
+          togglePending={toggleActive.isPending && toggleActive.variables?.id === detailMinistry.id}
+        />
+        <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remover ministério?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tens a certeza que queres remover <strong>{deleteTarget?.name}</strong>? Esta acção não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={confirmDelete}
+                disabled={deleteMinistry.isPending}
+              >
+                {deleteMinistry.isPending ? 'A remover…' : 'Remover'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
 
   return (
     <div className="dash-purple-bg">
@@ -95,16 +131,6 @@ export function MinistriesClient() {
                 : 'Grupos e equipas da organização'}
             </p>
           </div>
-          {isAdmin && (
-            <button
-              onClick={handleImport}
-              disabled={importPresets.isPending}
-              className="dark-primary-btn"
-            >
-              <Download className="h-4 w-4" />
-              {importPresets.isPending ? 'A carregar…' : 'Carregar ministérios'}
-            </button>
-          )}
         </div>
 
         {/* ── Tab filter ──────────────────────────────── */}
@@ -165,11 +191,6 @@ export function MinistriesClient() {
                tab === 'active'   ? 'Nenhum ministério activo.' :
                'Nenhum ministério carregado.'}
             </p>
-            {isAdmin && tab !== 'inactive' && (
-              <button onClick={handleImport} disabled={importPresets.isPending} className="dark-primary-btn mt-4">
-                <Download className="h-4 w-4" /> Carregar ministérios
-              </button>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -177,24 +198,13 @@ export function MinistriesClient() {
               <MinistryCard
                 key={ministry.id}
                 ministry={ministry}
-                onEdit={() => setEditTarget(ministry)}
-                onToggle={() => handleToggle(ministry)}
-                onDelete={() => setDeleteTarget(ministry)}
-                togglePending={toggleActive.isPending && toggleActive.variables?.id === ministry.id}
-                isAdmin={isAdmin}
+                onClick={() => setDetailMinistry(ministry)}
               />
             ))}
           </div>
         )}
 
       </div>
-
-      <MinistryDialog
-        orgId={activeOrg?.id ?? ''}
-        ministry={editTarget}
-        open={!!editTarget}
-        onOpenChange={(v) => { if (!v) setEditTarget(null); }}
-      />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
         <AlertDialogContent>
@@ -223,26 +233,18 @@ export function MinistriesClient() {
 // ── Ministry Card ─────────────────────────────────────────────────────────────
 
 function MinistryCard({
-  ministry, onEdit, onToggle, onDelete, togglePending, isAdmin,
+  ministry, onClick,
 }: {
   ministry: Ministry;
-  onEdit: () => void;
-  onToggle: () => void;
-  onDelete: () => void;
-  togglePending: boolean;
-  isAdmin: boolean;
+  onClick: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
-
-  const fnLabels = ministry.functions
-    .map((k) => MEMBER_FUNCTIONS.find((f) => f.key === k))
-    .filter(Boolean)
-    .slice(0, 5);
 
   const color = ministry.color ?? '#a5b4fc';
 
   return (
     <div
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -260,6 +262,7 @@ function MinistryCard({
         transform: hovered ? 'translateY(-2px)' : 'none',
         opacity: ministry.is_active ? 1 : 0.5,
         overflow: 'hidden',
+        cursor: 'pointer',
       }}
     >
       {/* Top colour accent bar */}
@@ -292,10 +295,18 @@ function MinistryCard({
         </span>
       )}
 
-      {/* Icon */}
-      <span style={{ fontSize: '2.5rem', lineHeight: 1, marginTop: '0.5rem' }}>
-        {ministry.icon}
-      </span>
+      {/* Initial avatar */}
+      <div style={{
+        width: '2.75rem', height: '2.75rem', borderRadius: '0.75rem',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginTop: '0.5rem',
+        background: `${color}18`,
+        border: `1px solid ${color}30`,
+        fontSize: '1.1rem', fontWeight: 800, color,
+        flexShrink: 0,
+      }}>
+        {ministry.name.charAt(0).toUpperCase()}
+      </div>
 
       {/* Name */}
       <span style={{
@@ -305,54 +316,16 @@ function MinistryCard({
         {ministry.name}
       </span>
 
-      {/* Function emojis */}
-      {fnLabels.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.25rem', marginTop: '0.125rem' }}>
-          {fnLabels.map((f) => f && (
-            <span key={f.key} title={f.label} style={{ fontSize: '0.875rem' }}>{f.emoji}</span>
-          ))}
-          {ministry.functions.length > 5 && (
-            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
-              +{ministry.functions.length - 5}
-            </span>
-          )}
-        </div>
+      {/* Function count */}
+      {ministry.functions.length > 0 && (
+        <span style={{
+          fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)',
+          fontWeight: 500,
+        }}>
+          {ministry.functions.length} função{ministry.functions.length !== 1 ? 'ões' : ''}
+        </span>
       )}
 
-      {/* Actions — admin only, fade in on hover */}
-      {isAdmin && <div style={{
-        display: 'flex', gap: '0.25rem', marginTop: '0.25rem',
-        opacity: hovered ? 1 : 0,
-        transition: 'opacity 0.15s',
-      }}>
-        <button
-          className="dark-icon-btn"
-          onClick={onEdit}
-          title="Gerir membros"
-        >
-          <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
-        </button>
-        <button
-          className="dark-icon-btn"
-          onClick={onToggle}
-          disabled={togglePending}
-          title={ministry.is_active ? 'Desactivar' : 'Activar'}
-          style={{
-            color: ministry.is_active ? '#fcd34d' : '#6ee7b7',
-          }}
-        >
-          {ministry.is_active
-            ? <PowerOff style={{ width: '0.75rem', height: '0.75rem' }} />
-            : <Power style={{ width: '0.75rem', height: '0.75rem' }} />}
-        </button>
-        <button
-          className="dark-icon-btn danger"
-          onClick={onDelete}
-          title="Remover"
-        >
-          <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
-        </button>
-      </div>}
     </div>
   );
 }

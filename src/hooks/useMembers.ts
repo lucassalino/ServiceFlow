@@ -5,8 +5,10 @@ import type { OrganizationMember, MinistryMember, OrgRole } from '@/types/models
 import {
   fetchOrgMembersAction,
   fetchMinistryMembersAction,
+  fetchMemberMinistriesAction,
   updateMemberRoleAction,
   toggleMemberActiveAction,
+  upsertMemberMinistriesAction,
 } from '@/actions/members';
 
 export function useOrgMembers() {
@@ -33,6 +35,29 @@ export function useUpdateMemberRole() {
     mutationFn: ({ memberId, role }: { memberId: string; role: OrgRole }) =>
       updateMemberRoleAction(memberId, role),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['members', activeOrg?.id] }),
+  });
+}
+
+export function useMemberMinistries(userId: string | null) {
+  return useQuery({
+    queryKey: ['member-ministries', userId],
+    enabled: !!userId,
+    queryFn: () => fetchMemberMinistriesAction(userId!),
+  });
+}
+
+export function useUpsertMemberMinistries() {
+  const qc = useQueryClient();
+  const { activeOrg } = useOrgStore();
+  return useMutation({
+    mutationFn: ({ userId, assignments }: {
+      userId: string;
+      assignments: { ministryId: string; functions: string[] }[];
+    }) => upsertMemberMinistriesAction(userId, activeOrg!.id, assignments),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ['member-ministries', vars.userId] });
+      qc.invalidateQueries({ queryKey: ['ministry-members'] });
+    },
   });
 }
 

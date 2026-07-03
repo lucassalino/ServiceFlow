@@ -1,6 +1,7 @@
 'use client';
 
-import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2 } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useEventMinistries,
@@ -8,11 +9,12 @@ import {
   useEventSetlist,
   useConfirmSchedule,
 } from '@/hooks/useSchedule';
-import { getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
+import { getFunctionLabel } from '@/lib/constants';
 import { formatDate, formatTime, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
+import { SongDetailPanel } from '@/modules/songs/SongDetailPanel';
 
 interface Props {
   event: Event;
@@ -24,11 +26,25 @@ interface Props {
 export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
   const { activeMembership } = useOrgStore();
   const currentUserId = activeMembership?.user_id;
+  const [tab, setTab] = useState<'team' | 'setlist'>('team');
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(event.id);
   const { data: setlist = [], isLoading: setlistLoading } = useEventSetlist(event.id);
 
   const color = event.color ?? '#a5b4fc';
+
+  if (selectedSong) {
+    return (
+      <SongDetailPanel
+        song={selectedSong}
+        onBack={() => setSelectedSong(null)}
+        isAdmin={false}
+        onEdit={() => {}}
+        onDelete={() => {}}
+      />
+    );
+  }
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
@@ -121,17 +137,61 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
           </div>
         )}
 
-        {/* ── Ministérios & Equipa ───────────────────── */}
-        <div style={{ marginBottom: '1.75rem' }}>
-          <Section label="Ministérios & Equipa">
-            {ministriesLoading ? (
+        {/* ── Tabs ───────────────────────────────────── */}
+        <div>
+          {/* Tab bar */}
+          <div style={{
+            display: 'flex', gap: '0.25rem',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            marginBottom: '1.25rem',
+          }}>
+            {([
+              { key: 'team', label: 'Ministérios & Equipa', icon: <Users style={{ width: '0.875rem', height: '0.875rem' }} />, count: eventMinistries.length },
+              { key: 'setlist', label: 'Setlist', icon: <ListMusic style={{ width: '0.875rem', height: '0.875rem' }} />, count: setlist.length },
+            ] as const).map(({ key, label, icon, count }) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  padding: '0.5rem 0.875rem',
+                  fontSize: '0.8rem', fontWeight: tab === key ? 600 : 400,
+                  color: tab === key ? '#fff' : 'rgba(255,255,255,0.4)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  borderBottom: `2px solid ${tab === key ? '#fff' : 'transparent'}`,
+                  marginBottom: '-1px',
+                  transition: 'color 0.12s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {icon}
+                {label}
+                {count > 0 && (
+                  <span style={{
+                    fontSize: '0.65rem', fontWeight: 700,
+                    padding: '0.1rem 0.4rem',
+                    borderRadius: '9999px',
+                    background: tab === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)',
+                    color: tab === key ? '#fff' : 'rgba(255,255,255,0.4)',
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab: Ministérios & Equipa */}
+          {tab === 'team' && (
+            ministriesLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {[1, 2, 3].map((i) => (
                   <div key={i} style={{ height: '5rem', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 ))}
               </div>
             ) : eventMinistries.length === 0 ? (
-              <div style={{ padding: '1.5rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <Users style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
                 <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
                   Nenhum ministério atribuído a este evento.
                 </p>
@@ -142,28 +202,46 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
                   <MinistrySection key={em.id} em={em} currentUserId={currentUserId} />
                 ))}
               </div>
-            )}
-          </Section>
-        </div>
+            )
+          )}
 
-        {/* ── Setlist ────────────────────────────────── */}
-        {(setlistLoading || setlist.length > 0) && (
-          <Section label={`Setlist${!setlistLoading ? ` · ${setlist.length} música${setlist.length !== 1 ? 's' : ''}` : ''}`}>
-            {setlistLoading ? (
+          {/* Tab: Setlist */}
+          {tab === 'setlist' && (
+            setlistLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {[1, 2, 3].map((i) => (
                   <div key={i} style={{ height: '3rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 ))}
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                {(setlist as (Song & { order_index: number })[]).map((song, idx) => (
-                  <SetlistRow key={song.id} song={song} index={idx + 1} />
-                ))}
+            ) : setlist.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <ListMusic style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
+                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+                  Nenhuma música no setlist.
+                </p>
+                {isAdmin && (
+                  <button onClick={onEdit} style={{
+                    marginTop: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.4rem 0.875rem', fontSize: '0.8rem', fontWeight: 500,
+                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  }}>
+                    Editar evento para adicionar músicas
+                  </button>
+                )}
               </div>
-            )}
-          </Section>
-        )}
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  {(setlist as (Song & { order_index: number })[]).map((song, idx) => (
+                    <SetlistRow key={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
+                  ))}
+                </div>
+                <YoutubePlaylistButton songs={setlist as Song[]} />
+              </>
+            )
+          )}
+        </div>
 
       </div>
     </div>
@@ -243,16 +321,15 @@ function MinistrySection({
     }}>
       {/* Ministry header */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.875rem',
-        padding: '0.875rem 1.125rem',
+        display: 'flex', alignItems: 'center',
+        padding: '0.75rem 1.125rem',
         borderBottom: schedules.length > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
         borderLeft: `3px solid ${color}`,
       }}>
-        <span style={{ fontSize: '1.375rem', lineHeight: 1, flexShrink: 0 }}>{em.ministry.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>{em.ministry.name}</p>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff' }}>{em.ministry.name}</p>
           {!isLoading && (
-            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem' }}>
+            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.1rem' }}>
               {schedules.length} pessoa{schedules.length !== 1 ? 's' : ''}
               {schedules.length > 0 && ` · ${confirmedCount} confirmad${confirmedCount !== 1 ? 'os' : 'o'}`}
             </p>
@@ -301,7 +378,7 @@ function MinistrySection({
                         background: 'rgba(255,255,255,0.07)', borderRadius: '0.3rem',
                         padding: '0.1rem 0.4rem',
                       }}>
-                        {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
+                        {getFunctionLabel(fn)}
                       </span>
                     ))}
                   </div>
@@ -352,15 +429,28 @@ function MinistrySection({
 
 // ── Setlist row ───────────────────────────────────────────────────────────────
 
-function SetlistRow({ song, index }: { song: Song & { order_index: number }; index: number }) {
+function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number }; index: number; onClick: () => void }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '0.875rem',
-      padding: '0.75rem 1rem',
-      background: 'rgba(22,22,26,0.85)',
-      border: '1px solid rgba(255,255,255,0.07)',
-      borderRadius: '0.75rem',
-    }}>
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '0.875rem',
+        padding: '0.75rem 1rem',
+        background: 'rgba(22,22,26,0.85)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: '0.75rem',
+        cursor: 'pointer',
+        transition: 'background 0.12s, border-color 0.12s',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.background = 'rgba(40,40,50,0.95)';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.14)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.background = 'rgba(22,22,26,0.85)';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
+      }}
+    >
       <span style={{
         width: '1.75rem', textAlign: 'right', flexShrink: 0,
         fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
@@ -426,5 +516,59 @@ function Chip({ children }: { children: React.ReactNode }) {
       color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)',
       whiteSpace: 'nowrap',
     }}>{children}</span>
+  );
+}
+
+// ── YouTube playlist button ───────────────────────────────────────────────────
+
+function extractYoutubeId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('?')[0];
+    return u.searchParams.get('v');
+  } catch {
+    return null;
+  }
+}
+
+function YoutubePlaylistButton({ songs }: { songs: Song[] }) {
+  const ids = songs
+    .filter((s) => !!s.youtube_url)
+    .map((s) => extractYoutubeId(s.youtube_url!))
+    .filter((id): id is string => !!id);
+
+  if (ids.length === 0) return null;
+
+  const playlistUrl =
+    ids.length === 1
+      ? `https://www.youtube.com/watch?v=${ids[0]}`
+      : `https://www.youtube.com/watch_videos?video_ids=${ids.join(',')}`;
+
+  return (
+    <div style={{ marginTop: '0.875rem' }}>
+      <a
+        href={playlistUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+          padding: '0.625rem 1.125rem',
+          background: 'rgba(248,113,113,0.12)',
+          border: '1px solid rgba(248,113,113,0.25)',
+          borderRadius: '0.625rem',
+          color: '#f87171',
+          fontSize: '0.825rem', fontWeight: 600,
+          textDecoration: 'none',
+          transition: 'background 0.15s, transform 0.12s',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; e.currentTarget.style.transform = 'none'; }}
+      >
+        <Youtube style={{ width: '1rem', height: '1rem' }} />
+        Abrir playlist no YouTube
+        <span style={{ fontSize: '0.72rem', opacity: 0.65 }}>({ids.length} música{ids.length !== 1 ? 's' : ''})</span>
+        <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.6 }} />
+      </a>
+    </div>
   );
 }
