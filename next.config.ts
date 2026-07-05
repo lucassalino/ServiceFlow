@@ -25,3 +25,8 @@ const nextConfig: NextConfig = {
 };
 
 export default withSerwist(nextConfig);
+
+// Enable the OpenNext Cloudflare bindings during `next dev` so local
+// development mirrors the Workers runtime. No-op outside dev.
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+initOpenNextCloudflareForDev();

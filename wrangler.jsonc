@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "serviceflow",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "dev": {
+      "name": "serviceflow-dev",
+      "vars": {
+        "NEXT_PUBLIC_APP_ENV": "development"
+      }
+    },
+    "prd": {
+      "name": "serviceflow-prd",
+      "vars": {
+        "NEXT_PUBLIC_APP_ENV": "production"
+      }
+    }
+  }
+}
