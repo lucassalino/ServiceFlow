@@ -89,10 +89,12 @@ export function DashboardClient({ upcomingEvents, pendingConfirmations, orgId }:
             <div className="px-5 pb-8 text-center">
               <CalendarDays className="h-9 w-9 mx-auto mb-3 text-white/20" />
               <p className="text-sm text-white/40">Nenhum evento agendado.</p>
-              <Link href={`/${orgId}/events`}
-                className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium px-4 py-2 rounded-lg bg-white/08 border border-white/15 hover:bg-white/12 transition-colors text-white">
-                Criar evento <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
+              {isAdmin && (
+                <Link href={`/${orgId}/events`}
+                  className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium px-4 py-2 rounded-lg bg-white/08 border border-white/15 hover:bg-white/12 transition-colors text-white">
+                  Criar evento <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              )}
             </div>
           ) : (
             <div>

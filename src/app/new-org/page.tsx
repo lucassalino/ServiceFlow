@@ -40,39 +40,50 @@ export default function NewOrgPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Link>
-          <h1 className="text-xl font-bold">Nova organização</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Cria uma organização para a tua equipa
-          </p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Nome da organização *</Label>
-            <Input
-              id="name"
-              placeholder="Ex: Igreja Central"
-              autoFocus
-              {...register('name')}
-            />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
+    <div className="auth-bg">
+      {/* Voltar */}
+      <Link href="/" aria-label="Voltar" className="auth-back-arrow">
+        <ArrowLeft style={{ width: '1.1rem', height: '1.1rem' }} />
+      </Link>
+
+      <div className="w-full max-w-[380px]">
+        <div className="auth-glass">
+
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="inline-flex h-10 w-10 rounded-xl items-center justify-center mb-3"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              <span className="text-white font-bold text-sm">SF</span>
+            </div>
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              Nova organização
+            </h1>
+            <p className="text-[13px] text-white/40 mt-1">
+              Cria uma organização para a tua equipa
+            </p>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Criar
-          </Button>
-        </form>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name">Nome da organização *</Label>
+              <Input
+                id="name"
+                placeholder="Ex: Igreja Central"
+                autoFocus
+                {...register('name')}
+              />
+              {errors.name && (
+                <p className="text-xs text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Criar
+            </Button>
+          </form>
+
+        </div>
       </div>
     </div>
   );

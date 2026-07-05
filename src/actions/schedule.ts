@@ -162,6 +162,15 @@ export async function confirmScheduleAction(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const admin = getAdmin();
+
+  // Só a própria pessoa escalada pode confirmar/alterar a sua presença.
+  const { data: schedule, error: fetchError } = await admin
+    .from('event_schedules').select('user_id').eq('id', id).single();
+  if (fetchError || !schedule) throw new Error('Escala não encontrada');
+  if (schedule.user_id !== user.id) {
+    throw new Error('Só podes confirmar a tua própria presença');
+  }
+
   const { error } = await admin.from('event_schedules').update({ confirmed }).eq('id', id);
   if (error) throw new Error(error.message);
 }

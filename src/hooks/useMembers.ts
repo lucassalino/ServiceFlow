@@ -8,6 +8,7 @@ import {
   fetchMemberMinistriesAction,
   updateMemberRoleAction,
   toggleMemberActiveAction,
+  deleteMemberAction,
   upsertMemberMinistriesAction,
 } from '@/actions/members';
 
@@ -67,6 +68,15 @@ export function useToggleMemberActive() {
   return useMutation({
     mutationFn: ({ memberId, isActive }: { memberId: string; isActive: boolean }) =>
       toggleMemberActiveAction(memberId, isActive),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['members', activeOrg?.id] }),
+  });
+}
+
+export function useDeleteMember() {
+  const qc = useQueryClient();
+  const { activeOrg } = useOrgStore();
+  return useMutation({
+    mutationFn: (memberId: string) => deleteMemberAction(memberId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['members', activeOrg?.id] }),
   });
 }

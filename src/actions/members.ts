@@ -64,6 +64,61 @@ export async function toggleMemberActiveAction(memberId: string, isActive: boole
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Remove definitivamente uma pessoa da organização.
+ * Limpa também as atribuições da pessoa (ministérios e escalas) desta org.
+ * Não apaga a conta/perfil global — a pessoa pode pertencer a outras organizações.
+ */
+export async function deleteMemberAction(memberId: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  // Buscar o membro a remover
+  const { data: member, error: memberErr } = await admin
+    .from('organization_members').select('id, org_id, user_id').eq('id', memberId).single();
+  if (memberErr || !member) throw new Error('Membro não encontrado');
+
+  // Só um admin da MESMA organização pode remover, e não a si próprio
+  const { data: caller } = await admin
+    .from('organization_members').select('role')
+    .eq('org_id', member.org_id).eq('user_id', user.id).single();
+  if (!caller || caller.role !== 'admin') {
+    throw new Error('Apenas administradores podem remover membros');
+  }
+  if (member.user_id === user.id) {
+    throw new Error('Não podes remover-te a ti próprio');
+  }
+
+  // Limpar participação em ministérios desta org
+  const { data: orgMinistries } = await admin
+    .from('ministries').select('id').eq('org_id', member.org_id);
+  const ministryIds = (orgMinistries ?? []).map((m: { id: string }) => m.id);
+  if (ministryIds.length > 0) {
+    await admin.from('ministry_members')
+      .delete().eq('user_id', member.user_id).in('ministry_id', ministryIds);
+  }
+
+  // Limpar escalas em eventos desta org
+  const { data: orgEvents } = await admin
+    .from('events').select('id').eq('org_id', member.org_id);
+  const eventIds = (orgEvents ?? []).map((e: { id: string }) => e.id);
+  if (eventIds.length > 0) {
+    const { data: eventMins } = await admin
+      .from('event_ministries').select('id').in('event_id', eventIds);
+    const emIds = (eventMins ?? []).map((em: { id: string }) => em.id);
+    if (emIds.length > 0) {
+      await admin.from('event_schedules')
+        .delete().eq('user_id', member.user_id).in('event_ministry_id', emIds);
+    }
+  }
+
+  // Remover o membro da organização
+  const { error } = await admin.from('organization_members').delete().eq('id', memberId);
+  if (error) throw new Error(error.message);
+}
+
 export async function fetchMemberMinistriesAction(
   userId: string,
 ): Promise<{ ministry_id: string; functions: string[] }[]> {

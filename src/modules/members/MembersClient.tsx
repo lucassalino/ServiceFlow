@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Plus, UserX, Check, Users } from 'lucide-react';
+import { Copy, Plus, Trash2, Check, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
-import { useOrgMembers, useUpdateMemberRole, useToggleMemberActive } from '@/hooks/useMembers';
+import { useOrgMembers, useUpdateMemberRole, useDeleteMember } from '@/hooks/useMembers';
 import type { OrganizationMember, OrgRole } from '@/types/models';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -55,7 +55,7 @@ export function MembersClient() {
   const { activeOrg, activeMembership } = useOrgStore();
   const { data: members = [], isLoading } = useOrgMembers();
   const updateRole = useUpdateMemberRole();
-  const toggleActive = useToggleMemberActive();
+  const deleteMember = useDeleteMember();
 
   const currentRole = activeMembership?.role ?? 'member';
   const currentUserId = activeMembership?.user_id;
@@ -69,7 +69,7 @@ export function MembersClient() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [deactivateTarget, setDeactivateTarget] = useState<MemberWithProfile | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<MemberWithProfile | null>(null);
   const [detailMember, setDetailMember] = useState<MemberWithProfile | null>(null);
 
   function handleCopyCode() {
@@ -91,12 +91,12 @@ export function MembersClient() {
     }
   }
 
-  async function confirmDeactivate() {
-    if (!deactivateTarget) return;
+  async function confirmRemove() {
+    if (!removeTarget) return;
     try {
-      await toggleActive.mutateAsync({ memberId: deactivateTarget.id, isActive: false });
-      toast.success(`${deactivateTarget.profile.full_name} desactivado`);
-      setDeactivateTarget(null);
+      await deleteMember.mutateAsync(removeTarget.id);
+      toast.success(`${removeTarget.profile.full_name} removido da organização`);
+      setRemoveTarget(null);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
@@ -231,13 +231,13 @@ export function MembersClient() {
                       </span>
                     )}
 
-                    {member.is_active && canManage(role, member.user_id) && (
+                    {canManage(role, member.user_id) && (
                       <button
                         className="dark-icon-btn danger"
-                        onClick={() => setDeactivateTarget(member)}
-                        title="Desactivar membro"
+                        onClick={() => setRemoveTarget(member)}
+                        title="Remover membro"
                       >
-                        <UserX className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
@@ -276,24 +276,26 @@ export function MembersClient() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Deactivate dialog ──────────────────────── */}
-      <AlertDialog open={!!deactivateTarget} onOpenChange={(v) => { if (!v) setDeactivateTarget(null); }}>
+      {/* ── Remove dialog ──────────────────────────── */}
+      <AlertDialog open={!!removeTarget} onOpenChange={(v) => { if (!v) setRemoveTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Desactivar membro?</AlertDialogTitle>
+            <AlertDialogTitle>Remover membro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tens a certeza que queres desactivar{' '}
-              <strong>{deactivateTarget?.profile?.full_name}</strong>?
+              Tens a certeza que queres remover{' '}
+              <strong>{removeTarget?.profile?.full_name}</strong> da organização?
+              Esta acção é permanente e remove também as suas participações em
+              ministérios e escalas. A conta pessoal não é afectada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={confirmDeactivate}
-              disabled={toggleActive.isPending}
+              onClick={confirmRemove}
+              disabled={deleteMember.isPending}
             >
-              {toggleActive.isPending ? 'A desactivar…' : 'Desactivar'}
+              {deleteMember.isPending ? 'A remover…' : 'Remover'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
