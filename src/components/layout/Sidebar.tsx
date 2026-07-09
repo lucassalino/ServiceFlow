@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, Users, Music2, BookOpen,
-  Settings, Plus, LogOut, Moon, Sun, CalendarCheck, ChevronDown, X,
+  Settings, Plus, LogOut, CalendarCheck, ChevronDown, X,
 } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { useOrgStore } from '@/stores/orgStore';
 import { useOrgMemberships } from '@/hooks/useOrganizations';
@@ -37,7 +36,6 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
   const { activeOrg, activeMembership, setActiveOrg } = useOrgStore();
   const { data: memberships } = useOrgMemberships();
   const [showOrgMenu, setShowOrgMenu] = useState(false);
-  const { theme, setTheme } = useTheme();
   const router = useRouter();
 
   async function handleSignOut() {
@@ -147,31 +145,27 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
       {/* ── Footer ────────────────────────────── */}
       <div className="px-3 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center gap-2.5">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarImage src={activeMembership?.profile?.avatar_url ?? undefined} />
-            <AvatarFallback className="text-xs font-semibold"
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
-              {getInitials(activeMembership?.profile?.full_name ?? 'U')}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate leading-tight" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              {activeMembership?.profile?.full_name ?? '—'}
-            </p>
-            <p className="text-[11px] truncate leading-tight mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              {activeMembership?.profile?.email ?? ''}
-            </p>
-          </div>
+          <Link href={`/${orgId}/settings`} onClick={onMobileClose}
+            className="flex items-center gap-2.5 flex-1 min-w-0 rounded-lg -mx-1 px-1 py-0.5 hover:bg-white/5 transition-colors"
+            aria-label="Abrir definições">
+            <Avatar className="h-8 w-8 shrink-0">
+              <AvatarImage src={activeMembership?.profile?.avatar_url ?? undefined} />
+              <AvatarFallback className="text-xs font-semibold"
+                style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                {getInitials(activeMembership?.profile?.full_name ?? 'U')}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold truncate leading-tight" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                {activeMembership?.profile?.full_name ?? '—'}
+              </p>
+              <p className="text-[11px] truncate leading-tight mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {activeMembership?.profile?.email ?? ''}
+              </p>
+            </div>
+          </Link>
           <div className="flex items-center shrink-0">
             <NotificationBell orgId={orgId} />
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="sidebar-dark-icon-btn relative"
-              aria-label="Alternar tema"
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 dark:-rotate-90 dark:scale-0 transition-all" />
-              <Moon className="absolute inset-0 m-auto h-4 w-4 rotate-90 scale-0 dark:rotate-0 dark:scale-100 transition-all" />
-            </button>
             <button
               onClick={handleSignOut}
               className="sidebar-dark-icon-btn hover:!text-red-400 hover:!bg-red-500/10"

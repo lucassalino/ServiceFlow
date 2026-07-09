@@ -26,6 +26,7 @@ import { getInitials } from '@/lib/utils';
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Nome obrigatório'),
   phone: z.string().nullable().default(null),
+  birthday: z.string().nullable().default(null),
 });
 
 const orgSchema = z.object({
@@ -88,7 +89,7 @@ export function SettingsClient({ orgId }: Props) {
 
   const profileForm = useForm<ProfileData>({
     resolver: zodResolver(profileSchema) as never,
-    defaultValues: { full_name: '', phone: null },
+    defaultValues: { full_name: '', phone: null, birthday: null },
   });
 
   const orgForm = useForm<OrgData>({
@@ -97,7 +98,7 @@ export function SettingsClient({ orgId }: Props) {
   });
 
   useEffect(() => {
-    if (profile) profileForm.reset({ full_name: profile.full_name, phone: profile.phone });
+    if (profile) profileForm.reset({ full_name: profile.full_name, phone: profile.phone, birthday: profile.birthday });
   }, [profile, profileForm]);
 
   useEffect(() => {
@@ -132,6 +133,7 @@ export function SettingsClient({ orgId }: Props) {
         full_name: profileForm.getValues('full_name') || profile?.full_name || '',
         phone: profileForm.getValues('phone'),
         avatar_url: avatarUrl,
+        birthday: profileForm.getValues('birthday') ?? profile?.birthday ?? null,
       });
       toast.success('Foto de perfil atualizada');
     } catch (err: unknown) {
@@ -153,6 +155,7 @@ export function SettingsClient({ orgId }: Props) {
         full_name: data.full_name,
         phone: data.phone || null,
         avatar_url: profile?.avatar_url ?? null,
+        birthday: data.birthday || null,
       });
       toast.success('Perfil atualizado');
     } catch (err: unknown) {
@@ -289,6 +292,13 @@ export function SettingsClient({ orgId }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="phone">Telemóvel</Label>
               <Input id="phone" type="tel" placeholder="+351 900 000 000" {...profileForm.register('phone')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="birthday">Data de aniversário</Label>
+              <Input id="birthday" type="date" {...profileForm.register('birthday')} />
+              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>
+                Aparece nos aniversariantes do mês no painel da organização.
+              </p>
             </div>
             <button type="submit" className="dark-primary-btn"
               disabled={profileForm.formState.isSubmitting || updateProfile.isPending}>

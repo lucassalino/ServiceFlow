@@ -90,7 +90,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
             onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
-            {memberName}
+            Voltar
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', margin: 0 }}>

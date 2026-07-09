@@ -4,6 +4,7 @@ export type PlanId = 'free' | 'starter' | 'growth' | 'pro' | 'enterprise';
 export interface UserProfile {
   id: string; email: string; full_name: string;
   avatar_url: string | null; phone: string | null;
+  birthday: string | null;
   created_at: string; updated_at: string;
 }
 export interface Organization {

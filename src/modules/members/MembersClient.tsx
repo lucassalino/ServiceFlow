@@ -1,17 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Plus, Trash2, Check, Users } from 'lucide-react';
+import { Copy, Plus, Trash2, Check, Users, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import { useOrgMembers, useUpdateMemberRole, useDeleteMember } from '@/hooks/useMembers';
+import { inviteMessage } from '@/lib/whatsapp';
 import type { OrganizationMember, OrgRole } from '@/types/models';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
 import { MemberDetailPanel } from './MemberDetailPanel';
@@ -69,6 +68,27 @@ export function MembersClient() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  async function handleShareInvite() {
+    const code = activeOrg?.invite_code;
+    if (!code) return;
+    const joinUrl = `${window.location.origin}/join-org?code=${code}`;
+    const text = inviteMessage({
+      orgName: activeOrg?.name ?? 'a nossa organização',
+      inviteCode: code,
+      joinUrl,
+    });
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: 'Convite ServiceFlow', text, url: joinUrl });
+      } catch {
+        /* utilizador cancelou a partilha */
+      }
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success('Convite copiado!');
+    }
+  }
   const [removeTarget, setRemoveTarget] = useState<MemberWithProfile | null>(null);
   const [detailMember, setDetailMember] = useState<MemberWithProfile | null>(null);
 
@@ -255,22 +275,31 @@ export function MembersClient() {
           <DialogHeader>
             <DialogTitle>Convidar Membro</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label>Código de convite</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                readOnly
-                value={activeOrg?.invite_code ?? ''}
-                className="font-mono tracking-widest"
-              />
-              <Button variant="outline" size="icon" onClick={handleCopyCode}>
+
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.16em] uppercase mb-1.5"
+              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Código de convite
+            </p>
+            <p className="text-2xl font-bold font-mono tracking-[0.12em] text-white mb-4">
+              {activeOrg?.invite_code ?? '—'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button variant="outline" onClick={handleCopyCode} className="gap-2 h-11">
                 {copied
-                  ? <Check className="h-4 w-4 text-green-600" />
+                  ? <Check className="h-4 w-4 text-green-500" />
                   : <Copy className="h-4 w-4" />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </Button>
+              <Button variant="outline" onClick={handleShareInvite} className="gap-2 h-11">
+                <Share2 className="h-4 w-4" />
+                Partilhar
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Partilha este código para convidar pessoas
+
+            <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Partilha o código ou o link de convite para adicionar pessoas.
             </p>
           </div>
         </DialogContent>

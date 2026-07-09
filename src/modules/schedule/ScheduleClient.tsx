@@ -21,8 +21,10 @@ import {
   useConfirmSchedule,
   useUpdateEventSchedule,
 } from '@/hooks/useSchedule';
-import { MEMBER_FUNCTIONS, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
+import { MEMBER_FUNCTIONS, resolveFunction, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
 import { formatDate, formatTime, getInitials } from '@/lib/utils';
+import { buildWhatsAppLink, scheduleMessage } from '@/lib/whatsapp';
+import { fetchEventScheduledContactsAction } from '@/actions/schedule';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
@@ -138,8 +140,8 @@ function PersonDialog({
       m.functions.forEach((fn) => allFns.add(fn));
     });
     return allFns.size > 0
-      ? MEMBER_FUNCTIONS.filter((f) => allFns.has(f.key))
-      : MEMBER_FUNCTIONS;
+      ? Array.from(allFns).map((k) => resolveFunction(k))
+      : MEMBER_FUNCTIONS.map((f) => ({ key: f.key, label: f.label, emoji: f.emoji }));
   }, [ministryMembers]);
 
   function handleSelectPerson(userId: string) {
@@ -334,25 +336,14 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
 
         {/* Actions — admin only */}
         {isAdmin && (
-          <>
-            <button
-              onClick={() => setAddPersonOpen(true)}
-              className="dark-icon-btn"
-              title="Adicionar pessoa"
-              style={{ width: 'auto', padding: '0.25rem 0.625rem', gap: '0.25rem', display: 'inline-flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: 500, color: 'rgba(255,255,255,0.5)' }}
-            >
-              <Plus style={{ width: '0.875rem', height: '0.875rem' }} />
-              Pessoa
-            </button>
-            <button
-              onClick={() => setConfirmRemoveOpen(true)}
-              className="dark-icon-btn danger"
-              title="Remover ministério"
-              disabled={removeMinistry.isPending}
-            >
-              <X style={{ width: '0.875rem', height: '0.875rem' }} />
-            </button>
-          </>
+          <button
+            onClick={() => setConfirmRemoveOpen(true)}
+            className="dark-icon-btn danger"
+            title="Remover ministério"
+            disabled={removeMinistry.isPending}
+          >
+            <X style={{ width: '0.875rem', height: '0.875rem' }} />
+          </button>
         )}
       </div>
 
@@ -365,13 +356,7 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
             </div>
           ) : schedules.length === 0 ? (
             <div style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.35)' }}>
-              Nenhuma pessoa escalada.{' '}
-              {isAdmin && <button
-                onClick={() => setAddPersonOpen(true)}
-                style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
-              >
-                Adicionar
-              </button>}
+              Nenhuma pessoa escalada.
             </div>
           ) : (
             schedules.map((schedule, idx) => {
@@ -486,6 +471,10 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [addMinistryOpen, setAddMinistryOpen] = useState(false);
   const [mobileShowDetail, setMobileShowDetail] = useState(false);
+  const [whatsappContacts, setWhatsappContacts] = useState<
+    { userId: string; name: string; phone: string | null; confirmed: boolean | null }[] | null
+  >(null);
+  const [sentTo, setSentTo] = useState<Set<string>>(new Set());
 
   function handleSelectEvent(id: string) {
     setSelectedEventId(id);
@@ -511,12 +500,29 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
       const result = await notifySchedules.mutateAsync({ eventId: selectedEvent.id, eventName: selectedEvent.name });
       if (result.notified === 0) {
         toast.info('Escala publicada. Ainda não há pessoas escaladas para notificar.');
-      } else {
-        toast.success(`Escala publicada e ${result.notified} ${result.notified === 1 ? 'pessoa notificada' : 'pessoas notificadas'}.`);
+        return;
       }
+      toast.success(`Escala publicada · ${result.notified} ${result.notified === 1 ? 'pessoa notificada' : 'pessoas notificadas'} na app.`);
+      // Abrir o painel de WhatsApp com os contactos
+      const contacts = await fetchEventScheduledContactsAction(selectedEvent.id);
+      setSentTo(new Set());
+      setWhatsappContacts(contacts);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao publicar escala');
     }
+  }
+
+  function handleSendWhatsApp(contact: { userId: string; name: string; phone: string | null }) {
+    if (!selectedEvent) return;
+    const message = scheduleMessage({
+      name: contact.name,
+      eventName: selectedEvent.name,
+      date: selectedEvent.date,
+      time: selectedEvent.time,
+      appUrl: window.location.origin,
+    });
+    window.open(buildWhatsAppLink(contact.phone, message), '_blank', 'noopener,noreferrer');
+    setSentTo((prev) => new Set(prev).add(contact.userId));
   }
 
   const sortedEvents = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -725,17 +731,6 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                       : selectedEvent.is_published ? 'Notificar escala' : 'Publicar e notificar'}
                   </button>
                 )}
-
-                {isAdmin && (
-                  <button
-                    onClick={() => setAddMinistryOpen(true)}
-                    className="dark-primary-btn"
-                    style={{ padding: '0.4rem 0.875rem', fontSize: '0.8rem' }}
-                  >
-                    <Plus style={{ width: '0.875rem', height: '0.875rem' }} />
-                    Ministério
-                  </button>
-                )}
               </div>
             </div>
 
@@ -781,6 +776,53 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
           existingMinistryIds={existingMinistryIds}
         />
       )}
+
+      {/* WhatsApp — notificar escalados */}
+      <Dialog open={!!whatsappContacts} onOpenChange={(v) => { if (!v) setWhatsappContacts(null); }}>
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Notificar por WhatsApp</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Toca em cada pessoa para abrir o WhatsApp com a mensagem pronta. Quem não tiver telemóvel no perfil abre sem contacto definido.
+          </p>
+          <div className="space-y-2 mt-1">
+            {(whatsappContacts ?? []).map((c) => {
+              const sent = sentTo.has(c.userId);
+              return (
+                <div key={c.userId} className="flex items-center gap-3 rounded-lg border p-2.5"
+                  style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>
+                  <Avatar className="h-9 w-9 shrink-0">
+                    <AvatarFallback className="text-xs" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                      {getInitials(c.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{c.name}</p>
+                    <p className="text-xs" style={{ color: c.phone ? 'rgba(255,255,255,0.4)' : '#f59e0b' }}>
+                      {c.phone || 'Sem telemóvel no perfil'}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => handleSendWhatsApp(c)}
+                    className="shrink-0 gap-1.5 h-8"
+                    style={sent
+                      ? { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }
+                      : { background: '#25D366', color: '#0a0a0e' }}
+                  >
+                    {sent ? <Check className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
+                    {sent ? 'Enviado' : 'Enviar'}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWhatsappContacts(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

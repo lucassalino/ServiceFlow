@@ -154,6 +154,41 @@ export async function removePersonFromScheduleAction(id: string): Promise<void> 
   if (error) throw new Error(error.message);
 }
 
+/** Contactos das pessoas escaladas num evento (para enviar mensagens de WhatsApp). */
+export async function fetchEventScheduledContactsAction(
+  eventId: string,
+): Promise<{ userId: string; name: string; phone: string | null; confirmed: boolean | null }[]> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  const { data: eventMins } = await admin
+    .from('event_ministries').select('id').eq('event_id', eventId);
+  const emIds = (eventMins ?? []).map((em: { id: string }) => em.id);
+  if (emIds.length === 0) return [];
+
+  const { data: schedules } = await admin
+    .from('event_schedules')
+    .select('user_id, confirmed, profile:profiles(full_name, phone)')
+    .in('event_ministry_id', emIds);
+
+  type Row = { user_id: string; confirmed: boolean | null; profile: { full_name: string; phone: string | null } | null };
+  const seen = new Set<string>();
+  const result: { userId: string; name: string; phone: string | null; confirmed: boolean | null }[] = [];
+  for (const s of (schedules ?? []) as unknown as Row[]) {
+    if (seen.has(s.user_id)) continue;
+    seen.add(s.user_id);
+    result.push({
+      userId: s.user_id,
+      name: s.profile?.full_name ?? 'Sem nome',
+      phone: s.profile?.phone ?? null,
+      confirmed: s.confirmed,
+    });
+  }
+  return result;
+}
+
 export async function confirmScheduleAction(
   id: string,
   confirmed: boolean,

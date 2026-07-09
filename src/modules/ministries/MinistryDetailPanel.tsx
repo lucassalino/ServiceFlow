@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Pencil, Trash2, PowerOff, Power, Users } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, PowerOff, Power, Users, SlidersHorizontal } from 'lucide-react';
 import type { Ministry } from '@/types/models';
 import { getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
 import { useMinistryMembers } from '@/hooks/useMembers';
@@ -12,13 +12,14 @@ interface Props {
   isAdmin: boolean;
   onBack: () => void;
   onEdit: () => void;
+  onEditProperties: () => void;
   onToggle: () => void;
   onDelete: () => void;
   togglePending: boolean;
 }
 
 export function MinistryDetailPanel({
-  ministry, isAdmin, onBack, onEdit, onToggle, onDelete, togglePending,
+  ministry, isAdmin, onBack, onEdit, onEditProperties, onToggle, onDelete, togglePending,
 }: Props) {
   const color = ministry.color ?? '#a5b4fc';
   const initial = ministry.name.charAt(0).toUpperCase();
@@ -58,6 +59,21 @@ export function MinistryDetailPanel({
 
           {isAdmin && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                onClick={onEditProperties}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                  padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
+                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  transition: 'background 0.12s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+              >
+                <SlidersHorizontal style={{ width: '0.8rem', height: '0.8rem' }} />
+                Editar ministério
+              </button>
               <button
                 onClick={onEdit}
                 style={{

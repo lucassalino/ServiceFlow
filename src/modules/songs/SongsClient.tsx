@@ -301,7 +301,11 @@ function SongRow({
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{
+          fontSize: '0.875rem', fontWeight: 600, color: '#ffffff',
+          overflow: 'hidden', display: '-webkit-box',
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3,
+        }}>
           {song.name}
         </p>
         <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
@@ -310,11 +314,11 @@ function SongRow({
       </div>
 
       {/* Chips + link icons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, maxWidth: '45%', flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
         {song.musical_key && <Chip>{song.musical_key}</Chip>}
-        {song.bpm && <Chip>{song.bpm} BPM</Chip>}
+        {song.bpm && <span className="hidden sm:inline-flex"><Chip>{song.bpm} BPM</Chip></span>}
         {ministryName && (
-          <span className="hidden sm:inline-flex">
+          <span className="hidden md:inline-flex">
             <Chip>{ministryName}</Chip>
           </span>
         )}

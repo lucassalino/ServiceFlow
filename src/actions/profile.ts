@@ -23,7 +23,7 @@ export async function fetchProfileAction(): Promise<UserProfile> {
 }
 
 export async function updateProfileAction(
-  payload: { full_name: string; phone: string | null; avatar_url: string | null },
+  payload: { full_name: string; phone: string | null; avatar_url: string | null; birthday: string | null },
 ): Promise<UserProfile> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();

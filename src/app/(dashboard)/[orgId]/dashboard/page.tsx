@@ -62,10 +62,33 @@ export default async function DashboardPage({ params }: Props) {
     }
   }
 
+  // ── Aniversariantes do mês ──────────────────────────────────────────────
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  const { data: memberRows } = await supabase
+    .from('organization_members')
+    .select('user_id, profile:profiles(full_name, avatar_url, birthday)')
+    .eq('org_id', orgId).eq('is_active', true);
+
+  type MemberRow = {
+    profile: { full_name: string; avatar_url: string | null; birthday: string | null } | null;
+  };
+  const birthdayPeople = ((memberRows ?? []) as unknown as MemberRow[])
+    .map((r) => r.profile)
+    .filter((p): p is NonNullable<MemberRow['profile']> => !!p && !!p.birthday)
+    .filter((p) => parseInt(p.birthday!.slice(5, 7), 10) === currentMonth)
+    .map((p) => ({
+      name: p.full_name,
+      avatarUrl: p.avatar_url,
+      day: parseInt(p.birthday!.slice(8, 10), 10),
+      month: parseInt(p.birthday!.slice(5, 7), 10),
+    }))
+    .sort((a, b) => a.day - b.day);
+
   return (
     <DashboardClient
       upcomingEvents={upcomingEvents}
       pendingConfirmations={pendingConfirmations}
+      birthdayPeople={birthdayPeople}
       orgId={orgId}
     />
   );

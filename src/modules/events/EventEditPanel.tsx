@@ -13,12 +13,11 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
-import { useOrgMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
 import { uploadEventImageAction } from '@/actions/events';
 import { fetchEventSetupAction, replaceEventSetupAction } from '@/actions/schedule';
-import { MEMBER_FUNCTIONS } from '@/lib/constants';
-import { fetchMinistriesFunctionsAction } from '@/actions/members';
+import { resolveFunction } from '@/lib/constants';
+import { fetchMinistryMembersAction } from '@/actions/members';
 import type { Event, Ministry, Song } from '@/types/models';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,7 +39,6 @@ const schema = z.object({
   is_published: z.boolean().default(false),
 });
 type FormValues = z.infer<typeof schema>;
-type OrgMember = { user_id: string; is_active: boolean; profile: { full_name: string; email: string } };
 
 const STEPS: { label: string; description: string; icon: React.ReactNode }[] = [
   { label: 'Informações', description: 'Nome, data, horário e local', icon: <CalendarDays style={{ width: '0.9rem', height: '0.9rem' }} /> },
@@ -215,7 +213,6 @@ export function EventEditPanel({ event, onBack }: Props) {
   const qc = useQueryClient();
   const updateEvent = useUpdateEvent();
   const { data: ministries = [] } = useMinistries();
-  const { data: orgMembers = [] } = useOrgMembers();
   const { data: songs = [] } = useSongs();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -234,7 +231,7 @@ export function EventEditPanel({ event, onBack }: Props) {
 
   // step 3
   const [membersByMinistry, setMembersByMinistry] = useState<Record<string, { userId: string; functions: string[] }[]>>({});
-  const [ministryFunctions, setMinistryFunctions] = useState<Record<string, string[]>>({});
+  const [ministryRoster, setMinistryRoster] = useState<Record<string, { userId: string; name: string; avatarUrl: string | null; functions: string[] }[]>>({});
 
   // step 4
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
@@ -266,16 +263,32 @@ export function EventEditPanel({ event, onBack }: Props) {
     return () => { cancelled = true; };
   }, [event.id]);
 
-  // Load ministry functions when entering step 3
+  // Load ministry roster (members + their functions) when entering step 3
   useEffect(() => {
     if (step !== 3 || selectedMinistryIds.length === 0) return;
     let cancelled = false;
-    fetchMinistriesFunctionsAction(selectedMinistryIds)
-      .then((fns) => { if (!cancelled) setMinistryFunctions(fns); })
-      .catch(() => { if (!cancelled) setMinistryFunctions({}); });
+    type RM = { user_id: string; functions: string[]; profile: { full_name: string; email: string; avatar_url: string | null } | null };
+    Promise.all(selectedMinistryIds.map(async (mid) => {
+      const members = await fetchMinistryMembersAction(mid);
+      return [mid, members as unknown as RM[]] as const;
+    }))
+      .then((results) => {
+        if (cancelled) return;
+        const map: Record<string, { userId: string; name: string; avatarUrl: string | null; functions: string[] }[]> = {};
+        for (const [mid, members] of results) {
+          map[mid] = members.map((m) => ({
+            userId: m.user_id,
+            name: m.profile?.full_name || m.profile?.email || 'Sem nome',
+            avatarUrl: m.profile?.avatar_url ?? null,
+            functions: m.functions ?? [],
+          }));
+        }
+        setMinistryRoster(map);
+      })
+      .catch(() => { if (!cancelled) setMinistryRoster({}); });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, selectedMinistryIds]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -354,7 +367,6 @@ export function EventEditPanel({ event, onBack }: Props) {
     } finally { setSaving(false); }
   }
 
-  const activeMembers = (orgMembers as unknown as OrgMember[]).filter((m) => m.is_active);
   const activeMinistries = (ministries as unknown as { id: string; name: string; icon: string; color: string; is_active: boolean }[]).filter((m) => m.is_active);
 
   const filteredSongs = useMemo(() => {
@@ -617,8 +629,7 @@ export function EventEditPanel({ event, onBack }: Props) {
                       const ministry = (ministries as unknown as Ministry[]).find((m) => m.id === ministryId);
                       if (!ministry) return null;
                       const selectedIds = membersByMinistry[ministryId] ?? [];
-                      const ministryFns = ministryFunctions[ministryId] ?? [];
-                      const availableFunctions = ministryFns.length > 0 ? MEMBER_FUNCTIONS.filter((f) => ministryFns.includes(f.key)) : MEMBER_FUNCTIONS;
+                      const roster = ministryRoster[ministryId] ?? [];
                       return (
                         <div key={ministryId} style={card}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -630,17 +641,20 @@ export function EventEditPanel({ event, onBack }: Props) {
                               <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{selectedIds.length}</span>
                             )}
                           </div>
-                          {activeMembers.length === 0 ? (
-                            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', padding: '0.75rem 1rem' }}>Sem membros activos.</p>
+                          {roster.length === 0 ? (
+                            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', padding: '0.75rem 1rem' }}>
+                              Nenhum membro neste ministério. Adiciona pessoas ao ministério primeiro.
+                            </p>
                           ) : (
-                            activeMembers.map((member) => {
-                              const name = member.profile?.full_name || member.profile?.email || '?';
-                              const checked = isMemberSelected(ministryId, member.user_id);
-                              const fns = getMemberFunctions(ministryId, member.user_id);
+                            roster.map((rm) => {
+                              const name = rm.name;
+                              const checked = isMemberSelected(ministryId, rm.userId);
+                              const fns = getMemberFunctions(ministryId, rm.userId);
+                              const personFunctions = rm.functions.map(resolveFunction);
                               return (
-                                <div key={member.user_id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                <div key={rm.userId} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', cursor: 'pointer', background: checked ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}>
-                                    <Checkbox checked={checked} onCheckedChange={() => toggleMember(ministryId, member.user_id)} />
+                                    <Checkbox checked={checked} onCheckedChange={() => toggleMember(ministryId, rm.userId)} />
                                     <Avatar className="h-6 w-6 flex-shrink-0">
                                       <AvatarFallback style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{getInitials(name)}</AvatarFallback>
                                     </Avatar>
@@ -649,14 +663,14 @@ export function EventEditPanel({ event, onBack }: Props) {
                                   </label>
                                   {checked && (
                                     <div style={{ margin: '0 1rem 0.625rem', padding: '0.625rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem' }}>
-                                      {availableFunctions.length === 0 ? (
-                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>Nenhuma função definida.</p>
+                                      {personFunctions.length === 0 ? (
+                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>Esta pessoa não tem funções neste ministério.</p>
                                       ) : (
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
-                                          {availableFunctions.map((f) => (
+                                          {personFunctions.map((f) => (
                                             <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)' }}>
-                                              <Checkbox checked={fns.includes(f.key)} onCheckedChange={() => toggleMemberFunction(ministryId, member.user_id, f.key)} />
-                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.label}</span>
+                                              <Checkbox checked={fns.includes(f.key)} onCheckedChange={() => toggleMemberFunction(ministryId, rm.userId, f.key)} />
+                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.emoji} {f.label}</span>
                                             </label>
                                           ))}
                                         </div>

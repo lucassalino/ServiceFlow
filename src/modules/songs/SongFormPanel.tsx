@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { ArrowLeft, Youtube, Music, FileText, Guitar } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
-import { useMinistries } from '@/hooks/useMinistries';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -39,7 +38,6 @@ interface Props {
 export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const createSong = useCreateSong();
   const updateSong = useUpdateSong();
-  const { data: ministries } = useMinistries();
   const isEditing = !!song;
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } =
@@ -74,7 +72,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   }, [song?.id]);
 
   const selectedKey = watch('musical_key');
-  const selectedMinistryId = watch('ministry_id');
   const isPending = createSong.isPending || updateSong.isPending || isSubmitting;
 
   async function onSubmit(values: SongFormValues) {
@@ -169,10 +166,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                 </div>
               </div>
 
-              {/* Tom + BPM + Ministério */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}
-                className="sf-three-col">
-                <style>{`@media(max-width:560px){.sf-three-col{grid-template-columns:1fr 1fr!important}}`}</style>
+              {/* Tom + BPM */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                   <Label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Tom</Label>
                   <Select value={selectedKey ?? ''} onValueChange={(v) => setValue('musical_key', v || null)}>
@@ -187,18 +182,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   <Label htmlFor="sf-bpm" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>BPM</Label>
                   <Input id="sf-bpm" type="number" placeholder="120" min={1} max={300} {...register('bpm')} />
                   {errors.bpm && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.bpm.message}</p>}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Ministério</Label>
-                  <Select value={selectedMinistryId ?? ''} onValueChange={(v) => setValue('ministry_id', v || null)}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {ministries?.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </div>
