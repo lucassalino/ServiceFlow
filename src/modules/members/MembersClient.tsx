@@ -86,8 +86,14 @@ export function MembersClient() {
   async function handleSendInvite() {
     if (!activeOrg?.id) return;
     try {
-      await createInvite.mutateAsync({ orgId: activeOrg.id, name: inviteName, email: inviteEmail });
-      toast.success('Convite criado para ' + inviteName.trim());
+      const res = await createInvite.mutateAsync({ orgId: activeOrg.id, name: inviteName, email: inviteEmail });
+      if (res.alreadyRegistered) {
+        toast.success(`${inviteName.trim()} já tem conta — entra automaticamente na próxima vez que abrir a app.`);
+      } else if (res.emailSent) {
+        toast.success(`Convite enviado por email para ${inviteEmail.trim()}`);
+      } else {
+        toast.message('Convite criado. Partilha o código com a pessoa (o email não pôde ser enviado).');
+      }
       setInviteName('');
       setInviteEmail('');
     } catch (e: unknown) {
@@ -332,7 +338,8 @@ export function MembersClient() {
               {createInvite.isPending ? 'A convidar…' : 'Convidar'}
             </Button>
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Quando a pessoa criar conta com este email, entra automaticamente e o nome fica guardado.
+              É enviado um email de convite. Ao aceitar e definir a password, a pessoa entra
+              automaticamente na organização e o nome fica guardado.
             </p>
 
             {pendingInvites.length > 0 && (
