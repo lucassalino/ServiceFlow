@@ -77,7 +77,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
       <style>{`
         .mmp-mem-fn { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.25rem; }
       `}</style>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ─────────────────────────────────────── */}
         <div style={{

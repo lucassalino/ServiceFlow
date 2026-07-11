@@ -616,6 +616,31 @@
   border-color: rgba(255,255,255,0.3);
 }
 
+/* Padding responsivo partilhado pelos painéis de detalhe/formulário */
+.panel-pad { padding: 1.5rem 2rem 3rem; }
+@media (max-width: 640px) {
+  .panel-pad { padding: 1.1rem 1.05rem 2.5rem; }
+}
+
+/* Área principal — deixa espaço para a barra inferior fixa no mobile (com safe-area) */
+.app-main { padding-bottom: 0; }
+@media (max-width: 1023px) {
+  .app-main { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Campos de data/hora ocupam toda a largura da célula (evita sobreposição no mobile) */
+input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: border-box; }
+
+/* iOS dá zoom ao focar campos com letra < 16px — forçar 16px no mobile evita isso.
+   Selectores específicos para vencer os overrides de .auth-glass / .dark-inputs. */
+@media (max-width: 767px) {
+  input, textarea, select,
+  .auth-glass input,
+  .dark-inputs input,
+  .dark-inputs textarea,
+  .dark-inputs select { font-size: 16px !important; }
+}
+
 /* ═══════════════════════════════════════════════
    DARK PAGES — shared elements (events, members…)
    ═══════════════════════════════════════════════ */

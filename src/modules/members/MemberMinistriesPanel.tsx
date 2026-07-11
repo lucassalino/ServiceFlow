@@ -71,7 +71,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
         @media (max-width: 700px) { .mmp-grid { grid-template-columns: 1fr !important; } }
         .mmp-fn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.25rem; }
       `}</style>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ─────────────────────────────────────── */}
         <div style={{

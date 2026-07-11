@@ -23,6 +23,46 @@ export async function fetchOrgMembershipsAction(): Promise<(OrganizationMember &
   return data as (OrganizationMember & { organization: Organization })[];
 }
 
+/** Faz upload do logótipo da organização e grava o URL. Só admins. */
+export async function uploadOrgLogoAction(formData: FormData): Promise<string> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+
+  const file = formData.get('file') as File | null;
+  const orgId = formData.get('orgId') as string | null;
+  if (!file || !orgId) throw new Error('Ficheiro em falta');
+
+  const admin = getAdmin();
+
+  // Só um admin da organização pode alterar o logótipo.
+  const { data: membership } = await admin
+    .from('organization_members').select('role')
+    .eq('org_id', orgId).eq('user_id', user.id).single();
+  if ((membership as { role?: string } | null)?.role !== 'admin') {
+    throw new Error('Apenas administradores podem alterar o logótipo');
+  }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const path = `org-logos/${orgId}-${crypto.randomUUID()}.${ext}`;
+  const buffer = new Uint8Array(await file.arrayBuffer());
+  const { error: uploadError } = await admin.storage
+    .from('avatars')
+    .upload(path, buffer, { contentType: file.type, upsert: true });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data } = admin.storage.from('avatars').getPublicUrl(path);
+  const logoUrl = `${data.publicUrl}?t=${Date.now()}`;
+
+  const { error: updErr } = await admin
+    .from('organizations')
+    .update({ logo_url: logoUrl, updated_at: new Date().toISOString() })
+    .eq('id', orgId);
+  if (updErr) throw new Error(updErr.message);
+
+  return logoUrl;
+}
+
 export async function leaveOrganizationAction(orgId: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();

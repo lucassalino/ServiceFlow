@@ -9,7 +9,7 @@ import {
 import { useEvents, usePublishEvent } from '@/hooks/useEvents';
 import { useOrgStore } from '@/stores/orgStore';
 import { useMinistries } from '@/hooks/useMinistries';
-import { useOrgMembers, useMinistryMembers } from '@/hooks/useMembers';
+import { useMinistryMembers } from '@/hooks/useMembers';
 import { useNotifyEventSchedules } from '@/hooks/useNotifications';
 import {
   useEventMinistries,
@@ -21,7 +21,7 @@ import {
   useConfirmSchedule,
   useUpdateEventSchedule,
 } from '@/hooks/useSchedule';
-import { MEMBER_FUNCTIONS, resolveFunction, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
+import { resolveFunction, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
 import { formatDate, formatTime, getInitials } from '@/lib/utils';
 import { buildWhatsAppLink, scheduleMessage } from '@/lib/whatsapp';
 import { fetchEventScheduledContactsAction } from '@/actions/schedule';
@@ -37,6 +37,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Ministry, EventMinistry, EventSchedule, MinistryMember } from '@/types/models';
 
 interface Props { orgId: string }
+
+const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
 
 // ── Shared dark badge ────────────────────────────────────────────────────────
 
@@ -117,10 +119,11 @@ function PersonDialog({
   assignedUserIds: string[];
   editTarget?: EventSchedule | null;
 }) {
-  const { data: members = [] } = useOrgMembers();
   const { data: ministryMembers = [] } = useMinistryMembers(ministryId);
   const addPerson = useAddPersonToSchedule();
   const updateSchedule = useUpdateEventSchedule();
+
+  const typedMinistryMembers = ministryMembers as unknown as MinistryMember[];
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(
     mode === 'edit' && editTarget ? editTarget.user_id : null,
@@ -129,26 +132,26 @@ function PersonDialog({
     mode === 'edit' && editTarget ? editTarget.functions : [],
   );
 
+  // Só os membros deste ministério podem ser escalados
   const available = mode === 'add'
-    ? (members as unknown as { user_id: string; is_active: boolean; profile: { full_name: string } }[])
-        .filter((m) => !assignedUserIds.includes(m.user_id) && m.is_active)
+    ? typedMinistryMembers.filter((m) => m.is_active && !assignedUserIds.includes(m.user_id))
     : [];
 
-  const availableFunctions = useMemo(() => {
-    const allFns = new Set<string>();
-    (ministryMembers as unknown as MinistryMember[]).forEach((m) => {
-      m.functions.forEach((fn) => allFns.add(fn));
-    });
-    return allFns.size > 0
-      ? Array.from(allFns).map((k) => resolveFunction(k))
-      : MEMBER_FUNCTIONS.map((f) => ({ key: f.key, label: f.label, emoji: f.emoji }));
-  }, [ministryMembers]);
+  // Só as funções que a pessoa selecionada tem neste ministério
+  const personFunctions = useMemo(() => {
+    const keys = new Set<string>();
+    const mm = typedMinistryMembers.find((m) => m.user_id === selectedUserId);
+    (mm?.functions ?? []).forEach((k) => keys.add(k));
+    // Em edição, manter também funções já atribuídas nesta escala
+    if (mode === 'edit' && editTarget) editTarget.functions.forEach((k) => keys.add(k));
+    return Array.from(keys).map((k) => resolveFunction(k));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ministryMembers, selectedUserId, mode, editTarget]);
 
   function handleSelectPerson(userId: string) {
     setSelectedUserId(userId);
-    const mm = (ministryMembers as unknown as MinistryMember[]).find((m) => m.user_id === userId);
-    const preSelected = (mm?.functions ?? []).filter((fn) => availableFunctions.some((f) => f.key === fn));
-    setSelectedFunctions(preSelected);
+    const mm = typedMinistryMembers.find((m) => m.user_id === userId);
+    setSelectedFunctions(mm?.functions ?? []);
   }
 
   function toggleFunction(key: string) {
@@ -224,17 +227,16 @@ function PersonDialog({
             </div>
           )}
           <div>
-            <p className="text-sm font-medium mb-2">
-              Funções
-              {availableFunctions.length < MEMBER_FUNCTIONS.length && (
-                <span className="text-xs text-muted-foreground ml-1">(filtradas pelo ministério)</span>
-              )}
-            </p>
+            <p className="text-sm font-medium mb-2">Funções</p>
             {mode === 'add' && !selectedUserId ? (
               <p className="text-xs text-muted-foreground">Seleciona uma pessoa primeiro</p>
+            ) : personFunctions.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Esta pessoa não tem funções definidas neste ministério.
+              </p>
             ) : (
               <div className="grid grid-cols-2 gap-1">
-                {availableFunctions.map((f) => (
+                {personFunctions.map((f) => (
                   <label key={f.key} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm">
                     <Checkbox checked={selectedFunctions.includes(f.key)} onCheckedChange={() => toggleFunction(f.key)} />
                     <span>{f.emoji} {f.label}</span>
@@ -466,15 +468,16 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
 
 export function ScheduleClient({ orgId: _orgId }: Props) {
   const { data: events = [], isLoading: eventsLoading } = useEvents();
-  const { activeMembership } = useOrgStore();
+  const { activeMembership, activeOrg } = useOrgStore();
   const isAdmin = activeMembership?.role === 'admin';
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [addMinistryOpen, setAddMinistryOpen] = useState(false);
   const [mobileShowDetail, setMobileShowDetail] = useState(false);
   const [whatsappContacts, setWhatsappContacts] = useState<
-    { userId: string; name: string; phone: string | null; confirmed: boolean | null }[] | null
+    { userId: string; name: string; phone: string | null; confirmed: boolean | null; ministries: string[] }[] | null
   >(null);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   function handleSelectEvent(id: string) {
     setSelectedEventId(id);
@@ -506,23 +509,42 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
       // Abrir o painel de WhatsApp com os contactos
       const contacts = await fetchEventScheduledContactsAction(selectedEvent.id);
       setSentTo(new Set());
+      setSelectedIds(new Set(contacts.map((c) => c.userId)));
       setWhatsappContacts(contacts);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao publicar escala');
     }
   }
 
-  function handleSendWhatsApp(contact: { userId: string; name: string; phone: string | null }) {
+  function toggleContact(userId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId); else next.add(userId);
+      return next;
+    });
+  }
+
+  function toggleAllContacts() {
+    const all = whatsappContacts ?? [];
+    setSelectedIds((prev) => prev.size === all.length ? new Set() : new Set(all.map((c) => c.userId)));
+  }
+
+  // Envia à PRÓXIMA pessoa selecionada ainda não enviada (o WhatsApp abre uma conversa de cada vez).
+  function handleSendNext() {
     if (!selectedEvent) return;
+    const next = (whatsappContacts ?? []).find((c) => selectedIds.has(c.userId) && !sentTo.has(c.userId));
+    if (!next) return;
     const message = scheduleMessage({
-      name: contact.name,
+      name: next.name,
+      orgName: activeOrg?.name ?? 'a tua igreja',
+      ministry: next.ministries.join(' / '),
       eventName: selectedEvent.name,
       date: selectedEvent.date,
       time: selectedEvent.time,
-      appUrl: window.location.origin,
+      appUrl: APP_URL,
     });
-    window.open(buildWhatsAppLink(contact.phone, message), '_blank', 'noopener,noreferrer');
-    setSentTo((prev) => new Set(prev).add(contact.userId));
+    window.open(buildWhatsAppLink(next.phone, message), '_blank', 'noopener,noreferrer');
+    setSentTo((prev) => new Set(prev).add(next.userId));
   }
 
   const sortedEvents = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -784,42 +806,65 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             <DialogTitle>Notificar por WhatsApp</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Toca em cada pessoa para abrir o WhatsApp com a mensagem pronta. Quem não tiver telemóvel no perfil abre sem contacto definido.
+            Seleciona quem queres notificar e toca em <strong>Enviar</strong>. O WhatsApp abre uma conversa
+            de cada vez com a mensagem pronta — envia e volta para continuar.
           </p>
+
+          {(whatsappContacts?.length ?? 0) > 0 && (
+            <button type="button" onClick={toggleAllContacts}
+              className="self-start text-xs font-medium"
+              style={{ color: 'rgba(255,255,255,0.55)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              {selectedIds.size === (whatsappContacts?.length ?? 0) ? 'Desmarcar todos' : 'Selecionar todos'}
+            </button>
+          )}
+
           <div className="space-y-2 mt-1">
             {(whatsappContacts ?? []).map((c) => {
               const sent = sentTo.has(c.userId);
+              const checked = selectedIds.has(c.userId);
               return (
-                <div key={c.userId} className="flex items-center gap-3 rounded-lg border p-2.5"
-                  style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>
+                <div key={c.userId} onClick={() => toggleContact(c.userId)}
+                  className="flex items-center gap-3 rounded-lg border p-2.5 cursor-pointer"
+                  style={{ borderColor: 'rgba(255,255,255,0.1)', background: checked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)' }}>
+                  <Checkbox checked={checked} style={{ pointerEvents: 'none' }} />
                   <Avatar className="h-9 w-9 shrink-0">
                     <AvatarFallback className="text-xs" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
                       {getInitials(c.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{c.name}</p>
+                    <p className="text-sm font-medium text-white truncate flex items-center gap-1.5">
+                      {c.name}
+                      {sent && <Check className="h-3.5 w-3.5" style={{ color: '#6ee7b7' }} />}
+                    </p>
                     <p className="text-xs" style={{ color: c.phone ? 'rgba(255,255,255,0.4)' : '#f59e0b' }}>
                       {c.phone || 'Sem telemóvel no perfil'}
                     </p>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={() => handleSendWhatsApp(c)}
-                    className="shrink-0 gap-1.5 h-8"
-                    style={sent
-                      ? { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }
-                      : { background: '#25D366', color: '#0a0a0e' }}
-                  >
-                    {sent ? <Check className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
-                    {sent ? 'Enviado' : 'Enviar'}
-                  </Button>
                 </div>
               );
             })}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={() => setWhatsappContacts(null)}>Fechar</Button>
+            {(() => {
+              const remaining = (whatsappContacts ?? []).filter((c) => selectedIds.has(c.userId) && !sentTo.has(c.userId)).length;
+              return (
+                <Button
+                  type="button"
+                  onClick={handleSendNext}
+                  disabled={remaining === 0}
+                  className="gap-1.5"
+                  style={remaining === 0
+                    ? { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }
+                    : { background: '#25D366', color: '#0a0a0e' }}
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  {remaining === 0 ? 'Todos enviados' : `Enviar (${remaining})`}
+                </Button>
+              );
+            })()}
           </DialogFooter>
         </DialogContent>
       </Dialog>

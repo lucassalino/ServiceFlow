@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
 import { BottomNav } from './BottomNav';
+import { NavProgress } from './NavProgress';
 
 interface Props {
   orgId: string;
@@ -14,13 +15,14 @@ export function AppShell({ orgId, children }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex overflow-hidden" style={{ height: '100dvh' }}>
+      <NavProgress />
       <Sidebar orgId={orgId} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <MobileHeader orgId={orgId} onMenuOpen={() => setMobileOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto pb-16 lg:pb-0" style={{ background: '#000000' }}>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden app-main" style={{ background: '#000000' }}>
           {children}
         </main>
 

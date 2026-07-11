@@ -36,6 +36,8 @@ export function formatDateLong(dateStr: string): string {
 /** Mensagem de aviso de escala para enviar por WhatsApp. */
 export function scheduleMessage(opts: {
   name: string;
+  orgName: string;
+  ministry: string;
   eventName: string;
   date: string;
   time?: string | null;
@@ -43,12 +45,14 @@ export function scheduleMessage(opts: {
 }): string {
   const firstName = opts.name.split(' ')[0] || opts.name;
   const when = `${formatDateLong(opts.date)}${opts.time ? ` às ${opts.time.slice(0, 5)}` : ''}`;
+  const ministry = opts.ministry || opts.eventName;
   return (
-    `Olá ${firstName}! 🙌\n\n` +
-    `Foste escalado(a) para *${opts.eventName}*\n` +
-    `📅 ${when}\n\n` +
-    `Por favor confirma a tua presença na app:\n${opts.appUrl}\n\n` +
-    `Obrigado! 🙏`
+    `Olá, *${firstName}*! 🙌\n\n` +
+    `A *${opts.orgName}* escalou-te no *${ministry}* para o culto do dia *${when}*.\n\n` +
+    `Para veres os detalhes da escala, cifras ou ficheiros, abre a app:\n${opts.appUrl}\n\n` +
+    `Confirma a tua presença na app:\n` +
+    `✅ Sim, confirmo\n` +
+    `❌ Não poderei ir`
   );
 }
 
@@ -63,5 +67,14 @@ export function inviteMessage(opts: {
     `Foste convidado(a) para *${opts.orgName}* no ServiceFlow.\n\n` +
     `Entra aqui para te juntares:\n${opts.joinUrl}\n\n` +
     `Ou usa o código de convite: *${opts.inviteCode}*`
+  );
+}
+
+/** Mensagem curta para a partilha nativa (Web Share) — foca no código. */
+export function inviteShareText(orgName: string, code: string, appUrl: string): string {
+  return (
+    `Entra na organização "${orgName}" no ServiceFlow!\n\n` +
+    `Usa o código: ${code}\n\n` +
+    `Abre a app em: ${appUrl}`
   );
 }

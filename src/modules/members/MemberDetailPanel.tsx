@@ -58,7 +58,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
         @media (max-width: 820px) { .mdp-main { grid-template-columns: 1fr !important; } }
         .mdp-min-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.75rem; }
       `}</style>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ─────────────────────────────────────── */}
         <div style={{

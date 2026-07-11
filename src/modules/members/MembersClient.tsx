@@ -1,19 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Plus, Trash2, Check, Users, Share2 } from 'lucide-react';
+import { Copy, Plus, Trash2, Check, Users, Share2, Mail, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import { useOrgMembers, useUpdateMemberRole, useDeleteMember } from '@/hooks/useMembers';
-import { inviteMessage } from '@/lib/whatsapp';
+import { usePendingInvites, useCreateInvite, useDeleteInvite } from '@/hooks/useInvites';
 import type { OrganizationMember, OrgRole } from '@/types/models';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
 import { MemberDetailPanel } from './MemberDetailPanel';
+
+const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
 
 type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
@@ -69,37 +73,67 @@ export function MembersClient() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function handleShareInvite() {
-    const code = activeOrg?.invite_code;
-    if (!code) return;
-    const joinUrl = `${window.location.origin}/join-org?code=${code}`;
-    const text = inviteMessage({
-      orgName: activeOrg?.name ?? 'a nossa organização',
-      inviteCode: code,
-      joinUrl,
-    });
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ title: 'Convite ServiceFlow', text, url: joinUrl });
-      } catch {
-        /* utilizador cancelou a partilha */
-      }
-    } else {
-      await navigator.clipboard.writeText(text);
-      toast.success('Convite copiado!');
-    }
-  }
+  // Convites por nome + email
+  const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, inviteOpen);
+  const createInvite = useCreateInvite();
+  const deleteInvite = useDeleteInvite();
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+
   const [removeTarget, setRemoveTarget] = useState<MemberWithProfile | null>(null);
   const [detailMember, setDetailMember] = useState<MemberWithProfile | null>(null);
 
-  function handleCopyCode() {
-    const code = activeOrg?.invite_code;
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.success('Código copiado!');
-    });
+  async function handleSendInvite() {
+    if (!activeOrg?.id) return;
+    try {
+      await createInvite.mutateAsync({ orgId: activeOrg.id, name: inviteName, email: inviteEmail });
+      toast.success('Convite criado para ' + inviteName.trim());
+      setInviteName('');
+      setInviteEmail('');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao criar convite');
+    }
+  }
+
+  async function handleCancelInvite(inviteId: string) {
+    if (!activeOrg?.id) return;
+    try {
+      await deleteInvite.mutateAsync({ orgId: activeOrg.id, inviteId });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao cancelar');
+    }
+  }
+
+  // Copiar — Clipboard API.
+  function copiarCodigo() {
+    const codigo = activeOrg?.invite_code;
+    if (!codigo) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(codigo)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+          toast.success('Código copiado: ' + codigo);
+        })
+        .catch(() => toast.message('Código: ' + codigo));
+    } else {
+      toast.message('Código: ' + codigo);
+    }
+  }
+
+  // Partilhar — Web Share API nativa (móvel abre o menu do sistema); desktop/sem suporte → copia.
+  function partilharCodigo() {
+    const codigo = activeOrg?.invite_code;
+    const nome = activeOrg?.name ?? 'a nossa organização';
+    if (!codigo) return;
+    if (navigator.share) {
+      navigator.share({
+        title: 'ServiceFlow — ' + nome,
+        text: `Entra na organização "${nome}" no ServiceFlow!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
+      }).catch(() => {});
+    } else {
+      copiarCodigo();
+    }
   }
 
   async function handleRoleChange(member: MemberWithProfile, role: OrgRole) {
@@ -271,28 +305,83 @@ export function MembersClient() {
 
       {/* ── Invite dialog ──────────────────────────── */}
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Convidar Membro</DialogTitle>
           </DialogHeader>
 
+          {/* Convidar por nome + email */}
+          <div className="dark-inputs space-y-3">
+            <p className="text-[11px] font-semibold tracking-[0.16em] uppercase"
+              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Convidar por email
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="inv-name">Nome</Label>
+              <Input id="inv-name" placeholder="Nome da pessoa"
+                value={inviteName} onChange={(e) => setInviteName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="inv-email">Email</Label>
+              <Input id="inv-email" type="email" placeholder="email@exemplo.com"
+                value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSendInvite(); } }} />
+            </div>
+            <Button onClick={handleSendInvite} disabled={createInvite.isPending} className="w-full gap-2 h-11">
+              <Mail className="h-4 w-4" />
+              {createInvite.isPending ? 'A convidar…' : 'Convidar'}
+            </Button>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Quando a pessoa criar conta com este email, entra automaticamente e o nome fica guardado.
+            </p>
+
+            {pendingInvites.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-[11px] font-semibold tracking-[0.16em] uppercase"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Convites pendentes ({pendingInvites.length})
+                </p>
+                {pendingInvites.map((inv) => (
+                  <div key={inv.id} className="flex items-center gap-2 rounded-lg px-3 py-2"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{inv.name}</p>
+                      <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{inv.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCancelInvite(inv.id)}
+                      aria-label="Cancelar convite"
+                      className="dark-icon-btn danger"
+                      disabled={deleteInvite.isPending}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0.25rem 0' }} />
+
           <div>
             <p className="text-[11px] font-semibold tracking-[0.16em] uppercase mb-1.5"
               style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Código de convite
+              Ou partilha o código
             </p>
             <p className="text-2xl font-bold font-mono tracking-[0.12em] text-white mb-4">
               {activeOrg?.invite_code ?? '—'}
             </p>
 
             <div className="grid grid-cols-2 gap-2.5">
-              <Button variant="outline" onClick={handleCopyCode} className="gap-2 h-11">
+              <Button variant="outline" onClick={copiarCodigo} className="gap-2 h-11">
                 {copied
                   ? <Check className="h-4 w-4 text-green-500" />
                   : <Copy className="h-4 w-4" />}
                 {copied ? 'Copiado' : 'Copiar'}
               </Button>
-              <Button variant="outline" onClick={handleShareInvite} className="gap-2 h-11">
+              <Button variant="outline" onClick={partilharCodigo} className="gap-2 h-11">
                 <Share2 className="h-4 w-4" />
                 Partilhar
               </Button>

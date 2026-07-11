@@ -48,7 +48,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
-  Check, ChevronLeft, ChevronRight, Users, LayoutGrid, ListMusic,
+  Check, Users, LayoutGrid, ListMusic,
   CalendarDays, Music2,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -163,37 +163,24 @@ function Sidebar({ current, onBack, onStepClick, step1Done }: {
   );
 }
 
-// ── Footer row ────────────────────────────────────────────────────────────────
+// ── Save bar (grava todas as tabs de uma vez) ──────────────────────────────────
 
-function Footer({
-  onPrev, onSkip, onNext, nextLabel, saving, showPrev, skipLabel,
-}: {
-  onPrev?: () => void; onSkip: () => void; onNext?: () => void;
-  nextLabel: string; saving?: boolean; showPrev?: boolean; skipLabel: string;
+function SaveBar({ onCancel, onSave, saving }: {
+  onCancel: () => void; onSave: () => void; saving: boolean;
 }) {
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      paddingTop: '1.5rem', marginTop: '0.5rem',
+    <div className="ep-savebar" style={{
+      display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem',
+      paddingTop: '1.5rem', marginTop: '2rem',
       borderTop: '1px solid rgba(255,255,255,0.07)',
     }}>
-      <div>
-        {showPrev && onPrev && (
-          <button style={ghostBtn} onClick={onPrev}>
-            <ChevronLeft style={{ width: '0.875rem', height: '0.875rem' }} /> Anterior
-          </button>
-        )}
-      </div>
-      <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <button style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onSkip} disabled={saving}>
-          {skipLabel}
-        </button>
-        {onNext && (
-          <button style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onNext} disabled={saving}>
-            {nextLabel}
-          </button>
-        )}
-      </div>
+      <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onCancel} disabled={saving}>
+        Cancelar
+      </button>
+      <button type="button" style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onSave} disabled={saving}>
+        <Check style={{ width: '0.9rem', height: '0.9rem' }} />
+        {saving ? 'A criar…' : 'Criar evento'}
+      </button>
     </div>
   );
 }
@@ -210,7 +197,6 @@ export function EventCreatePanel({ onBack }: Props) {
   const { data: songs = [] } = useSongs();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [newEventId, setNewEventId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -303,37 +289,38 @@ export function EventCreatePanel({ onBack }: Props) {
     setSelectedSongIds((prev) => prev.includes(songId) ? prev.filter((id) => id !== songId) : [...prev, songId]);
   }
 
-  async function onSubmit(values: FormValues) {
-    let coverImageUrl: string | null = null;
-    if (imageFile && activeOrg?.id) {
+  // Cria o evento e grava TUDO de uma vez: informações + imagem + ministérios/integrantes + setlist.
+  const doSaveAll = handleSubmit(
+    async (values) => {
+      if (!activeOrg?.id) { toast.error('Organização não encontrada'); return; }
+      setSaving(true);
       try {
-        const fd = new FormData();
-        fd.append('file', imageFile);
-        fd.append('orgId', activeOrg.id);
-        coverImageUrl = await uploadEventImageAction(fd);
-      } catch { toast.error('Erro ao carregar imagem'); return; }
-    }
-    createEvent.mutate(
-      { ...values, color: null, cover_image_url: coverImageUrl, location: values.location || null, description: values.description || null, observations: values.observations || null },
-      { onSuccess: (ev) => { setNewEventId(ev.id); setStep(2); }, onError: () => toast.error('Erro ao criar evento') },
-    );
-  }
-
-  async function handleFinish() {
-    if (!newEventId) { onBack(); return; }
-    setSaving(true);
-    try {
-      const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
-      if (setup.length > 0) await setupEventScheduleAction(newEventId, setup);
-      if (selectedSongIds.length > 0) await setupEventSetlistAction(newEventId, selectedSongIds);
-      qc.invalidateQueries({ queryKey: ['event-setlist', newEventId] });
-      qc.invalidateQueries({ queryKey: ['event-ministries', newEventId] });
-      toast.success('Evento criado com sucesso');
-      onBack();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
-    } finally { setSaving(false); }
-  }
+        let coverImageUrl: string | null = null;
+        if (imageFile) {
+          const fd = new FormData();
+          fd.append('file', imageFile);
+          fd.append('orgId', activeOrg.id);
+          coverImageUrl = await uploadEventImageAction(fd);
+        }
+        const ev = await createEvent.mutateAsync({
+          ...values, color: null, cover_image_url: coverImageUrl,
+          location: values.location || null, description: values.description || null,
+          observations: values.observations || null,
+        });
+        const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
+        if (setup.length > 0) await setupEventScheduleAction(ev.id, setup);
+        if (selectedSongIds.length > 0) await setupEventSetlistAction(ev.id, selectedSongIds);
+        qc.invalidateQueries({ queryKey: ['events'] });
+        toast.success('Evento criado com sucesso');
+        onBack();
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
+      } finally {
+        setSaving(false);
+      }
+    },
+    () => { setStep(1); toast.error('Preenche o nome, a data e a hora'); },
+  );
 
   const activeMinistries = (ministries as unknown as { id: string; name: string; icon: string; color: string; is_active: boolean }[]).filter((m) => m.is_active);
   const filteredSongs = useMemo(() => {
@@ -345,24 +332,14 @@ export function EventCreatePanel({ onBack }: Props) {
   const totalSelectedMembers = Object.values(membersByMinistry).reduce((acc, m) => acc + m.length, 0);
   const isPending = createEvent.isPending || isSubmitting;
 
-  function handleMobilePrev() {
-    if (step === 1) onBack();
-    else setStep((step - 1) as 1 | 2 | 3 | 4);
-  }
-
-  function handleMobileNext() {
-    if (step === 1 && !newEventId) { formRef.current?.requestSubmit(); return; }
-    if (step === 4) { handleFinish(); return; }
-    setStep((step + 1) as 2 | 3 | 4);
-  }
-
   return (
     <>
       <style>{`
-        .ep-layout { display: flex; min-height: 100%; }
+        .ep-layout { display: flex; min-height: 100%; max-width: 100%; }
         .ep-sidebar { display: flex; }
-        .ep-mobile-nav { display: none; }
-        .ep-content { padding: 2.5rem 3rem 4rem; }
+        .ep-steptabs { display: none; }
+        .ep-content { padding: 2.5rem 3rem 4rem; min-width: 0; }
+        .ep-member-grid > *, .ep-ministry-grid > *, .ep-date-grid > * { min-width: 0; }
         .ep-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .ep-date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
         .ep-ministry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
@@ -370,18 +347,10 @@ export function EventCreatePanel({ onBack }: Props) {
         .ep-setlist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
         @media (max-width: 767px) {
           .ep-sidebar { display: none !important; }
-          .ep-mobile-nav {
-            display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-            position: fixed; left: 0; right: 0; z-index: 30;
-            bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
-            padding: 0.75rem 1.25rem;
-            background: rgba(12,12,16,0.97);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(16px);
-          }
-          .ep-content { padding: 1.25rem 1.25rem calc(3.75rem + 4rem + env(safe-area-inset-bottom, 0px)); }
+          .ep-steptabs { display: flex; gap: 0.375rem; overflow-x: auto; margin-bottom: 1.25rem; }
+          .ep-content { padding: 1.25rem 1.1rem 2rem; overflow-x: hidden; }
           .ep-two-col { grid-template-columns: 1fr; }
-          .ep-date-grid { grid-template-columns: 1fr 1fr; }
+          .ep-date-grid { grid-template-columns: 1fr; }
           .ep-ministry-grid { grid-template-columns: 1fr; }
           .ep-member-grid { grid-template-columns: 1fr; }
           .ep-setlist-grid { grid-template-columns: 1fr; }
@@ -390,42 +359,36 @@ export function EventCreatePanel({ onBack }: Props) {
 
       <div className="dash-purple-bg ep-layout">
 
-        {/* Mobile bottom nav */}
-        <div className="ep-mobile-nav">
-          {/* Prev arrow */}
-          <button onClick={handleMobilePrev} style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', flexShrink: 0 }}>
-            <ChevronLeft style={{ width: '1rem', height: '1rem', color: '#fff' }} />
-          </button>
-
-          {/* Step dots + label */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem' }}>
-            <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
-              {STEPS.map((_, i) => {
-                const num = i + 1;
-                const active = step === num;
-                const done = step > num;
-                const enabled = num === 1 || !!newEventId;
-                return (
-                  <button key={i} onClick={() => enabled && setStep(num as 1|2|3|4)} style={{ width: active ? '1.5rem' : '0.5rem', height: '0.5rem', borderRadius: '9999px', border: 'none', cursor: enabled ? 'pointer' : 'default', transition: 'all 0.2s', background: active ? '#fff' : done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.18)', padding: 0, opacity: enabled ? 1 : 0.4 }} />
-                );
-              })}
-            </div>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
-              {STEPS[step - 1].label}
-            </span>
-          </div>
-
-          {/* Next arrow */}
-          <button onClick={handleMobileNext} disabled={saving || isPending} style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: 'none', cursor: 'pointer', flexShrink: 0, opacity: (saving || isPending) ? 0.5 : 1 }}>
-            <ChevronRight style={{ width: '1rem', height: '1rem', color: '#0a0a0f' }} />
-          </button>
-        </div>
-
         {/* ── Sidebar ──────────────────────────────────────────────────── */}
-        <Sidebar current={step} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4)} step1Done={!!newEventId} />
+        <Sidebar current={step} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4)} step1Done={true} />
 
         {/* ── Content ──────────────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto' }} className="ep-content">
+
+          {/* Abas de passos (só mobile) */}
+          <div className="ep-steptabs scrollbar-none">
+            {STEPS.map((s, i) => {
+              const num = (i + 1) as 1 | 2 | 3 | 4;
+              const active = step === num;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setStep(num)}
+                  style={{
+                    flexShrink: 0, padding: '0.4rem 0.8rem', borderRadius: '9999px',
+                    fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: 'pointer',
+                    background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+                    color: active ? '#0a0a0f' : 'rgba(255,255,255,0.55)',
+                    border: `1px solid ${active ? '#fff' : 'rgba(255,255,255,0.1)'}`,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {i + 1}. {s.label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Step title */}
           <div style={{ marginBottom: '1.75rem' }}>
@@ -439,7 +402,7 @@ export function EventCreatePanel({ onBack }: Props) {
 
           {/* ─── Step 1: Informações ──────────────────────────────────── */}
           {step === 1 && (
-            <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="dark-inputs">
+            <form ref={formRef} onSubmit={doSaveAll} className="dark-inputs">
               <div className="ep-two-col">
 
                 {/* Left column */}
@@ -533,14 +496,6 @@ export function EventCreatePanel({ onBack }: Props) {
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 </div>
               </div>
-
-              {/* Footer */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1.5rem', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                <button type="button" style={ghostBtn} onClick={onBack} disabled={isPending}>Cancelar</button>
-                <button type="submit" style={{ ...primaryBtn, opacity: isPending ? 0.7 : 1 }} disabled={isPending}>
-                  {isPending ? 'A guardar…' : 'Continuar →'}
-                </button>
-              </div>
             </form>
           )}
 
@@ -587,11 +542,6 @@ export function EventCreatePanel({ onBack }: Props) {
                   })}
                 </div>
               )}
-              <Footer
-                onSkip={onBack} skipLabel="Configurar depois"
-                onNext={() => setStep(3)}
-                nextLabel={`Próximo${selectedMinistryIds.length > 0 ? ` (${selectedMinistryIds.length})` : ' →'}`}
-              />
             </div>
           )}
 
@@ -687,11 +637,6 @@ export function EventCreatePanel({ onBack }: Props) {
                   </div>
                 </div>
               )}
-              <Footer
-                showPrev onPrev={() => setStep(2)}
-                onSkip={onBack} skipLabel="Configurar depois"
-                onNext={() => setStep(4)} nextLabel="Próximo →"
-              />
             </div>
           )}
 
@@ -789,13 +734,11 @@ export function EventCreatePanel({ onBack }: Props) {
                 </div>
               </div>
 
-              <Footer
-                showPrev onPrev={() => setStep(3)} saving={saving}
-                onSkip={onBack} skipLabel="Configurar depois"
-                onNext={handleFinish} nextLabel={saving ? 'A guardar…' : 'Concluir ✓'}
-              />
             </div>
           )}
+
+          {/* Barra de gravação única — cria o evento com todas as tabs (desktop) */}
+          <SaveBar onCancel={onBack} onSave={() => doSaveAll()} saving={saving || isPending} />
 
         </div>
       </div>

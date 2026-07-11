@@ -35,7 +35,7 @@ export function MinistryDetailPanel({
         .mdp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         @media (max-width: 700px) { .mdp-cols { grid-template-columns: 1fr !important; } }
       `}</style>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ────────────────────────────────────────── */}
         <div style={{

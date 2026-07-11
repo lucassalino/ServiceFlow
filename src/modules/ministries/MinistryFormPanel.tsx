@@ -72,7 +72,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
-      <div style={{ padding: '1.5rem 2.5rem 4rem' }}>
+      <div className="panel-pad">
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>

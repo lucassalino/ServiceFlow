@@ -6,7 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Camera, LogOut, Trash2, Copy, Check } from 'lucide-react';
+import { Camera, LogOut, Trash2, Copy, Check, Share2, ImagePlus } from 'lucide-react';
+
+const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
 import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
 import { ProfileCardDialog } from '@/components/ui/profile-card-dialog';
 import { createClient } from '@/lib/supabase/client';
@@ -14,6 +16,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
 import { useLeaveOrganization } from '@/hooks/useOrganizations';
+import { uploadOrgLogoAction } from '@/actions/organizations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,7 +34,6 @@ const profileSchema = z.object({
 
 const orgSchema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
-  logo_url: z.string().url('URL inválida').nullable().or(z.literal('')).default(null),
 });
 
 type ProfileData = z.infer<typeof profileSchema>;
@@ -70,7 +72,7 @@ function Divider() {
 export function SettingsClient({ orgId }: Props) {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { activeOrg, activeMembership } = useOrgStore();
+  const { activeOrg, activeMembership, setActiveOrg } = useOrgStore();
   const isAdmin = activeMembership?.role === 'admin';
 
   const { data: profile } = useProfile();
@@ -87,6 +89,11 @@ export function SettingsClient({ orgId }: Props) {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
+  // Logótipo da organização
+  const orgLogoInputRef = useRef<HTMLInputElement>(null);
+  const [orgLogoCropSrc, setOrgLogoCropSrc] = useState<string | null>(null);
+  const [orgLogoUploading, setOrgLogoUploading] = useState(false);
+
   const profileForm = useForm<ProfileData>({
     resolver: zodResolver(profileSchema) as never,
     defaultValues: { full_name: '', phone: null, birthday: null },
@@ -94,7 +101,7 @@ export function SettingsClient({ orgId }: Props) {
 
   const orgForm = useForm<OrgData>({
     resolver: zodResolver(orgSchema) as never,
-    defaultValues: { name: '', logo_url: null },
+    defaultValues: { name: '' },
   });
 
   useEffect(() => {
@@ -102,8 +109,47 @@ export function SettingsClient({ orgId }: Props) {
   }, [profile, profileForm]);
 
   useEffect(() => {
-    if (activeOrg) orgForm.reset({ name: activeOrg.name, logo_url: activeOrg.logo_url });
+    if (activeOrg) orgForm.reset({ name: activeOrg.name });
   }, [activeOrg, orgForm]);
+
+  function handleOrgLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Usa uma imagem JPEG, PNG ou WebP');
+      return;
+    }
+    if (file.size > MAX_AVATAR_SIZE_MB * 1024 * 1024) {
+      toast.error(`A imagem não pode exceder ${MAX_AVATAR_SIZE_MB}MB`);
+      return;
+    }
+    setOrgLogoCropSrc(URL.createObjectURL(file));
+    if (orgLogoInputRef.current) orgLogoInputRef.current.value = '';
+  }
+
+  async function handleOrgLogoCropConfirm(blob: Blob) {
+    if (orgLogoCropSrc) URL.revokeObjectURL(orgLogoCropSrc);
+    setOrgLogoCropSrc(null);
+    if (!activeOrg) return;
+    setOrgLogoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', new File([blob], 'logo.webp', { type: 'image/webp' }));
+      fd.append('orgId', activeOrg.id);
+      const logoUrl = await uploadOrgLogoAction(fd);
+      if (activeMembership) setActiveOrg({ ...activeOrg, logo_url: logoUrl }, activeMembership);
+      toast.success('Logótipo atualizado');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao carregar logótipo');
+    } finally {
+      setOrgLogoUploading(false);
+    }
+  }
+
+  function handleOrgLogoCropCancel() {
+    if (orgLogoCropSrc) URL.revokeObjectURL(orgLogoCropSrc);
+    setOrgLogoCropSrc(null);
+  }
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -167,10 +213,10 @@ export function SettingsClient({ orgId }: Props) {
     const supabase = createClient();
     const { error } = await supabase.from('organizations').update({
       name: data.name,
-      logo_url: data.logo_url || null,
       updated_at: new Date().toISOString(),
     }).eq('id', orgId);
     if (error) { toast.error(error.message); return; }
+    if (activeOrg && activeMembership) setActiveOrg({ ...activeOrg, name: data.name }, activeMembership);
     toast.success('Organização atualizada');
   }
 
@@ -197,14 +243,43 @@ export function SettingsClient({ orgId }: Props) {
     }
   }
 
-  function handleCopyCode() {
-    const code = activeOrg?.invite_code;
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(() => {
-      setCodeCopied(true);
-      setTimeout(() => setCodeCopied(false), 2000);
-      toast.success('Código copiado!');
-    });
+  // Copiar — Clipboard API.
+  function copiarCodigo() {
+    const codigo = activeOrg?.invite_code;
+    if (!codigo) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(codigo)
+        .then(() => {
+          setCodeCopied(true);
+          setTimeout(() => setCodeCopied(false), 2000);
+          toast.success('Código copiado: ' + codigo);
+        })
+        .catch(() => toast.message('Código: ' + codigo));
+    } else {
+      toast.message('Código: ' + codigo);
+    }
+  }
+
+  // Partilhar — Web Share API nativa (móvel abre o menu do sistema); desktop/sem suporte → copia.
+  function partilharCodigo() {
+    const codigo = activeOrg?.invite_code;
+    const nome = activeOrg?.name ?? 'a nossa organização';
+    if (!codigo) return;
+    if (navigator.share) {
+      navigator.share({
+        title: 'ServiceFlow — ' + nome,
+        text: `Entra na organização "${nome}" no ServiceFlow!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
+      }).catch(() => {});
+    } else {
+      copiarCodigo();
+    }
+  }
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
   }
 
   const displayAvatar = avatarPreview ?? profile?.avatar_url ?? undefined;
@@ -319,36 +394,83 @@ export function SettingsClient({ orgId }: Props) {
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="logo_url">URL do logótipo</Label>
-                <Input id="logo_url" placeholder="https://…" {...orgForm.register('logo_url')} />
+                <Label>Logótipo</Label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{
+                    width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', flexShrink: 0, overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                  }}>
+                    {activeOrg.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={activeOrg.logo_url} alt="Logótipo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>
+                        {activeOrg.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => orgLogoInputRef.current?.click()}
+                    disabled={orgLogoUploading}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                      padding: '0.5rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
+                      background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
+                      borderRadius: '0.5rem', color: 'rgba(255,255,255,0.85)',
+                      cursor: orgLogoUploading ? 'wait' : 'pointer', opacity: orgLogoUploading ? 0.6 : 1,
+                    }}
+                  >
+                    <ImagePlus style={{ width: '0.9rem', height: '0.9rem' }} />
+                    {orgLogoUploading ? 'A enviar…' : 'Carregar imagem'}
+                  </button>
+                  <input
+                    ref={orgLogoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleOrgLogoChange}
+                  />
+                </div>
+                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>
+                  JPEG, PNG ou WebP, até {MAX_AVATAR_SIZE_MB}MB.
+                </p>
               </div>
 
               <Divider />
 
               <div className="space-y-1.5">
                 <Label>Código de convite</Label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <Input value={activeOrg.invite_code} readOnly className="font-mono tracking-widest" />
-                  <button
-                    type="button"
-                    onClick={handleCopyCode}
-                    aria-label="Copiar código"
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: '2.5rem', flexShrink: 0,
-                      background: 'rgba(255,255,255,0.07)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '0.5rem',
-                      color: codeCopied ? '#6ee7b7' : 'rgba(255,255,255,0.6)',
-                      cursor: 'pointer',
-                      transition: 'color 0.15s',
-                    }}
-                  >
-                    {codeCopied
-                      ? <Check style={{ width: '0.9rem', height: '0.9rem' }} />
-                      : <Copy style={{ width: '0.9rem', height: '0.9rem' }} />}
-                  </button>
+                <Input value={activeOrg.invite_code} readOnly className="font-mono tracking-widest" />
+
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  {[
+                    { key: 'copy', label: codeCopied ? 'Copiado' : 'Copiar', icon: codeCopied ? Check : Copy, onClick: copiarCodigo, accent: codeCopied },
+                    { key: 'share', label: 'Partilhar', icon: Share2, onClick: partilharCodigo, accent: false },
+                  ].map(({ key, label, icon: Icon, onClick, accent }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={onClick}
+                      style={{
+                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        padding: '0.6rem',
+                        background: 'rgba(255,255,255,0.07)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '0.5rem',
+                        color: accent ? '#6ee7b7' : 'rgba(255,255,255,0.85)',
+                        fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                    >
+                      <Icon style={{ width: '0.9rem', height: '0.9rem' }} />
+                      {label}
+                    </button>
+                  ))}
                 </div>
+
                 <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>
                   Partilha este código para convidar pessoas
                 </p>
@@ -360,6 +482,29 @@ export function SettingsClient({ orgId }: Props) {
             </form>
           </Section>
         )}
+
+        {/* ── Sessão ──────────────────────────────────── */}
+        <Section title="Sessão">
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+            Termina a sessão neste dispositivo. Podes voltar a entrar com o teu email e password.
+          </p>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
+              background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+          >
+            <LogOut style={{ width: '0.9rem', height: '0.9rem' }} />
+            Terminar sessão
+          </button>
+        </Section>
 
         {/* ── Leave org ───────────────────────────────── */}
         <Section title="Esta organização">
@@ -437,6 +582,18 @@ export function SettingsClient({ orgId }: Props) {
           title="Recortar foto de perfil"
           onConfirm={handleCropConfirm}
           onCancel={handleCropCancel}
+        />
+      )}
+
+      {orgLogoCropSrc && (
+        <ImageCropDialog
+          open={!!orgLogoCropSrc}
+          imageSrc={orgLogoCropSrc}
+          shape="rect"
+          aspect={1}
+          title="Recortar logótipo"
+          onConfirm={handleOrgLogoCropConfirm}
+          onCancel={handleOrgLogoCropCancel}
         />
       )}
 
