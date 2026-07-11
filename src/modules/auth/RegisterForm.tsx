@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,8 +27,8 @@ const registerSchema = z
 type RegisterValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm({ className }: { className?: string }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   const {
     register,
@@ -43,27 +42,50 @@ export function RegisterForm({ className }: { className?: string }) {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
-          data: {
-            full_name: values.full_name,
-          },
+          data: { full_name: values.full_name },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) {
         toast.error(error.message);
         return;
       }
-      toast.success('Verifique o seu email');
-      router.push('/login');
+      // Se a confirmação de email estiver ativa, não há sessão até confirmar.
+      if (!data.session) {
+        setSentTo(values.email);
+      } else {
+        window.location.href = '/';
+      }
     } catch {
       toast.error('Ocorreu um erro inesperado');
     } finally {
       setLoading(false);
     }
   };
+
+  if (sentTo) {
+    return (
+      <div className={cn('flex flex-col items-center text-center gap-3 py-4', className)}>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full"
+          style={{ background: 'rgba(110,231,183,0.15)', border: '1px solid rgba(110,231,183,0.3)' }}>
+          <MailCheck className="h-6 w-6" style={{ color: '#6ee7b7' }} />
+        </div>
+        <h3 className="text-base font-semibold text-white">Confirma o teu email</h3>
+        <p className="text-[13px] text-white/50 leading-relaxed">
+          Enviámos um link de confirmação para<br />
+          <span className="text-white/80 font-medium">{sentTo}</span>.<br />
+          Abre-o para ativares a conta e entrares.
+        </p>
+        <p className="text-[12px] text-white/35 mt-1">
+          Não recebeste? Verifica o spam ou tenta registar novamente.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form

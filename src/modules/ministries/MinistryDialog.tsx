@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useMinistryMembers } from '@/hooks/useMembers';
 import { useOrgMembers } from '@/hooks/useMembers';
 import { upsertMinistryMembersAction } from '@/actions/members';
-import { MEMBER_FUNCTIONS } from '@/lib/constants';
+import { MEMBER_FUNCTIONS, resolveFunction } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -63,10 +63,10 @@ export function MinistryDialog({ ministry, open, onOpenChange }: Props) {
     }));
   }
 
-  // Functions available in this ministry (from ministry.functions catalog)
+  // Functions available in this ministry (catálogo + personalizadas)
   const availableFunctions = ministry?.functions?.length
-    ? MEMBER_FUNCTIONS.filter((f) => ministry.functions.includes(f.key))
-    : MEMBER_FUNCTIONS;
+    ? ministry.functions.map((k) => resolveFunction(k))
+    : MEMBER_FUNCTIONS.map((f) => ({ key: f.key, label: f.label, emoji: f.emoji }));
 
   async function handleSave() {
     if (!ministry) return;

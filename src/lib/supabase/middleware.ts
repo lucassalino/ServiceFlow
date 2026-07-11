@@ -28,6 +28,7 @@ export async function updateSession(request: NextRequest) {
   const isPublicPage = request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
+    request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/offline');
 
   // Stale session: clear sb- cookies. If on public page serve it; otherwise redirect to login.

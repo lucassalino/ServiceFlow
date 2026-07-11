@@ -7,18 +7,17 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
-  Check, ChevronLeft, ChevronRight, Users, LayoutGrid, ListMusic,
+  Check, Users, LayoutGrid, ListMusic,
   CalendarDays, Music2,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
-import { useOrgMembers } from '@/hooks/useMembers';
 import { useSongs } from '@/hooks/useSongs';
 import { uploadEventImageAction } from '@/actions/events';
 import { fetchEventSetupAction, replaceEventSetupAction } from '@/actions/schedule';
-import { MEMBER_FUNCTIONS } from '@/lib/constants';
-import { fetchMinistriesFunctionsAction } from '@/actions/members';
+import { resolveFunction } from '@/lib/constants';
+import { fetchMinistryMembersAction } from '@/actions/members';
 import type { Event, Ministry, Song } from '@/types/models';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,7 +39,6 @@ const schema = z.object({
   is_published: z.boolean().default(false),
 });
 type FormValues = z.infer<typeof schema>;
-type OrgMember = { user_id: string; is_active: boolean; profile: { full_name: string; email: string } };
 
 const STEPS: { label: string; description: string; icon: React.ReactNode }[] = [
   { label: 'Informações', description: 'Nome, data, horário e local', icon: <CalendarDays style={{ width: '0.9rem', height: '0.9rem' }} /> },
@@ -174,35 +172,24 @@ function Sidebar({ current, event, onBack, onStepClick }: {
   );
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// ── Save bar (grava todas as tabs de uma vez) ──────────────────────────────────
 
-function Footer({ onPrev, onSkip, onNext, nextLabel, saving, showPrev, skipLabel }: {
-  onPrev?: () => void; onSkip: () => void; onNext?: () => void;
-  nextLabel: string; saving?: boolean; showPrev?: boolean; skipLabel: string;
+function SaveBar({ onCancel, onSave, saving }: {
+  onCancel: () => void; onSave: () => void; saving: boolean;
 }) {
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      paddingTop: '1.5rem', marginTop: '0.5rem',
+    <div className="ep-savebar" style={{
+      display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem',
+      paddingTop: '1.5rem', marginTop: '2rem',
       borderTop: '1px solid rgba(255,255,255,0.07)',
     }}>
-      <div>
-        {showPrev && onPrev && (
-          <button style={ghostBtn} onClick={onPrev}>
-            <ChevronLeft style={{ width: '0.875rem', height: '0.875rem' }} /> Anterior
-          </button>
-        )}
-      </div>
-      <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <button style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onSkip} disabled={saving}>
-          {skipLabel}
-        </button>
-        {onNext && (
-          <button style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onNext} disabled={saving}>
-            {nextLabel}
-          </button>
-        )}
-      </div>
+      <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onCancel} disabled={saving}>
+        Cancelar
+      </button>
+      <button type="button" style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onSave} disabled={saving}>
+        <Check style={{ width: '0.9rem', height: '0.9rem' }} />
+        {saving ? 'A guardar…' : 'Gravar alterações'}
+      </button>
     </div>
   );
 }
@@ -215,7 +202,6 @@ export function EventEditPanel({ event, onBack }: Props) {
   const qc = useQueryClient();
   const updateEvent = useUpdateEvent();
   const { data: ministries = [] } = useMinistries();
-  const { data: orgMembers = [] } = useOrgMembers();
   const { data: songs = [] } = useSongs();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -234,7 +220,7 @@ export function EventEditPanel({ event, onBack }: Props) {
 
   // step 3
   const [membersByMinistry, setMembersByMinistry] = useState<Record<string, { userId: string; functions: string[] }[]>>({});
-  const [ministryFunctions, setMinistryFunctions] = useState<Record<string, string[]>>({});
+  const [ministryRoster, setMinistryRoster] = useState<Record<string, { userId: string; name: string; avatarUrl: string | null; functions: string[] }[]>>({});
 
   // step 4
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
@@ -266,16 +252,32 @@ export function EventEditPanel({ event, onBack }: Props) {
     return () => { cancelled = true; };
   }, [event.id]);
 
-  // Load ministry functions when entering step 3
+  // Load ministry roster (members + their functions) when entering step 3
   useEffect(() => {
     if (step !== 3 || selectedMinistryIds.length === 0) return;
     let cancelled = false;
-    fetchMinistriesFunctionsAction(selectedMinistryIds)
-      .then((fns) => { if (!cancelled) setMinistryFunctions(fns); })
-      .catch(() => { if (!cancelled) setMinistryFunctions({}); });
+    type RM = { user_id: string; functions: string[]; profile: { full_name: string; email: string; avatar_url: string | null } | null };
+    Promise.all(selectedMinistryIds.map(async (mid) => {
+      const members = await fetchMinistryMembersAction(mid);
+      return [mid, members as unknown as RM[]] as const;
+    }))
+      .then((results) => {
+        if (cancelled) return;
+        const map: Record<string, { userId: string; name: string; avatarUrl: string | null; functions: string[] }[]> = {};
+        for (const [mid, members] of results) {
+          map[mid] = members.map((m) => ({
+            userId: m.user_id,
+            name: m.profile?.full_name || m.profile?.email || 'Sem nome',
+            avatarUrl: m.profile?.avatar_url ?? null,
+            functions: m.functions ?? [],
+          }));
+        }
+        setMinistryRoster(map);
+      })
+      .catch(() => { if (!cancelled) setMinistryRoster({}); });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, selectedMinistryIds]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -322,39 +324,42 @@ export function EventEditPanel({ event, onBack }: Props) {
     setSelectedSongIds((prev) => prev.includes(songId) ? prev.filter((id) => id !== songId) : [...prev, songId]);
   }
 
-  async function onSubmitStep1(values: FormValues) {
-    let coverImageUrl: string | null = event.cover_image_url ?? null;
-    if (imageFile) {
+  // Grava TUDO de uma vez: informações + imagem + ministérios/integrantes + setlist.
+  const doSaveAll = handleSubmit(
+    async (values) => {
+      setSaving(true);
       try {
-        const fd = new FormData();
-        fd.append('file', imageFile);
-        fd.append('orgId', event.org_id);
-        coverImageUrl = await uploadEventImageAction(fd);
-      } catch { toast.error('Erro ao carregar imagem'); return; }
-    } else if (!imagePreview) {
-      coverImageUrl = null;
-    }
-    updateEvent.mutate(
-      { id: event.id, name: values.name, date: values.date, time: values.time, location: values.location || null, description: values.description || null, observations: values.observations || null, is_published: values.is_published, color: event.color, cover_image_url: coverImageUrl },
-      { onSuccess: () => setStep(2), onError: () => toast.error('Erro ao actualizar evento') },
-    );
-  }
+        let coverImageUrl: string | null = event.cover_image_url ?? null;
+        if (imageFile) {
+          const fd = new FormData();
+          fd.append('file', imageFile);
+          fd.append('orgId', event.org_id);
+          coverImageUrl = await uploadEventImageAction(fd);
+        } else if (!imagePreview) {
+          coverImageUrl = null;
+        }
+        await updateEvent.mutateAsync({
+          id: event.id, name: values.name, date: values.date, time: values.time,
+          location: values.location || null, description: values.description || null,
+          observations: values.observations || null, is_published: values.is_published,
+          color: event.color, cover_image_url: coverImageUrl,
+        });
+        const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
+        await replaceEventSetupAction(event.id, setup, selectedSongIds);
+        qc.invalidateQueries({ queryKey: ['events'] });
+        qc.invalidateQueries({ queryKey: ['event-setlist', event.id] });
+        qc.invalidateQueries({ queryKey: ['event-ministries', event.id] });
+        toast.success('Evento atualizado com sucesso');
+        onBack();
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
+      } finally {
+        setSaving(false);
+      }
+    },
+    () => { setStep(1); toast.error('Preenche o nome, a data e a hora'); },
+  );
 
-  async function handleFinish() {
-    setSaving(true);
-    try {
-      const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
-      await replaceEventSetupAction(event.id, setup, selectedSongIds);
-      qc.invalidateQueries({ queryKey: ['event-setlist', event.id] });
-      qc.invalidateQueries({ queryKey: ['event-ministries', event.id] });
-      toast.success('Evento actualizado com sucesso');
-      onBack();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
-    } finally { setSaving(false); }
-  }
-
-  const activeMembers = (orgMembers as unknown as OrgMember[]).filter((m) => m.is_active);
   const activeMinistries = (ministries as unknown as { id: string; name: string; icon: string; color: string; is_active: boolean }[]).filter((m) => m.is_active);
 
   const filteredSongs = useMemo(() => {
@@ -366,24 +371,14 @@ export function EventEditPanel({ event, onBack }: Props) {
   const totalSelectedMembers = Object.values(membersByMinistry).reduce((acc, m) => acc + m.length, 0);
   const isPending = updateEvent.isPending || isSubmitting;
 
-  function handleMobilePrev() {
-    if (step === 1) onBack();
-    else setStep((step - 1) as 1 | 2 | 3 | 4);
-  }
-
-  function handleMobileNext() {
-    if (step === 1) { formRef.current?.requestSubmit(); return; }
-    if (step === 4) { handleFinish(); return; }
-    setStep((step + 1) as 2 | 3 | 4);
-  }
-
   return (
     <>
       <style>{`
-        .ep-layout { display: flex; min-height: 100%; }
+        .ep-layout { display: flex; min-height: 100%; max-width: 100%; }
         .ep-sidebar { display: flex; }
-        .ep-mobile-nav { display: none; }
-        .ep-content { padding: 2.5rem 3rem 4rem; }
+        .ep-steptabs { display: none; }
+        .ep-content { padding: 2.5rem 3rem 4rem; min-width: 0; }
+        .ep-member-grid > *, .ep-ministry-grid > *, .ep-date-grid > * { min-width: 0; }
         .ep-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .ep-date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
         .ep-ministry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
@@ -391,18 +386,10 @@ export function EventEditPanel({ event, onBack }: Props) {
         .ep-setlist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
         @media (max-width: 767px) {
           .ep-sidebar { display: none !important; }
-          .ep-mobile-nav {
-            display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-            position: fixed; left: 0; right: 0; z-index: 30;
-            bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
-            padding: 0.75rem 1.25rem;
-            background: rgba(12,12,16,0.97);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(16px);
-          }
-          .ep-content { padding: 1.25rem 1.25rem calc(3.75rem + 4rem + env(safe-area-inset-bottom, 0px)); }
+          .ep-steptabs { display: flex; gap: 0.375rem; overflow-x: auto; margin-bottom: 1.25rem; }
+          .ep-content { padding: 1.25rem 1.1rem 2rem; overflow-x: hidden; }
           .ep-two-col { grid-template-columns: 1fr; }
-          .ep-date-grid { grid-template-columns: 1fr 1fr; }
+          .ep-date-grid { grid-template-columns: 1fr; }
           .ep-ministry-grid { grid-template-columns: 1fr; }
           .ep-member-grid { grid-template-columns: 1fr; }
           .ep-setlist-grid { grid-template-columns: 1fr; }
@@ -411,40 +398,35 @@ export function EventEditPanel({ event, onBack }: Props) {
 
       <div className="dash-purple-bg ep-layout">
 
-        {/* Mobile bottom nav */}
-        <div className="ep-mobile-nav">
-          {/* Prev arrow */}
-          <button onClick={handleMobilePrev} style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', flexShrink: 0 }}>
-            <ChevronLeft style={{ width: '1rem', height: '1rem', color: '#fff' }} />
-          </button>
-
-          {/* Step dots + label */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem' }}>
-            <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
-              {STEPS.map((_, i) => {
-                const num = i + 1;
-                const active = step === num;
-                const done = step > num;
-                return (
-                  <button key={i} onClick={() => setStep(num as 1|2|3|4)} style={{ width: active ? '1.5rem' : '0.5rem', height: '0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', transition: 'all 0.2s', background: active ? '#fff' : done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.18)', padding: 0 }} />
-                );
-              })}
-            </div>
-            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
-              {STEPS[step - 1].label}
-            </span>
-          </div>
-
-          {/* Next arrow */}
-          <button onClick={handleMobileNext} disabled={saving || isPending} style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: step === 4 ? 'rgba(255,255,255,0.9)' : '#fff', border: 'none', cursor: 'pointer', flexShrink: 0, opacity: (saving || isPending) ? 0.5 : 1 }}>
-            <ChevronRight style={{ width: '1rem', height: '1rem', color: '#0a0a0f' }} />
-          </button>
-        </div>
-
         {/* Desktop sidebar */}
         <Sidebar current={step} event={event} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4)} />
 
         <div style={{ flex: 1, overflowY: 'auto' }} className="ep-content">
+
+          {/* Abas de passos (só mobile) */}
+          <div className="ep-steptabs scrollbar-none">
+            {STEPS.map((s, i) => {
+              const num = (i + 1) as 1 | 2 | 3 | 4;
+              const active = step === num;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setStep(num)}
+                  style={{
+                    flexShrink: 0, padding: '0.4rem 0.8rem', borderRadius: '9999px',
+                    fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: 'pointer',
+                    background: active ? '#fff' : 'rgba(255,255,255,0.06)',
+                    color: active ? '#0a0a0f' : 'rgba(255,255,255,0.55)',
+                    border: `1px solid ${active ? '#fff' : 'rgba(255,255,255,0.1)'}`,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {i + 1}. {s.label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Step title */}
           <div style={{ marginBottom: '1.75rem' }}>
@@ -458,7 +440,7 @@ export function EventEditPanel({ event, onBack }: Props) {
 
           {/* ─── Step 1: Informações ──────────────────────────────────── */}
           {step === 1 && (
-            <form ref={formRef} onSubmit={handleSubmit(onSubmitStep1)} className="dark-inputs">
+            <form ref={formRef} onSubmit={doSaveAll} className="dark-inputs">
               <div className="ep-two-col">
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
@@ -545,12 +527,6 @@ export function EventEditPanel({ event, onBack }: Props) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1.5rem', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                <button type="button" style={{ ...ghostBtn, opacity: isPending ? 0.5 : 1 }} onClick={onBack} disabled={isPending}>Cancelar</button>
-                <button type="submit" style={{ ...primaryBtn, opacity: isPending ? 0.7 : 1 }} disabled={isPending}>
-                  {isPending ? 'A guardar…' : 'Continuar →'}
-                </button>
-              </div>
             </form>
           )}
 
@@ -588,11 +564,6 @@ export function EventEditPanel({ event, onBack }: Props) {
                   })}
                 </div>
               )}
-              <Footer
-                onSkip={onBack} skipLabel="Fechar sem alterar"
-                onNext={() => setStep(3)}
-                nextLabel={`Próximo${selectedMinistryIds.length > 0 ? ` (${selectedMinistryIds.length})` : ' →'}`}
-              />
             </div>
           )}
 
@@ -617,8 +588,7 @@ export function EventEditPanel({ event, onBack }: Props) {
                       const ministry = (ministries as unknown as Ministry[]).find((m) => m.id === ministryId);
                       if (!ministry) return null;
                       const selectedIds = membersByMinistry[ministryId] ?? [];
-                      const ministryFns = ministryFunctions[ministryId] ?? [];
-                      const availableFunctions = ministryFns.length > 0 ? MEMBER_FUNCTIONS.filter((f) => ministryFns.includes(f.key)) : MEMBER_FUNCTIONS;
+                      const roster = ministryRoster[ministryId] ?? [];
                       return (
                         <div key={ministryId} style={card}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -630,17 +600,20 @@ export function EventEditPanel({ event, onBack }: Props) {
                               <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{selectedIds.length}</span>
                             )}
                           </div>
-                          {activeMembers.length === 0 ? (
-                            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', padding: '0.75rem 1rem' }}>Sem membros activos.</p>
+                          {roster.length === 0 ? (
+                            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', padding: '0.75rem 1rem' }}>
+                              Nenhum membro neste ministério. Adiciona pessoas ao ministério primeiro.
+                            </p>
                           ) : (
-                            activeMembers.map((member) => {
-                              const name = member.profile?.full_name || member.profile?.email || '?';
-                              const checked = isMemberSelected(ministryId, member.user_id);
-                              const fns = getMemberFunctions(ministryId, member.user_id);
+                            roster.map((rm) => {
+                              const name = rm.name;
+                              const checked = isMemberSelected(ministryId, rm.userId);
+                              const fns = getMemberFunctions(ministryId, rm.userId);
+                              const personFunctions = rm.functions.map(resolveFunction);
                               return (
-                                <div key={member.user_id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                <div key={rm.userId} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', cursor: 'pointer', background: checked ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}>
-                                    <Checkbox checked={checked} onCheckedChange={() => toggleMember(ministryId, member.user_id)} />
+                                    <Checkbox checked={checked} onCheckedChange={() => toggleMember(ministryId, rm.userId)} />
                                     <Avatar className="h-6 w-6 flex-shrink-0">
                                       <AvatarFallback style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{getInitials(name)}</AvatarFallback>
                                     </Avatar>
@@ -649,14 +622,14 @@ export function EventEditPanel({ event, onBack }: Props) {
                                   </label>
                                   {checked && (
                                     <div style={{ margin: '0 1rem 0.625rem', padding: '0.625rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem' }}>
-                                      {availableFunctions.length === 0 ? (
-                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>Nenhuma função definida.</p>
+                                      {personFunctions.length === 0 ? (
+                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>Esta pessoa não tem funções neste ministério.</p>
                                       ) : (
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
-                                          {availableFunctions.map((f) => (
+                                          {personFunctions.map((f) => (
                                             <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)' }}>
-                                              <Checkbox checked={fns.includes(f.key)} onCheckedChange={() => toggleMemberFunction(ministryId, member.user_id, f.key)} />
-                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.label}</span>
+                                              <Checkbox checked={fns.includes(f.key)} onCheckedChange={() => toggleMemberFunction(ministryId, rm.userId, f.key)} />
+                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.emoji} {f.label}</span>
                                             </label>
                                           ))}
                                         </div>
@@ -673,11 +646,6 @@ export function EventEditPanel({ event, onBack }: Props) {
                   </div>
                 </div>
               )}
-              <Footer
-                showPrev onPrev={() => setStep(2)}
-                onSkip={onBack} skipLabel="Fechar sem alterar"
-                onNext={() => setStep(4)} nextLabel="Próximo →"
-              />
             </div>
           )}
 
@@ -757,13 +725,11 @@ export function EventEditPanel({ event, onBack }: Props) {
                 </div>
               </div>
 
-              <Footer
-                showPrev onPrev={() => setStep(3)} saving={saving}
-                onSkip={onBack} skipLabel="Fechar sem alterar"
-                onNext={handleFinish} nextLabel={saving ? 'A guardar…' : 'Guardar alterações ✓'}
-              />
             </div>
           )}
+
+          {/* Barra de gravação única — grava todas as tabs (desktop) */}
+          <SaveBar onCancel={onBack} onSave={() => doSaveAll()} saving={saving || isPending} />
 
         </div>
       </div>

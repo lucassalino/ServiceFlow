@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Plus, UserX, Check, Users } from 'lucide-react';
+import { Copy, Plus, Trash2, Check, Users, Share2, Mail, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
-import { useOrgMembers, useUpdateMemberRole, useToggleMemberActive } from '@/hooks/useMembers';
+import { useOrgMembers, useUpdateMemberRole, useDeleteMember } from '@/hooks/useMembers';
+import { usePendingInvites, useCreateInvite, useDeleteInvite } from '@/hooks/useInvites';
 import type { OrganizationMember, OrgRole } from '@/types/models';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,6 +16,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
 import { MemberDetailPanel } from './MemberDetailPanel';
+
+const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
 
 type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
@@ -55,7 +58,7 @@ export function MembersClient() {
   const { activeOrg, activeMembership } = useOrgStore();
   const { data: members = [], isLoading } = useOrgMembers();
   const updateRole = useUpdateMemberRole();
-  const toggleActive = useToggleMemberActive();
+  const deleteMember = useDeleteMember();
 
   const currentRole = activeMembership?.role ?? 'member';
   const currentUserId = activeMembership?.user_id;
@@ -69,17 +72,68 @@ export function MembersClient() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [deactivateTarget, setDeactivateTarget] = useState<MemberWithProfile | null>(null);
+
+  // Convites por nome + email
+  const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, inviteOpen);
+  const createInvite = useCreateInvite();
+  const deleteInvite = useDeleteInvite();
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+
+  const [removeTarget, setRemoveTarget] = useState<MemberWithProfile | null>(null);
   const [detailMember, setDetailMember] = useState<MemberWithProfile | null>(null);
 
-  function handleCopyCode() {
-    const code = activeOrg?.invite_code;
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.success('Código copiado!');
-    });
+  async function handleSendInvite() {
+    if (!activeOrg?.id) return;
+    try {
+      await createInvite.mutateAsync({ orgId: activeOrg.id, name: inviteName, email: inviteEmail });
+      toast.success('Convite criado para ' + inviteName.trim());
+      setInviteName('');
+      setInviteEmail('');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao criar convite');
+    }
+  }
+
+  async function handleCancelInvite(inviteId: string) {
+    if (!activeOrg?.id) return;
+    try {
+      await deleteInvite.mutateAsync({ orgId: activeOrg.id, inviteId });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao cancelar');
+    }
+  }
+
+  // Copiar — Clipboard API.
+  function copiarCodigo() {
+    const codigo = activeOrg?.invite_code;
+    if (!codigo) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(codigo)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+          toast.success('Código copiado: ' + codigo);
+        })
+        .catch(() => toast.message('Código: ' + codigo));
+    } else {
+      toast.message('Código: ' + codigo);
+    }
+  }
+
+  // Partilhar — Web Share API nativa (móvel abre o menu do sistema); desktop/sem suporte → copia.
+  function partilharCodigo() {
+    const codigo = activeOrg?.invite_code;
+    const nome = activeOrg?.name ?? 'a nossa organização';
+    if (!codigo) return;
+    if (navigator.share) {
+      navigator.share({
+        title: 'ServiceFlow — ' + nome,
+        text: `Entra na organização "${nome}" no ServiceFlow!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
+      }).catch(() => {});
+    } else {
+      copiarCodigo();
+    }
   }
 
   async function handleRoleChange(member: MemberWithProfile, role: OrgRole) {
@@ -91,12 +145,12 @@ export function MembersClient() {
     }
   }
 
-  async function confirmDeactivate() {
-    if (!deactivateTarget) return;
+  async function confirmRemove() {
+    if (!removeTarget) return;
     try {
-      await toggleActive.mutateAsync({ memberId: deactivateTarget.id, isActive: false });
-      toast.success(`${deactivateTarget.profile.full_name} desactivado`);
-      setDeactivateTarget(null);
+      await deleteMember.mutateAsync(removeTarget.id);
+      toast.success(`${removeTarget.profile.full_name} removido da organização`);
+      setRemoveTarget(null);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
@@ -231,13 +285,13 @@ export function MembersClient() {
                       </span>
                     )}
 
-                    {member.is_active && canManage(role, member.user_id) && (
+                    {canManage(role, member.user_id) && (
                       <button
                         className="dark-icon-btn danger"
-                        onClick={() => setDeactivateTarget(member)}
-                        title="Desactivar membro"
+                        onClick={() => setRemoveTarget(member)}
+                        title="Remover membro"
                       >
-                        <UserX className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
@@ -251,49 +305,115 @@ export function MembersClient() {
 
       {/* ── Invite dialog ──────────────────────────── */}
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Convidar Membro</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label>Código de convite</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                readOnly
-                value={activeOrg?.invite_code ?? ''}
-                className="font-mono tracking-widest"
-              />
-              <Button variant="outline" size="icon" onClick={handleCopyCode}>
+
+          {/* Convidar por nome + email */}
+          <div className="dark-inputs space-y-3">
+            <p className="text-[11px] font-semibold tracking-[0.16em] uppercase"
+              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Convidar por email
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="inv-name">Nome</Label>
+              <Input id="inv-name" placeholder="Nome da pessoa"
+                value={inviteName} onChange={(e) => setInviteName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="inv-email">Email</Label>
+              <Input id="inv-email" type="email" placeholder="email@exemplo.com"
+                value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSendInvite(); } }} />
+            </div>
+            <Button onClick={handleSendInvite} disabled={createInvite.isPending} className="w-full gap-2 h-11">
+              <Mail className="h-4 w-4" />
+              {createInvite.isPending ? 'A convidar…' : 'Convidar'}
+            </Button>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Quando a pessoa criar conta com este email, entra automaticamente e o nome fica guardado.
+            </p>
+
+            {pendingInvites.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-[11px] font-semibold tracking-[0.16em] uppercase"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Convites pendentes ({pendingInvites.length})
+                </p>
+                {pendingInvites.map((inv) => (
+                  <div key={inv.id} className="flex items-center gap-2 rounded-lg px-3 py-2"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{inv.name}</p>
+                      <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{inv.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCancelInvite(inv.id)}
+                      aria-label="Cancelar convite"
+                      className="dark-icon-btn danger"
+                      disabled={deleteInvite.isPending}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0.25rem 0' }} />
+
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.16em] uppercase mb-1.5"
+              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Ou partilha o código
+            </p>
+            <p className="text-2xl font-bold font-mono tracking-[0.12em] text-white mb-4">
+              {activeOrg?.invite_code ?? '—'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button variant="outline" onClick={copiarCodigo} className="gap-2 h-11">
                 {copied
-                  ? <Check className="h-4 w-4 text-green-600" />
+                  ? <Check className="h-4 w-4 text-green-500" />
                   : <Copy className="h-4 w-4" />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </Button>
+              <Button variant="outline" onClick={partilharCodigo} className="gap-2 h-11">
+                <Share2 className="h-4 w-4" />
+                Partilhar
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Partilha este código para convidar pessoas
+
+            <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Partilha o código ou o link de convite para adicionar pessoas.
             </p>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* ── Deactivate dialog ──────────────────────── */}
-      <AlertDialog open={!!deactivateTarget} onOpenChange={(v) => { if (!v) setDeactivateTarget(null); }}>
+      {/* ── Remove dialog ──────────────────────────── */}
+      <AlertDialog open={!!removeTarget} onOpenChange={(v) => { if (!v) setRemoveTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Desactivar membro?</AlertDialogTitle>
+            <AlertDialogTitle>Remover membro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tens a certeza que queres desactivar{' '}
-              <strong>{deactivateTarget?.profile?.full_name}</strong>?
+              Tens a certeza que queres remover{' '}
+              <strong>{removeTarget?.profile?.full_name}</strong> da organização?
+              Esta acção é permanente e remove também as suas participações em
+              ministérios e escalas. A conta pessoal não é afectada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={confirmDeactivate}
-              disabled={toggleActive.isPending}
+              onClick={confirmRemove}
+              disabled={deleteMember.isPending}
             >
-              {toggleActive.isPending ? 'A desactivar…' : 'Desactivar'}
+              {deleteMember.isPending ? 'A remover…' : 'Remover'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

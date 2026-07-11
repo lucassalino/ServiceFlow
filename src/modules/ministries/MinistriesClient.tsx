@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import {
@@ -12,6 +12,7 @@ import type { Ministry } from '@/types/models';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { MinistryMembersPanel } from './MinistryMembersPanel';
 import { MinistryDetailPanel } from './MinistryDetailPanel';
+import { MinistryFormPanel } from './MinistryFormPanel';
 
 type Tab = 'active' | 'inactive' | 'all';
 
@@ -32,6 +33,7 @@ export function MinistriesClient() {
   const [detailMinistry, setDetailMinistry] = useState<Ministry | null>(null);
   const [membersMinistry, setMembersMinistry] = useState<Ministry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Ministry | null>(null);
+  const [formMode, setFormMode] = useState<'create' | Ministry | null>(null);
 
   async function handleToggle(m: Ministry) {
     try {
@@ -64,6 +66,16 @@ export function MinistriesClient() {
   const activeCount   = ministries.filter((m) =>  m.is_active).length;
   const inactiveCount = ministries.filter((m) => !m.is_active).length;
 
+  /* ── Create / Edit form panel ─────────────────────────────────────────── */
+  if (formMode) {
+    return (
+      <MinistryFormPanel
+        ministry={formMode === 'create' ? null : formMode}
+        onBack={() => setFormMode(null)}
+      />
+    );
+  }
+
   /* ── Members panel ────────────────────────────────────────────────────── */
   if (membersMinistry) {
     return (
@@ -83,6 +95,7 @@ export function MinistriesClient() {
           isAdmin={isAdmin}
           onBack={() => setDetailMinistry(null)}
           onEdit={() => setMembersMinistry(detailMinistry)}
+          onEditProperties={() => setFormMode(detailMinistry)}
           onToggle={() => handleToggle(detailMinistry)}
           onDelete={() => setDeleteTarget(detailMinistry)}
           togglePending={toggleActive.isPending && toggleActive.variables?.id === detailMinistry.id}
@@ -131,6 +144,12 @@ export function MinistriesClient() {
                 : 'Grupos e equipas da organização'}
             </p>
           </div>
+          {isAdmin && (
+            <button onClick={() => setFormMode('create')} className="dark-primary-btn">
+              <Plus className="h-4 w-4" />
+              Novo Ministério
+            </button>
+          )}
         </div>
 
         {/* ── Tab filter ──────────────────────────────── */}

@@ -64,13 +64,60 @@ export const MEMBER_FUNCTIONS = [
   { key: 'auxiliary',       label: 'Auxiliar',         emoji: '🤝' },
 ] as const;
 
+// ── Funções personalizadas ──────────────────────────────────────────────────
+// Uma função personalizada é guardada como uma string codificada:
+//   custom␟<emoji>␟<label>   (␟ = separador de unidade, não aparece em texto normal)
+// Assim continuam a caber no mesmo array `functions: string[]` sem migração à BD.
+const CUSTOM_FN_SEP = '\x1f';
+
+export function encodeCustomFunction(emoji: string, label: string): string {
+  return `custom${CUSTOM_FN_SEP}${emoji}${CUSTOM_FN_SEP}${label.trim()}`;
+}
+
+export function isCustomFunction(key: string): boolean {
+  return key.startsWith(`custom${CUSTOM_FN_SEP}`);
+}
+
+function decodeCustomFunction(key: string): { emoji: string; label: string } | null {
+  if (!isCustomFunction(key)) return null;
+  const parts = key.split(CUSTOM_FN_SEP);
+  return { emoji: parts[1] || '•', label: parts.slice(2).join(CUSTOM_FN_SEP) || 'Função' };
+}
+
 export function getFunctionLabel(key: string): string {
+  const custom = decodeCustomFunction(key);
+  if (custom) return custom.label;
   return MEMBER_FUNCTIONS.find((f) => f.key === key)?.label ?? key;
 }
 
 export function getFunctionEmoji(key: string): string {
+  const custom = decodeCustomFunction(key);
+  if (custom) return custom.emoji;
   return MEMBER_FUNCTIONS.find((f) => f.key === key)?.emoji ?? '•';
 }
+
+/** Resolve uma chave de função (catálogo ou personalizada) em { key, label, emoji }. */
+export function resolveFunction(key: string): { key: string; label: string; emoji: string } {
+  return { key, label: getFunctionLabel(key), emoji: getFunctionEmoji(key) };
+}
+
+/** Paleta de ícones para escolher ao criar uma função personalizada. */
+export const FUNCTION_ICON_CHOICES = [
+  // Música / vocal
+  '🎤', '🎙️', '🎧', '🎵', '🎶', '🎼', '🙌', '👏',
+  // Instrumentos
+  '🎸', '🥁', '🎹', '🎻', '🎺', '🎷', '🪕', '🪘', '🪗', '🪈', '🎚️', '🎛️',
+  // Técnica / mídia
+  '🔊', '🔈', '💻', '🖥️', '⌨️', '🖱️', '📽️', '📹', '📷', '📸', '🎥', '🎬', '📺', '💡', '🔦', '📡', '🛰️', '🔌', '🔋', '📱',
+  // Palavra / ensino / oração
+  '📢', '🗣️', '📖', '📚', '✏️', '📝', '✝️', '🙏', '🌙', '🕊️', '📜', '🎓',
+  // Artes / expressão
+  '💃', '🕺', '🎭', '🎨', '🖌️', '🎪', '🎈',
+  // Suporte / serviço
+  '👋', '🤝', '🍽️', '🍳', '☕', '🧹', '🧺', '🔐', '🛡️', '🚗', '🅿️', '🧭', '📋', '📌', '🗂️', '💳', '🎫', '🏷️',
+  // Pessoas / cuidado
+  '🧒', '👶', '👨‍👩‍👧', '🧑‍🤝‍🧑', '❤️', '💚', '⭐', '🌟', '🔥', '🎯', '✅', '📣', '🌱', '🕯️',
+];
 
 export const PRESET_MINISTRIES = [
   {

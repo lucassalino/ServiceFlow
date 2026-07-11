@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Youtube, Music, FileText, Guitar } from 'lucide-react';
+import { ArrowLeft, Youtube, Music, FileText, Guitar, Sparkles, Search, Loader2 } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
-import { useMinistries } from '@/hooks/useMinistries';
+import { fetchSongMetadataAction, searchGospelSongsAction, type SongSuggestion } from '@/actions/songs';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -39,7 +39,6 @@ interface Props {
 export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const createSong = useCreateSong();
   const updateSong = useUpdateSong();
-  const { data: ministries } = useMinistries();
   const isEditing = !!song;
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } =
@@ -74,8 +73,66 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   }, [song?.id]);
 
   const selectedKey = watch('musical_key');
-  const selectedMinistryId = watch('ministry_id');
+  const nameValue = watch('name');
+  const nameField = register('name');
   const isPending = createSong.isPending || updateSong.isPending || isSubmitting;
+
+  // ── Sugestões de músicas gospel (iTunes) enquanto se digita o nome ─────────
+  const [suggestions, setSuggestions] = useState<SongSuggestion[]>([]);
+  const [searchingSongs, setSearchingSongs] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [nameFocused, setNameFocused] = useState(false);
+  const skipSearchRef = useRef(false);
+
+  useEffect(() => {
+    if (!nameFocused) return;
+    if (skipSearchRef.current) { skipSearchRef.current = false; return; }
+    const q = (nameValue ?? '').trim();
+    if (q.length < 2) { setSuggestions([]); setSearchingSongs(false); return; }
+    setSearchingSongs(true);
+    const t = setTimeout(async () => {
+      try {
+        const results = await searchGospelSongsAction(q);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } finally {
+        setSearchingSongs(false);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [nameValue, nameFocused]);
+
+  function selectSuggestion(s: SongSuggestion) {
+    skipSearchRef.current = true;
+    setValue('name', s.name);
+    if (s.artist) setValue('artist', s.artist);
+    setShowSuggestions(false);
+    setSuggestions([]);
+  }
+
+  // ── Auto-preenchimento a partir de um link (YouTube/Spotify) ──────────────
+  const [autoUrl, setAutoUrl] = useState('');
+  const [autoLoading, setAutoLoading] = useState(false);
+
+  async function handleAutoFill() {
+    const url = autoUrl.trim();
+    if (!url) { toast.error('Cola um link do YouTube ou Spotify'); return; }
+    setAutoLoading(true);
+    try {
+      const meta = await fetchSongMetadataAction(url);
+      if (!meta.provider) { toast.error('Link não reconhecido (usa YouTube ou Spotify)'); return; }
+      if (meta.name) setValue('name', meta.name);
+      if (meta.artist) setValue('artist', meta.artist);
+      if (meta.provider === 'youtube') setValue('youtube_url', url);
+      if (meta.provider === 'spotify') setValue('spotify_url', url);
+      if (meta.name) toast.success('Preenchido a partir do link');
+      else toast.message('Não consegui obter o nome — preenche manualmente');
+    } catch {
+      toast.error('Erro ao obter dados do link');
+    } finally {
+      setAutoLoading(false);
+    }
+  }
 
   async function onSubmit(values: SongFormValues) {
     const payload = {
@@ -105,7 +162,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
-      <div style={{ padding: '1.5rem 2rem 3rem', maxWidth: '44rem' }}>
+      <div className="panel-pad" style={{ maxWidth: '44rem' }}>
 
         {/* ── Top bar ─────────────────────────────────────── */}
         <div style={{
@@ -135,6 +192,41 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
           </h1>
         </div>
 
+        {/* ── Auto-preencher a partir de um link ──────────── */}
+        <div style={{
+          padding: '1.25rem 1.5rem', borderRadius: '1.25rem',
+          background: 'rgba(165,180,252,0.08)', border: '1px solid rgba(165,180,252,0.22)',
+          marginBottom: '1rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.625rem' }}>
+            <Sparkles style={{ width: '0.95rem', height: '0.95rem', color: '#a5b4fc' }} />
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>Auto-preencher a partir de um link</span>
+          </div>
+          <div className="dark-inputs sf-autofill" style={{ display: 'flex', gap: '0.5rem' }}>
+            <style>{`@media(max-width:560px){.sf-autofill{flex-direction:column!important}}`}</style>
+            <Input
+              placeholder="Cola o link do YouTube ou Spotify"
+              value={autoUrl}
+              onChange={(e) => setAutoUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAutoFill(); } }}
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={handleAutoFill}
+              disabled={autoLoading}
+              className="dark-primary-btn"
+              style={{ flexShrink: 0, opacity: autoLoading ? 0.7 : 1, justifyContent: 'center' }}
+            >
+              <Sparkles style={{ width: '0.85rem', height: '0.85rem' }} />
+              {autoLoading ? 'A obter…' : 'Preencher'}
+            </button>
+          </div>
+          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem' }}>
+            Preenche o nome e o artista automaticamente. O tom e o BPM continuam manuais.
+          </p>
+        </div>
+
         {/* ── Form ─────────────────────────────────────────── */}
         <form onSubmit={handleSubmit(onSubmit)}>
           <div style={{
@@ -154,12 +246,66 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}
                 className="sf-two-col">
                 <style>{`@media(max-width:560px){.sf-two-col{grid-template-columns:1fr!important}}`}</style>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', position: 'relative' }}>
                   <Label htmlFor="sf-name" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
                     Nome <span style={{ color: '#f87171' }}>*</span>
                   </Label>
-                  <Input id="sf-name" placeholder="Nome da música" {...register('name')} />
+                  <Input
+                    id="sf-name"
+                    placeholder="Escreve para procurar…"
+                    autoComplete="off"
+                    {...nameField}
+                    onFocus={() => setNameFocused(true)}
+                    onBlur={(e) => { nameField.onBlur(e); setTimeout(() => setNameFocused(false), 150); }}
+                  />
                   {errors.name && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
+
+                  {/* Dropdown de sugestões gospel */}
+                  {nameFocused && showSuggestions && (searchingSongs || suggestions.length > 0 || (nameValue ?? '').trim().length >= 2) && (
+                    <div style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 40, marginTop: '0.25rem',
+                      background: 'rgba(20,20,26,0.98)', border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: '0.625rem', boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+                      overflow: 'hidden', maxHeight: '17rem', overflowY: 'auto',
+                    }}>
+                      {searchingSongs && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+                          <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar…
+                        </div>
+                      )}
+                      {!searchingSongs && suggestions.length === 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Sem resultados gospel — escreve o nome manualmente.
+                        </div>
+                      )}
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={`${s.name}-${i}`}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectSuggestion(s)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', textAlign: 'left',
+                            padding: '0.5rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer',
+                            borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                        >
+                          {s.artwork ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={s.artwork} alt="" style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+                          )}
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
+                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.artist}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                   <Label htmlFor="sf-artist" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
@@ -169,10 +315,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                 </div>
               </div>
 
-              {/* Tom + BPM + Ministério */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}
-                className="sf-three-col">
-                <style>{`@media(max-width:560px){.sf-three-col{grid-template-columns:1fr 1fr!important}}`}</style>
+              {/* Tom + BPM */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                   <Label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Tom</Label>
                   <Select value={selectedKey ?? ''} onValueChange={(v) => setValue('musical_key', v || null)}>
@@ -187,18 +331,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   <Label htmlFor="sf-bpm" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>BPM</Label>
                   <Input id="sf-bpm" type="number" placeholder="120" min={1} max={300} {...register('bpm')} />
                   {errors.bpm && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.bpm.message}</p>}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Ministério</Label>
-                  <Select value={selectedMinistryId ?? ''} onValueChange={(v) => setValue('ministry_id', v || null)}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {ministries?.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </div>

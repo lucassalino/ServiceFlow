@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      organization_invites: {
+        Row: {
+          id: string
+          org_id: string
+          email: string
+          name: string
+          role: string
+          created_by: string | null
+          created_at: string
+          accepted_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          email: string
+          name: string
+          role?: string
+          created_by?: string | null
+          created_at?: string
+          accepted_at?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          email?: string
+          name?: string
+          role?: string
+          created_by?: string | null
+          created_at?: string
+          accepted_at?: string | null
+        }
+        Relationships: []
+      }
       event_ministries: {
         Row: {
           event_id: string
@@ -380,6 +413,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          birthday: string | null
           created_at: string
           email: string
           full_name: string
@@ -389,6 +423,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          birthday?: string | null
           created_at?: string
           email: string
           full_name?: string
@@ -398,6 +433,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          birthday?: string | null
           created_at?: string
           email?: string
           full_name?: string

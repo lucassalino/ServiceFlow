@@ -154,6 +154,61 @@ export async function removePersonFromScheduleAction(id: string): Promise<void> 
   if (error) throw new Error(error.message);
 }
 
+export interface ScheduledContact {
+  userId: string;
+  name: string;
+  phone: string | null;
+  confirmed: boolean | null;
+  ministries: string[];
+}
+
+/** Contactos das pessoas escaladas num evento (para enviar mensagens de WhatsApp). */
+export async function fetchEventScheduledContactsAction(
+  eventId: string,
+): Promise<ScheduledContact[]> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  const { data: eventMins } = await admin
+    .from('event_ministries').select('id, ministry:ministries(name)').eq('event_id', eventId);
+  const emList = (eventMins ?? []) as unknown as { id: string; ministry: { name: string } | null }[];
+  const emIds = emList.map((em) => em.id);
+  if (emIds.length === 0) return [];
+  const ministryNameByEm = new Map(emList.map((em) => [em.id, em.ministry?.name ?? '']));
+
+  const { data: schedules } = await admin
+    .from('event_schedules')
+    .select('user_id, confirmed, event_ministry_id, profile:profiles(full_name, phone)')
+    .in('event_ministry_id', emIds);
+
+  type Row = {
+    user_id: string; confirmed: boolean | null; event_ministry_id: string;
+    profile: { full_name: string; phone: string | null } | null;
+  };
+
+  const byUser = new Map<string, ScheduledContact & { _ministries: Set<string> }>();
+  for (const s of (schedules ?? []) as unknown as Row[]) {
+    let entry = byUser.get(s.user_id);
+    if (!entry) {
+      entry = {
+        userId: s.user_id,
+        name: s.profile?.full_name ?? 'Sem nome',
+        phone: s.profile?.phone ?? null,
+        confirmed: s.confirmed,
+        ministries: [],
+        _ministries: new Set<string>(),
+      };
+      byUser.set(s.user_id, entry);
+    }
+    const mn = ministryNameByEm.get(s.event_ministry_id);
+    if (mn) entry._ministries.add(mn);
+  }
+
+  return [...byUser.values()].map(({ _ministries, ...c }) => ({ ...c, ministries: [..._ministries] }));
+}
+
 export async function confirmScheduleAction(
   id: string,
   confirmed: boolean,
@@ -162,6 +217,15 @@ export async function confirmScheduleAction(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const admin = getAdmin();
+
+  // Só a própria pessoa escalada pode confirmar/alterar a sua presença.
+  const { data: schedule, error: fetchError } = await admin
+    .from('event_schedules').select('user_id').eq('id', id).single();
+  if (fetchError || !schedule) throw new Error('Escala não encontrada');
+  if (schedule.user_id !== user.id) {
+    throw new Error('Só podes confirmar a tua própria presença');
+  }
+
   const { error } = await admin.from('event_schedules').update({ confirmed }).eq('id', id);
   if (error) throw new Error(error.message);
 }

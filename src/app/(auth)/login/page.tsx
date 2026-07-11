@@ -1,47 +1,18 @@
 import Link from 'next/link';
 import { LoginForm } from '@/modules/auth/LoginForm';
 
-function DotsLogo() {
-  const count = 10;
-  const r = 13;
-  const cx = 20;
-  const cy = 20;
-  return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden>
-      {Array.from({ length: count }).map((_, i) => {
-        const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        const opacity = 0.25 + (i / count) * 0.75;
-        const dotR = i < 3 ? 1.8 : i < 7 ? 2.2 : 2.6;
-        return (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r={dotR}
-            fill="white"
-            opacity={opacity}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   return (
     <div className="auth-bg">
       <div className="w-full max-w-[380px]">
         <div className="auth-glass">
 
-          {/* Logo */}
-          <div className="flex justify-center mb-1">
-            <DotsLogo />
-          </div>
-
           {/* Header */}
           <div className="text-center mb-6">
+            <div className="inline-flex h-10 w-10 rounded-xl items-center justify-center mb-3"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              <span className="text-white font-bold text-sm">SF</span>
+            </div>
             <h1 className="text-xl font-bold text-white tracking-tight">
               Sign In
             </h1>

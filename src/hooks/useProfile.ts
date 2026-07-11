@@ -23,6 +23,7 @@ export interface UpdateProfilePayload {
   full_name: string;
   phone: string | null;
   avatar_url: string | null;
+  birthday: string | null;
 }
 
 export function useUpdateProfile() {

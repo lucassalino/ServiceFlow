@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Menu } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { NotificationBell } from './NotificationBell';
@@ -44,13 +45,15 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
 
       <div className="flex items-center gap-2 shrink-0">
         <NotificationBell orgId={orgId} />
-        <Avatar className="h-7 w-7">
-          <AvatarImage src={activeMembership?.profile?.avatar_url ?? undefined} />
-          <AvatarFallback className="text-xs font-semibold"
-            style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
-            {getInitials(activeMembership?.profile?.full_name ?? 'U')}
-          </AvatarFallback>
-        </Avatar>
+        <Link href={`/${orgId}/settings`} aria-label="Definições" className="shrink-0">
+          <Avatar className="h-7 w-7">
+            <AvatarImage src={activeMembership?.profile?.avatar_url ?? undefined} />
+            <AvatarFallback className="text-xs font-semibold"
+              style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+              {getInitials(activeMembership?.profile?.full_name ?? 'U')}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
       </div>
     </header>
   );

@@ -29,7 +29,6 @@ interface LoginFormProps {
 export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const {
     register,
@@ -56,26 +55,6 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
       toast.error('Ocorreu um erro inesperado');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/auth/callback',
-        },
-      });
-      if (error) {
-        toast.error(error.message);
-      }
-    } catch {
-      toast.error('Ocorreu um erro inesperado');
-    } finally {
-      setGoogleLoading(false);
     }
   };
 
@@ -122,26 +101,6 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
       <Button type="submit" disabled={loading} className="w-full mt-1">
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Sign in
-      </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">OR</span>
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        disabled={googleLoading}
-        onClick={handleGoogleLogin}
-        className="w-full"
-      >
-        {googleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Continue with Google
       </Button>
     </form>
   );

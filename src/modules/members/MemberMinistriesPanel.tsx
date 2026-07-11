@@ -71,7 +71,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
         @media (max-width: 700px) { .mmp-grid { grid-template-columns: 1fr !important; } }
         .mmp-fn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.25rem; }
       `}</style>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ─────────────────────────────────────── */}
         <div style={{
@@ -90,7 +90,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
             onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
-            {memberName}
+            Voltar
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', margin: 0 }}>

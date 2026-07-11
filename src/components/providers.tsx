@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     defaultOptions: { queries: { staleTime: 60 * 1000, retry: 1 } },
   }));
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <AuthInitializer>
           {children}

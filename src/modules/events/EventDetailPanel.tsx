@@ -48,7 +48,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
-      <div style={{ padding: '1.5rem 2rem 3rem' }}>
+      <div className="panel-pad">
 
         {/* ── Top bar ────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
@@ -385,45 +385,83 @@ function MinistrySection({
                 )}
               </div>
 
-              {/* Confirm toggle — only for the current user */}
-              <button
-                disabled={!isMe || confirmSchedule.isPending}
-                onClick={() => handleConfirm(schedule)}
-                title={
-                  schedule.confirmed === true ? 'Confirmado — clique para cancelar' :
-                  schedule.confirmed === false ? 'Recusou' : 'Clique para confirmar'
-                }
-                style={{
-                  width: '2rem', height: '2rem', borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: 'none', flexShrink: 0,
-                  cursor: isMe ? 'pointer' : 'default',
-                  background: schedule.confirmed === true
-                    ? 'rgba(110,231,183,0.2)'
-                    : schedule.confirmed === false
-                    ? 'rgba(239,68,68,0.18)'
-                    : 'rgba(255,255,255,0.06)',
-                  color: schedule.confirmed === true
-                    ? '#6ee7b7'
-                    : schedule.confirmed === false
-                    ? '#f87171'
-                    : 'rgba(255,255,255,0.22)',
-                  transition: 'background 0.12s, color 0.12s',
-                }}
-              >
-                {schedule.confirmed === true ? (
-                  <Check style={{ width: '0.875rem', height: '0.875rem' }} />
-                ) : schedule.confirmed === false ? (
-                  <X style={{ width: '0.875rem', height: '0.875rem' }} />
-                ) : (
-                  <Minus style={{ width: '0.875rem', height: '0.875rem' }} />
-                )}
-              </button>
+              {/* Confirmação de presença */}
+              <ConfirmControl
+                schedule={schedule}
+                isMe={isMe}
+                isPending={confirmSchedule.isPending}
+                onToggle={() => handleConfirm(schedule)}
+              />
             </div>
           );
         })
       )}
     </div>
+  );
+}
+
+// ── Confirmação de presença ────────────────────────────────────────────────────
+
+function ConfirmControl({
+  schedule, isMe, isPending, onToggle,
+}: {
+  schedule: EventSchedule;
+  isMe: boolean;
+  isPending: boolean;
+  onToggle: () => void;
+}) {
+  const confirmed = schedule.confirmed;
+
+  // Quem NÃO é a pessoa escalada: só vê o estado, sem poder alterar.
+  if (!isMe) {
+    const label = confirmed === true ? 'Confirmado' : confirmed === false ? 'Recusou' : 'Por confirmar';
+    const fg = confirmed === true ? '#6ee7b7' : confirmed === false ? '#f87171' : 'rgba(255,255,255,0.35)';
+    const bg = confirmed === true ? 'rgba(110,231,183,0.12)' : confirmed === false ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.05)';
+    const border = confirmed === true ? 'rgba(110,231,183,0.25)' : confirmed === false ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.1)';
+    return (
+      <span style={{
+        display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
+        padding: '0.3rem 0.7rem', borderRadius: '9999px',
+        fontSize: '0.72rem', fontWeight: 600,
+        color: fg, background: bg, border: `1px solid ${border}`,
+        whiteSpace: 'nowrap',
+      }}>
+        {confirmed === true ? <Check style={{ width: '0.75rem', height: '0.75rem' }} />
+          : confirmed === false ? <X style={{ width: '0.75rem', height: '0.75rem' }} />
+          : <Minus style={{ width: '0.75rem', height: '0.75rem' }} />}
+        {label}
+      </span>
+    );
+  }
+
+  // A própria pessoa: botão interativo com texto claro.
+  const isConfirmed = confirmed === true;
+  const label = isConfirmed ? 'Presença confirmada' : 'Confirmar presença';
+  const fg = isConfirmed ? '#6ee7b7' : '#0a0a0e';
+  const bg = isConfirmed ? 'rgba(110,231,183,0.15)' : '#fff';
+  const border = isConfirmed ? 'rgba(110,231,183,0.3)' : 'transparent';
+
+  return (
+    <button
+      disabled={isPending}
+      onClick={onToggle}
+      title={isConfirmed ? 'Clique para cancelar a confirmação' : 'Clique para confirmar a tua presença'}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+        padding: '0.45rem 0.9rem', borderRadius: '9999px',
+        fontSize: '0.75rem', fontWeight: 600,
+        color: fg, background: bg, border: `1px solid ${border}`,
+        cursor: isPending ? 'wait' : 'pointer',
+        opacity: isPending ? 0.6 : 1,
+        whiteSpace: 'nowrap',
+        transition: 'background 0.12s, opacity 0.12s, transform 0.1s',
+      }}
+      onMouseEnter={(e) => { if (!isPending) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+    >
+      {isConfirmed ? <Check style={{ width: '0.85rem', height: '0.85rem' }} /> : null}
+      {label}
+    </button>
   );
 }
 
