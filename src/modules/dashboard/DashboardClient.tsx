@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {
   CalendarDays, Users, LayoutGrid,
-  AlertCircle, MapPin, Clock, ArrowRight,
+  MapPin, Clock, ArrowRight,
   CalendarCheck, BookOpen, Cake,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
@@ -52,7 +52,7 @@ const MONTH_NAMES = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ];
 
-export function DashboardClient({ upcomingEvents, pendingConfirmations, birthdayPeople, orgId }: Props) {
+export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props) {
   const { activeMembership, activeOrg } = useOrgStore();
   const firstName = activeMembership?.profile?.full_name?.split(' ')[0] ?? 'Bem-vindo';
   const isAdmin = activeMembership?.role === 'admin';
@@ -77,15 +77,6 @@ export function DashboardClient({ upcomingEvents, pendingConfirmations, birthday
               ? `${upcomingEvents.length} evento${upcomingEvents.length !== 1 ? 's' : ''} próximo${upcomingEvents.length !== 1 ? 's' : ''}`
               : 'tudo tranquilo por aqui'}
           </p>
-          {isAdmin && pendingConfirmations > 0 && (
-            <div className="inline-flex items-center gap-2 mt-2 bg-amber-400/15 border border-amber-400/25 text-amber-200 rounded-lg px-3 py-2 text-xs font-medium">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <strong>{pendingConfirmations}</strong>{' '}
-                {pendingConfirmations === 1 ? 'pessoa não confirmou' : 'pessoas não confirmaram'} a escala
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Upcoming events */}
