@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { ArrowLeft, Youtube, Music, FileText, Guitar, Search, Loader2 } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
-import { searchGospelSongsAction, searchCatalogSongsAction, type SongSuggestion, type CatalogSuggestion } from '@/actions/songs';
+import { searchCatalogSongsAction, type CatalogSuggestion } from '@/actions/songs';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -77,9 +77,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const nameField = register('name');
   const isPending = createSong.isPending || updateSong.isPending || isSubmitting;
 
-  // ── Sugestões: catálogo global (WIS) + músicas gospel (iTunes) ─────────────
+  // ── Pesquisa no catálogo (banco de dados) por nome ou artista ──────────────
   const [catalogResults, setCatalogResults] = useState<CatalogSuggestion[]>([]);
-  const [suggestions, setSuggestions] = useState<SongSuggestion[]>([]);
   const [searchingSongs, setSearchingSongs] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
@@ -89,16 +88,12 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     if (!nameFocused) return;
     if (skipSearchRef.current) { skipSearchRef.current = false; return; }
     const q = (nameValue ?? '').trim();
-    if (q.length < 2) { setCatalogResults([]); setSuggestions([]); setSearchingSongs(false); return; }
+    if (q.length < 2) { setCatalogResults([]); setSearchingSongs(false); return; }
     setSearchingSongs(true);
     const t = setTimeout(async () => {
       try {
-        const [catalog, results] = await Promise.all([
-          searchCatalogSongsAction(q),
-          searchGospelSongsAction(q),
-        ]);
+        const catalog = await searchCatalogSongsAction(q);
         setCatalogResults(catalog);
-        setSuggestions(results);
         setShowSuggestions(true);
       } finally {
         setSearchingSongs(false);
@@ -107,17 +102,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     return () => clearTimeout(t);
   }, [nameValue, nameFocused]);
 
-  // Sugestão do iTunes: só preenche nome + artista.
-  function selectSuggestion(s: SongSuggestion) {
-    skipSearchRef.current = true;
-    setValue('name', s.name);
-    if (s.artist) setValue('artist', s.artist);
-    setShowSuggestions(false);
-    setCatalogResults([]);
-    setSuggestions([]);
-  }
-
-  // Resultado do catálogo global: preenche TODOS os campos partilhados.
+  // Resultado do catálogo (banco): preenche TODOS os campos partilhados.
   function selectCatalog(c: CatalogSuggestion) {
     skipSearchRef.current = true;
     setValue('name', c.name);
@@ -129,7 +114,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     setValue('bpm', c.bpm ?? null);
     setShowSuggestions(false);
     setCatalogResults([]);
-    setSuggestions([]);
     toast.success('Preenchido a partir do catálogo');
   }
 
@@ -216,7 +200,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   </Label>
                   <Input
                     id="sf-name"
-                    placeholder="Escreve para procurar…"
+                    placeholder="Procurar por música ou artista…"
                     autoComplete="off"
                     {...nameField}
                     onFocus={() => setNameFocused(true)}
@@ -224,8 +208,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   />
                   {errors.name && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
 
-                  {/* Dropdown de sugestões gospel */}
-                  {nameFocused && showSuggestions && (searchingSongs || suggestions.length > 0 || (nameValue ?? '').trim().length >= 2) && (
+                  {/* Dropdown de resultados do catálogo (banco de dados global) */}
+                  {nameFocused && showSuggestions && (searchingSongs || (nameValue ?? '').trim().length >= 2) && (
                     <div style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 40, marginTop: '0.25rem',
                       background: 'rgba(20,20,26,0.98)', border: '1px solid rgba(255,255,255,0.12)',
@@ -234,21 +218,15 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                     }}>
                       {searchingSongs && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
-                          <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar…
+                          <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar no catálogo…
                         </div>
                       )}
-                      {!searchingSongs && catalogResults.length === 0 && suggestions.length === 0 && (
+                      {!searchingSongs && catalogResults.length === 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
-                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Sem resultados — escreve os dados manualmente.
+                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Não está no catálogo — escreve os dados manualmente.
                         </div>
                       )}
 
-                      {/* No catálogo WIS (partilhado) — preenche tudo */}
-                      {catalogResults.length > 0 && (
-                        <div style={{ padding: '0.4rem 0.75rem 0.2rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(165,180,252,0.75)' }}>
-                          No catálogo
-                        </div>
-                      )}
                       {catalogResults.map((c, i) => (
                         <button
                           key={`cat-${c.id}`}
@@ -269,38 +247,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                           <div style={{ minWidth: 0, flex: 1 }}>
                             <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</p>
                             <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.artist || 'Sem artista'}</p>
-                          </div>
-                        </button>
-                      ))}
-
-                      {suggestions.length > 0 && (
-                        <div style={{ padding: '0.4rem 0.75rem 0.2rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
-                          Sugestões
-                        </div>
-                      )}
-                      {suggestions.map((s, i) => (
-                        <button
-                          key={`${s.name}-${i}`}
-                          type="button"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => selectSuggestion(s)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', textAlign: 'left',
-                            padding: '0.5rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer',
-                            borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
-                        >
-                          {s.artwork ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={s.artwork} alt="" style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, objectFit: 'cover' }} />
-                          ) : (
-                            <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-                          )}
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
-                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.artist}</p>
                           </div>
                         </button>
                       ))}
