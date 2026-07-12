@@ -39,7 +39,7 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
           {activeOrg?.name?.[0]?.toUpperCase() ?? 'S'}
         </div>
         <span className="font-semibold text-sm truncate" style={{ color: 'rgba(255,255,255,0.75)' }}>
-          {activeOrg?.name ?? 'ServiceFlow'}
+          {activeOrg?.name ?? 'WIS - Services'}
         </span>
       </div>
 

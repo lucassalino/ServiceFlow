@@ -14,7 +14,8 @@ function getAdmin() {
 
 export interface SongPayload {
   name: string; artist: string | null; musical_key: string | null;
-  bpm: number | null; lyrics: string | null; chords: string | null; youtube_url: string | null;
+  bpm: number | null; lyrics: string | null; chords: string | null;
+  youtube_url: string | null; spotify_url: string | null; ministry_id: string | null;
 }
 
 export async function fetchSongsAction(orgId: string): Promise<Song[]> {
@@ -25,13 +26,92 @@ export async function fetchSongsAction(orgId: string): Promise<Song[]> {
   return data as Song[];
 }
 
+// ── Catálogo global partilhado ─────────────────────────────────────────────
+
+type AdminClient = ReturnType<typeof getAdmin>;
+
+/** Campos partilhados no catálogo global (o Tom NÃO é partilhado). */
+const SHARED_KEYS = ['lyrics', 'chords', 'youtube_url', 'spotify_url', 'bpm'] as const;
+
+function isEmpty(v: unknown): boolean {
+  return v === null || v === undefined || v === '';
+}
+
+/**
+ * Liga uma música ao catálogo global pela chave (nome + artista).
+ * - Se já existir: contribui apenas os campos que estão VAZIOS no catálogo
+ *   (nunca sobrescreve dados de outra igreja).
+ * - Se não existir: cria a entrada no catálogo.
+ * Devolve o id da entrada do catálogo.
+ */
+async function resolveCatalog(
+  admin: AdminClient, payload: SongPayload, orgId: string, userId: string,
+): Promise<string | null> {
+  const name = payload.name.trim();
+  const artist = (payload.artist ?? '').trim();
+  if (!name) return null;
+  const esc = (s: string) => s.replace(/[%_]/g, '\\$&');
+
+  const { data: found } = await admin.from('catalog_songs').select('*')
+    .ilike('name', esc(name)).ilike('artist', esc(artist)).limit(1).maybeSingle();
+  const cat = found as Record<string, unknown> | null;
+
+  if (cat) {
+    const patch: Record<string, unknown> = {};
+    for (const k of SHARED_KEYS) {
+      if (isEmpty(cat[k]) && !isEmpty(payload[k])) patch[k] = payload[k];
+    }
+    if (Object.keys(patch).length > 0) {
+      patch.updated_at = new Date().toISOString();
+      await admin.from('catalog_songs').update(patch as never).eq('id', cat.id as string);
+    }
+    return cat.id as string;
+  }
+
+  const { data: created, error } = await admin.from('catalog_songs').insert({
+    name, artist,
+    lyrics: payload.lyrics, chords: payload.chords,
+    youtube_url: payload.youtube_url, spotify_url: payload.spotify_url,
+    bpm: payload.bpm, source_org_id: orgId, created_by: userId,
+  }).select('id').single();
+
+  if (error) {
+    // corrida: outra igreja criou a mesma entrada — procurar de novo
+    const { data: retry } = await admin.from('catalog_songs').select('id')
+      .ilike('name', esc(name)).ilike('artist', esc(artist)).limit(1).maybeSingle();
+    return (retry as { id: string } | null)?.id ?? null;
+  }
+  return (created as { id: string }).id;
+}
+
+export interface CatalogSuggestion {
+  id: string; name: string; artist: string;
+  lyrics: string | null; chords: string | null;
+  youtube_url: string | null; spotify_url: string | null; bpm: number | null;
+}
+
+/** Pesquisa no catálogo GLOBAL por nome ou artista (para reutilizar músicas). */
+export async function searchCatalogSongsAction(term: string): Promise<CatalogSuggestion[]> {
+  const q = (term ?? '').trim().replace(/[,()]/g, ' ').trim();
+  if (q.length < 2) return [];
+  const supabase = await createClient();
+  const like = `%${q}%`;
+  const { data, error } = await supabase.from('catalog_songs')
+    .select('id, name, artist, lyrics, chords, youtube_url, spotify_url, bpm')
+    .or(`name.ilike.${like},artist.ilike.${like}`)
+    .order('name').limit(10);
+  if (error) return [];
+  return (data ?? []) as CatalogSuggestion[];
+}
+
 export async function createSongAction(orgId: string, payload: SongPayload): Promise<Song> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const admin = getAdmin();
+  const catalogId = await resolveCatalog(admin, payload, orgId, user.id);
   const { data, error } = await admin.from('songs')
-    .insert({ ...payload, org_id: orgId }).select().single();
+    .insert({ ...payload, org_id: orgId, catalog_song_id: catalogId }).select().single();
   if (error) throw new Error(error.message);
   return data as Song;
 }
@@ -41,9 +121,15 @@ export async function updateSongAction(id: string, payload: SongPayload): Promis
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const admin = getAdmin();
-  const { error } = await admin.from('songs')
-    .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
+  // Atualiza a cópia da igreja (cada igreja tem a sua versão).
+  const { data: updated, error } = await admin.from('songs')
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq('id', id).select('org_id').single();
   if (error) throw new Error(error.message);
+  // Contribui campos vazios de volta ao catálogo e mantém a ligação certa.
+  const orgId = (updated as { org_id: string }).org_id;
+  const catalogId = await resolveCatalog(admin, payload, orgId, user.id);
+  if (catalogId) await admin.from('songs').update({ catalog_song_id: catalogId }).eq('id', id);
 }
 
 export async function deleteSongAction(id: string): Promise<void> {

@@ -64,7 +64,7 @@ export function inviteMessage(opts: {
 }): string {
   return (
     `Olá! 👋\n\n` +
-    `Foste convidado(a) para *${opts.orgName}* no ServiceFlow.\n\n` +
+    `Foste convidado(a) para *${opts.orgName}* no WIS - Services.\n\n` +
     `Entra aqui para te juntares:\n${opts.joinUrl}\n\n` +
     `Ou usa o código de convite: *${opts.inviteCode}*`
   );
@@ -73,7 +73,7 @@ export function inviteMessage(opts: {
 /** Mensagem curta para a partilha nativa (Web Share) — foca no código. */
 export function inviteShareText(orgName: string, code: string, appUrl: string): string {
   return (
-    `Entra na organização "${orgName}" no ServiceFlow!\n\n` +
+    `Entra na organização "${orgName}" no WIS - Services!\n\n` +
     `Usa o código: ${code}\n\n` +
     `Abre a app em: ${appUrl}`
   );

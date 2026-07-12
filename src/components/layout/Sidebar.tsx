@@ -60,9 +60,9 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg flex items-center justify-center"
             style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            <span className="text-white text-xs font-bold">SF</span>
+            <span className="text-white text-xs font-bold">WIS</span>
           </div>
-          <span className="text-white font-semibold text-sm tracking-tight">ServiceFlow</span>
+          <span className="text-white font-semibold text-sm tracking-tight">WIS - Services</span>
         </div>
         <button
           onClick={onMobileClose}

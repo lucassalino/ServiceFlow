@@ -233,7 +233,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
             ) : (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  {(setlist as (Song & { order_index: number })[]).map((song, idx) => (
+                  {(setlist as (Song & { order_index: number; event_key: string | null })[]).map((song, idx) => (
                     <SetlistRow key={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
                   ))}
                 </div>
@@ -467,7 +467,8 @@ function ConfirmControl({
 
 // ── Setlist row ───────────────────────────────────────────────────────────────
 
-function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number }; index: number; onClick: () => void }) {
+function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number; event_key?: string | null }; index: number; onClick: () => void }) {
+  const key = song.event_key ?? song.musical_key;
   return (
     <div
       onClick={onClick}
@@ -513,7 +514,7 @@ function SetlistRow({ song, index, onClick }: { song: Song & { order_index: numb
         )}
       </div>
       <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
-        {song.musical_key && <Chip>{song.musical_key}</Chip>}
+        {key && <Chip>{key}</Chip>}
         {song.bpm && <Chip>{song.bpm} BPM</Chip>}
       </div>
     </div>

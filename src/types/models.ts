@@ -44,6 +44,16 @@ export interface Song {
   musical_key: string | null; bpm: number | null; ministry_id: string | null;
   lyrics: string | null; chords: string | null;
   youtube_url: string | null; spotify_url: string | null;
+  catalog_song_id: string | null;
+  created_at: string; updated_at: string;
+}
+/** Entrada do catálogo GLOBAL, partilhada por todas as organizações. */
+export interface CatalogSong {
+  id: string; name: string; artist: string;
+  lyrics: string | null; chords: string | null;
+  youtube_url: string | null; spotify_url: string | null;
+  bpm: number | null;
+  source_org_id: string | null; created_by: string | null;
   created_at: string; updated_at: string;
 }
 export interface AppNotification {

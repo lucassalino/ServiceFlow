@@ -114,22 +114,78 @@ export type Database = {
           },
         ]
       }
+      catalog_songs: {
+        Row: {
+          artist: string
+          bpm: number | null
+          chords: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lyrics: string | null
+          name: string
+          source_org_id: string | null
+          spotify_url: string | null
+          updated_at: string
+          youtube_url: string | null
+        }
+        Insert: {
+          artist?: string
+          bpm?: number | null
+          chords?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lyrics?: string | null
+          name: string
+          source_org_id?: string | null
+          spotify_url?: string | null
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          artist?: string
+          bpm?: number | null
+          chords?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lyrics?: string | null
+          name?: string
+          source_org_id?: string | null
+          spotify_url?: string | null
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_songs_source_org_id_fkey"
+            columns: ["source_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_setlists: {
         Row: {
           event_id: string
           id: string
+          musical_key: string | null
           order_index: number
           song_id: string
         }
         Insert: {
           event_id: string
           id?: string
+          musical_key?: string | null
           order_index?: number
           song_id: string
         }
         Update: {
           event_id?: string
           id?: string
+          musical_key?: string | null
           order_index?: number
           song_id?: string
         }
@@ -447,6 +503,7 @@ export type Database = {
         Row: {
           artist: string | null
           bpm: number | null
+          catalog_song_id: string | null
           chords: string | null
           created_at: string
           id: string
@@ -462,6 +519,7 @@ export type Database = {
         Insert: {
           artist?: string | null
           bpm?: number | null
+          catalog_song_id?: string | null
           chords?: string | null
           created_at?: string
           id?: string
@@ -477,6 +535,7 @@ export type Database = {
         Update: {
           artist?: string | null
           bpm?: number | null
+          catalog_song_id?: string | null
           chords?: string | null
           created_at?: string
           id?: string

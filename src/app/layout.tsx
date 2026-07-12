@@ -7,10 +7,10 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ServiceFlow',
+  title: 'WIS - Services',
   description: 'Gestão de ministérios e escalas para igrejas',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ServiceFlow' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'WIS - Services' },
   icons: {
     icon: [
       { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },

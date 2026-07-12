@@ -152,8 +152,8 @@ export function MembersClient() {
     if (!codigo) return;
     if (navigator.share) {
       navigator.share({
-        title: 'ServiceFlow — ' + nome,
-        text: `Entra na organização "${nome}" no ServiceFlow!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
+        title: 'WIS - Services — ' + nome,
+        text: `Entra na organização "${nome}" no WIS - Services!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
       }).catch(() => {});
     } else {
       copiarCodigo();
