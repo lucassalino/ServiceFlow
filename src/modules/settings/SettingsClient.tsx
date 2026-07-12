@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { Camera, LogOut, Trash2, Copy, Check, Share2, ImagePlus } from 'lucide-react';
 
-const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
+import { APP_URL } from '@/lib/app-url';
 import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
 import { ProfileCardDialog } from '@/components/ui/profile-card-dialog';
 import { createClient } from '@/lib/supabase/client';
