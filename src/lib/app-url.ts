@@ -7,4 +7,4 @@
  * domínio .workers.dev por omissão.
  */
 export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL || 'https://serviceflow.it-workdeveloper.workers.dev';
+  process.env.NEXT_PUBLIC_APP_URL || 'https://wis-services.com';
