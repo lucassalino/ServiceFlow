@@ -11,6 +11,8 @@ function getAdmin() {
   );
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://serviceflow.it-workdeveloper.workers.dev';
+
 export interface PendingInvite {
   id: string;
   org_id: string;
@@ -40,7 +42,7 @@ export async function createInviteAction(
   name: string,
   email: string,
   role: 'admin' | 'leader' | 'member' = 'member',
-): Promise<PendingInvite> {
+): Promise<PendingInvite & { emailSent: boolean; alreadyRegistered: boolean }> {
   const cleanName = name.trim();
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanName) throw new Error('Escreve o nome da pessoa');
@@ -67,7 +69,20 @@ export async function createInviteAction(
     .select('id, org_id, email, name, role, created_at')
     .single();
   if (error) throw new Error(error.message);
-  return data as PendingInvite;
+
+  // Envia o email de convite via Supabase (cria a conta e envia o link).
+  // Se a pessoa já tiver conta, o email não é enviado — será adicionada no próximo login.
+  const { error: emailError } = await admin.auth.admin.inviteUserByEmail(cleanEmail, {
+    data: { full_name: cleanName },
+    redirectTo: `${APP_URL}/auth/callback?next=/definir-password`,
+  });
+  const alreadyRegistered =
+    !!emailError && /already been registered|already registered|already exists/i.test(emailError.message);
+
+  return { ...(data as PendingInvite), emailSent: !emailError, alreadyRegistered } as PendingInvite & {
+    emailSent: boolean;
+    alreadyRegistered: boolean;
+  };
 }
 
 /** Lista os convites pendentes (ainda não aceites) de uma organização. Só admin. */
