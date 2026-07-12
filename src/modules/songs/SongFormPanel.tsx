@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Youtube, Music, FileText, Guitar, Sparkles, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, Youtube, Music, FileText, Guitar, Search, Loader2 } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
-import { fetchSongMetadataAction, searchGospelSongsAction, type SongSuggestion } from '@/actions/songs';
+import { searchGospelSongsAction, type SongSuggestion } from '@/actions/songs';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -110,30 +110,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     setSuggestions([]);
   }
 
-  // ── Auto-preenchimento a partir de um link (YouTube/Spotify) ──────────────
-  const [autoUrl, setAutoUrl] = useState('');
-  const [autoLoading, setAutoLoading] = useState(false);
-
-  async function handleAutoFill() {
-    const url = autoUrl.trim();
-    if (!url) { toast.error('Cola um link do YouTube ou Spotify'); return; }
-    setAutoLoading(true);
-    try {
-      const meta = await fetchSongMetadataAction(url);
-      if (!meta.provider) { toast.error('Link não reconhecido (usa YouTube ou Spotify)'); return; }
-      if (meta.name) setValue('name', meta.name);
-      if (meta.artist) setValue('artist', meta.artist);
-      if (meta.provider === 'youtube') setValue('youtube_url', url);
-      if (meta.provider === 'spotify') setValue('spotify_url', url);
-      if (meta.name) toast.success('Preenchido a partir do link');
-      else toast.message('Não consegui obter o nome — preenche manualmente');
-    } catch {
-      toast.error('Erro ao obter dados do link');
-    } finally {
-      setAutoLoading(false);
-    }
-  }
-
   async function onSubmit(values: SongFormValues) {
     const payload = {
       name: values.name,
@@ -190,41 +166,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
           }}>
             {isEditing ? 'Editar Música' : 'Nova Música'}
           </h1>
-        </div>
-
-        {/* ── Auto-preencher a partir de um link ──────────── */}
-        <div style={{
-          padding: '1.25rem 1.5rem', borderRadius: '1.25rem',
-          background: 'rgba(165,180,252,0.08)', border: '1px solid rgba(165,180,252,0.22)',
-          marginBottom: '1rem',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.625rem' }}>
-            <Sparkles style={{ width: '0.95rem', height: '0.95rem', color: '#a5b4fc' }} />
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>Auto-preencher a partir de um link</span>
-          </div>
-          <div className="dark-inputs sf-autofill" style={{ display: 'flex', gap: '0.5rem' }}>
-            <style>{`@media(max-width:560px){.sf-autofill{flex-direction:column!important}}`}</style>
-            <Input
-              placeholder="Cola o link do YouTube ou Spotify"
-              value={autoUrl}
-              onChange={(e) => setAutoUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAutoFill(); } }}
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              onClick={handleAutoFill}
-              disabled={autoLoading}
-              className="dark-primary-btn"
-              style={{ flexShrink: 0, opacity: autoLoading ? 0.7 : 1, justifyContent: 'center' }}
-            >
-              <Sparkles style={{ width: '0.85rem', height: '0.85rem' }} />
-              {autoLoading ? 'A obter…' : 'Preencher'}
-            </button>
-          </div>
-          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem' }}>
-            Preenche o nome e o artista automaticamente. O tom e o BPM continuam manuais.
-          </p>
         </div>
 
         {/* ── Form ─────────────────────────────────────────── */}
