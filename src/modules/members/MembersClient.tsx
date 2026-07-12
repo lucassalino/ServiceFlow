@@ -85,6 +85,20 @@ export function MembersClient() {
 
   async function handleSendInvite() {
     if (!activeOrg?.id) return;
+    const nome = inviteName.trim();
+    const email = inviteEmail.trim();
+    if (!nome) {
+      toast.error('Escreve o nome da pessoa');
+      return;
+    }
+    if (!email) {
+      toast.error('Escreve o email da pessoa');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Email inválido');
+      return;
+    }
     try {
       const res = await createInvite.mutateAsync({ orgId: activeOrg.id, name: inviteName, email: inviteEmail });
       if (res.alreadyRegistered) {
@@ -382,7 +396,9 @@ export function MembersClient() {
                 value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSendInvite(); } }} />
             </div>
-            <Button onClick={handleSendInvite} disabled={createInvite.isPending} className="w-full gap-2 h-11">
+            <Button onClick={handleSendInvite}
+              disabled={createInvite.isPending || !inviteName.trim() || !inviteEmail.trim()}
+              className="w-full gap-2 h-11">
               <Mail className="h-4 w-4" />
               {createInvite.isPending ? 'A convidar…' : 'Convidar'}
             </Button>
