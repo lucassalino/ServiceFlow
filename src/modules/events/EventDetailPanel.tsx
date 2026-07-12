@@ -592,21 +592,21 @@ function YoutubePlaylistButton({ songs }: { songs: Song[] }) {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.625rem 1.125rem',
-          background: 'rgba(248,113,113,0.12)',
-          border: '1px solid rgba(248,113,113,0.25)',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: '0.625rem',
-          color: '#f87171',
+          color: 'rgba(255,255,255,0.85)',
           fontSize: '0.825rem', fontWeight: 600,
           textDecoration: 'none',
           transition: 'background 0.15s, transform 0.12s',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; e.currentTarget.style.transform = 'none'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'none'; }}
       >
-        <Youtube style={{ width: '1rem', height: '1rem' }} />
+        <Youtube style={{ width: '1rem', height: '1rem', color: '#f87171' }} />
         Abrir playlist no YouTube
-        <span style={{ fontSize: '0.72rem', opacity: 0.65 }}>({ids.length} música{ids.length !== 1 ? 's' : ''})</span>
-        <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.6 }} />
+        <span style={{ fontSize: '0.72rem', opacity: 0.5 }}>({ids.length} música{ids.length !== 1 ? 's' : ''})</span>
+        <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.5 }} />
       </a>
     </div>
   );
