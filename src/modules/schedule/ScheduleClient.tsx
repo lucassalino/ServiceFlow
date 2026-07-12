@@ -38,7 +38,7 @@ import type { Ministry, EventMinistry, EventSchedule, MinistryMember } from '@/t
 
 interface Props { orgId: string }
 
-const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
+import { APP_URL } from '@/lib/app-url';
 
 // ── Shared dark badge ────────────────────────────────────────────────────────
 

@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
 import { MemberDetailPanel } from './MemberDetailPanel';
 
-const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
+import { APP_URL } from '@/lib/app-url';
 
 type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };

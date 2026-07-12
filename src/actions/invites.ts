@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+import { APP_URL } from '@/lib/app-url';
 
 function getAdmin() {
   return createAdminClient<Database>(
@@ -10,8 +11,6 @@ function getAdmin() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 }
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://serviceflow.it-workdeveloper.workers.dev';
 
 export interface PendingInvite {
   id: string;
