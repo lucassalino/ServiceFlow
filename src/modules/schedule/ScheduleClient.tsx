@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Plus, X, Check, Users, ChevronDown, ChevronRight,
@@ -478,6 +478,15 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   >(null);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Abre automaticamente o evento vindo de uma notificação (?event=<id>).
+  useEffect(() => {
+    const eventParam = new URLSearchParams(window.location.search).get('event');
+    if (eventParam && events.some((e) => e.id === eventParam)) {
+      setSelectedEventId(eventParam);
+      setMobileShowDetail(true);
+    }
+  }, [events]);
 
   function handleSelectEvent(id: string) {
     setSelectedEventId(id);

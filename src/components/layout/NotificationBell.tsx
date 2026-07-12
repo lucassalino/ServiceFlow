@@ -93,7 +93,7 @@ export function NotificationBell({ orgId }: { orgId: string }) {
                 return n.event_id ? (
                   <Link
                     key={n.id}
-                    href={`/${orgId}/schedule`}
+                    href={`/${orgId}/schedule?event=${n.event_id}`}
                     onClick={() => handleOpenNotification(n)}
                     className="block"
                   >
