@@ -55,7 +55,7 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
           <div className="text-center mb-6">
             <div className="inline-flex h-10 w-10 rounded-xl items-center justify-center mb-3"
               style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
-              <span className="text-white font-bold text-sm">SF</span>
+              <span className="text-white font-bold text-sm">WIS</span>
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">
               Selecionar Organização

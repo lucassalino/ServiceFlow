@@ -1,6 +1,6 @@
 {
-  "name": "ServiceFlow",
-  "short_name": "ServiceFlow",
+  "name": "WIS - Services",
+  "short_name": "WIS",
   "description": "Gestão de ministérios e escalas para igrejas",
   "start_url": "/",
   "scope": "/",

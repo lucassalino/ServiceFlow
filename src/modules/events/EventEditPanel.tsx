@@ -16,7 +16,7 @@ import { useMinistries } from '@/hooks/useMinistries';
 import { useSongs } from '@/hooks/useSongs';
 import { uploadEventImageAction } from '@/actions/events';
 import { fetchEventSetupAction, replaceEventSetupAction } from '@/actions/schedule';
-import { resolveFunction } from '@/lib/constants';
+import { resolveFunction, SONG_KEYS } from '@/lib/constants';
 import { fetchMinistryMembersAction } from '@/actions/members';
 import type { Event, Ministry, Song } from '@/types/models';
 import { Input } from '@/components/ui/input';
@@ -224,6 +224,7 @@ export function EventEditPanel({ event, onBack }: Props) {
 
   // step 4
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
+  const [songKeys, setSongKeys] = useState<Record<string, string>>({});
   const [songSearch, setSongSearch] = useState('');
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
@@ -246,6 +247,7 @@ export function EventEditPanel({ event, onBack }: Props) {
         setSelectedMinistryIds(setup.ministryIds);
         setMembersByMinistry(setup.membersByMinistry);
         setSelectedSongIds(setup.songIds);
+        setSongKeys(setup.songKeys);
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoadingSetup(false); });
@@ -321,7 +323,19 @@ export function EventEditPanel({ event, onBack }: Props) {
   }
 
   function toggleSong(songId: string) {
-    setSelectedSongIds((prev) => prev.includes(songId) ? prev.filter((id) => id !== songId) : [...prev, songId]);
+    setSelectedSongIds((prev) => {
+      if (prev.includes(songId)) return prev.filter((id) => id !== songId);
+      const song = (songs as unknown as Song[]).find((s) => s.id === songId);
+      if (song?.musical_key) setSongKeys((k) => ({ ...k, [songId]: song.musical_key! }));
+      return [...prev, songId];
+    });
+  }
+
+  function setSongKey(songId: string, key: string) {
+    setSongKeys((prev) => {
+      if (!key) { const next = { ...prev }; delete next[songId]; return next; }
+      return { ...prev, [songId]: key };
+    });
   }
 
   // Grava TUDO de uma vez: informações + imagem + ministérios/integrantes + setlist.
@@ -345,7 +359,7 @@ export function EventEditPanel({ event, onBack }: Props) {
           color: event.color, cover_image_url: coverImageUrl,
         });
         const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
-        await replaceEventSetupAction(event.id, setup, selectedSongIds);
+        await replaceEventSetupAction(event.id, setup, selectedSongIds, songKeys);
         qc.invalidateQueries({ queryKey: ['events'] });
         qc.invalidateQueries({ queryKey: ['event-setlist', event.id] });
         qc.invalidateQueries({ queryKey: ['event-ministries', event.id] });
@@ -711,6 +725,22 @@ export function EventEditPanel({ event, onBack }: Props) {
                               <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
                               {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
                             </div>
+                            <select
+                              value={songKeys[id] ?? ''}
+                              onChange={(e) => setSongKey(id, e.target.value)}
+                              title="Tom para este evento"
+                              style={{
+                                flexShrink: 0, fontSize: '0.72rem', fontWeight: 600,
+                                padding: '0.2rem 0.4rem', borderRadius: '0.4rem',
+                                background: 'rgba(255,255,255,0.06)', color: '#fff',
+                                border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+                              }}
+                            >
+                              <option value="" style={{ background: '#1a1a20' }}>Tom</option>
+                              {SONG_KEYS.map((k) => (
+                                <option key={k} value={k} style={{ background: '#1a1a20' }}>{k}</option>
+                              ))}
+                            </select>
                             <button type="button" onClick={() => toggleSong(id)} style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
                               onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
                               onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}

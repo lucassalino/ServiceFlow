@@ -34,6 +34,7 @@ export async function fetchEventSetupAction(eventId: string): Promise<{
   ministryIds: string[];
   membersByMinistry: Record<string, { userId: string; functions: string[] }[]>;
   songIds: string[];
+  songKeys: Record<string, string>;
 }> {
   const supabase = await createClient();
   const { data: rawMins, error: minsErr } = await supabase
@@ -57,12 +58,16 @@ export async function fetchEventSetupAction(eventId: string): Promise<{
 
   const { data: rawSetlist } = await supabase
     .from('event_setlists').select('*').eq('event_id', eventId).order('order_index');
-  const setlist = (rawSetlist ?? []) as { song_id: string }[];
+  const setlist = (rawSetlist ?? []) as { song_id: string; musical_key: string | null }[];
+
+  const songKeys: Record<string, string> = {};
+  for (const s of setlist) if (s.musical_key) songKeys[s.song_id] = s.musical_key;
 
   return {
     ministryIds,
     membersByMinistry,
     songIds: setlist.map((s) => s.song_id),
+    songKeys,
   };
 }
 
@@ -70,6 +75,7 @@ export async function replaceEventSetupAction(
   eventId: string,
   setup: { ministryId: string; members: { userId: string; functions: string[] }[] }[],
   songIds: string[],
+  songKeys: Record<string, string> = {},
 ): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -100,7 +106,10 @@ export async function replaceEventSetupAction(
 
   await admin.from('event_setlists').delete().eq('event_id', eventId);
   if (songIds.length > 0) {
-    const rows = songIds.map((songId, index) => ({ event_id: eventId, song_id: songId, order_index: index }));
+    const rows = songIds.map((songId, index) => ({
+      event_id: eventId, song_id: songId, order_index: index,
+      musical_key: songKeys[songId] ?? null,
+    }));
     const { error: slErr } = await admin.from('event_setlists').insert(rows);
     if (slErr) throw new Error(slErr.message);
   }
@@ -230,16 +239,16 @@ export async function confirmScheduleAction(
   if (error) throw new Error(error.message);
 }
 
-export async function fetchEventSetlistAction(eventId: string): Promise<(Song & { order_index: number })[]> {
+export async function fetchEventSetlistAction(eventId: string): Promise<(Song & { order_index: number; event_key: string | null })[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('event_setlists')
-    .select('order_index, song:songs(*)')
+    .select('order_index, musical_key, song:songs(*)')
     .eq('event_id', eventId)
     .order('order_index');
   if (error) throw new Error(error.message);
-  return ((data ?? []) as { order_index: number; song: Song }[])
-    .map(({ order_index, song }) => ({ ...song, order_index }));
+  return ((data ?? []) as { order_index: number; musical_key: string | null; song: Song }[])
+    .map(({ order_index, musical_key, song }) => ({ ...song, order_index, event_key: musical_key }));
 }
 
 export async function updateEventScheduleAction(id: string, functions: string[]): Promise<void> {
@@ -254,6 +263,7 @@ export async function updateEventScheduleAction(id: string, functions: string[])
 export async function setupEventSetlistAction(
   eventId: string,
   songIds: string[],
+  songKeys: Record<string, string> = {},
 ): Promise<void> {
   if (songIds.length === 0) return;
   const supabase = await createClient();
@@ -262,6 +272,7 @@ export async function setupEventSetlistAction(
   const admin = getAdmin();
   const rows = songIds.map((songId, index) => ({
     event_id: eventId, song_id: songId, order_index: index,
+    musical_key: songKeys[songId] ?? null,
   }));
   const { error } = await admin.from('event_setlists').insert(rows);
   if (error) throw new Error(error.message);

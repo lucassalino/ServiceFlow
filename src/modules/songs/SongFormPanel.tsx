@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { ArrowLeft, Youtube, Music, FileText, Guitar, Search, Loader2 } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
-import { searchGospelSongsAction, type SongSuggestion } from '@/actions/songs';
+import { searchGospelSongsAction, searchCatalogSongsAction, type SongSuggestion, type CatalogSuggestion } from '@/actions/songs';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -77,7 +77,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const nameField = register('name');
   const isPending = createSong.isPending || updateSong.isPending || isSubmitting;
 
-  // ── Sugestões de músicas gospel (iTunes) enquanto se digita o nome ─────────
+  // ── Sugestões: catálogo global (WIS) + músicas gospel (iTunes) ─────────────
+  const [catalogResults, setCatalogResults] = useState<CatalogSuggestion[]>([]);
   const [suggestions, setSuggestions] = useState<SongSuggestion[]>([]);
   const [searchingSongs, setSearchingSongs] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -88,11 +89,15 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     if (!nameFocused) return;
     if (skipSearchRef.current) { skipSearchRef.current = false; return; }
     const q = (nameValue ?? '').trim();
-    if (q.length < 2) { setSuggestions([]); setSearchingSongs(false); return; }
+    if (q.length < 2) { setCatalogResults([]); setSuggestions([]); setSearchingSongs(false); return; }
     setSearchingSongs(true);
     const t = setTimeout(async () => {
       try {
-        const results = await searchGospelSongsAction(q);
+        const [catalog, results] = await Promise.all([
+          searchCatalogSongsAction(q),
+          searchGospelSongsAction(q),
+        ]);
+        setCatalogResults(catalog);
         setSuggestions(results);
         setShowSuggestions(true);
       } finally {
@@ -102,12 +107,30 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     return () => clearTimeout(t);
   }, [nameValue, nameFocused]);
 
+  // Sugestão do iTunes: só preenche nome + artista.
   function selectSuggestion(s: SongSuggestion) {
     skipSearchRef.current = true;
     setValue('name', s.name);
     if (s.artist) setValue('artist', s.artist);
     setShowSuggestions(false);
+    setCatalogResults([]);
     setSuggestions([]);
+  }
+
+  // Resultado do catálogo global: preenche TODOS os campos partilhados.
+  function selectCatalog(c: CatalogSuggestion) {
+    skipSearchRef.current = true;
+    setValue('name', c.name);
+    setValue('artist', c.artist ?? '');
+    setValue('lyrics', c.lyrics ?? '');
+    setValue('chords', c.chords ?? '');
+    setValue('youtube_url', c.youtube_url ?? '');
+    setValue('spotify_url', c.spotify_url ?? '');
+    setValue('bpm', c.bpm ?? null);
+    setShowSuggestions(false);
+    setCatalogResults([]);
+    setSuggestions([]);
+    toast.success('Preenchido a partir do catálogo');
   }
 
   async function onSubmit(values: SongFormValues) {
@@ -214,9 +237,45 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                           <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar…
                         </div>
                       )}
-                      {!searchingSongs && suggestions.length === 0 && (
+                      {!searchingSongs && catalogResults.length === 0 && suggestions.length === 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
-                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Sem resultados gospel — escreve o nome manualmente.
+                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Sem resultados — escreve os dados manualmente.
+                        </div>
+                      )}
+
+                      {/* No catálogo WIS (partilhado) — preenche tudo */}
+                      {catalogResults.length > 0 && (
+                        <div style={{ padding: '0.4rem 0.75rem 0.2rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(165,180,252,0.75)' }}>
+                          No catálogo
+                        </div>
+                      )}
+                      {catalogResults.map((c, i) => (
+                        <button
+                          key={`cat-${c.id}`}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectCatalog(c)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', textAlign: 'left',
+                            padding: '0.5rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer',
+                            borderBottom: i < catalogResults.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(165,180,252,0.1)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                        >
+                          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(165,180,252,0.15)' }}>
+                            <Music style={{ width: '1rem', height: '1rem', color: '#a5b4fc' }} />
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</p>
+                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.artist || 'Sem artista'}</p>
+                          </div>
+                        </button>
+                      ))}
+
+                      {suggestions.length > 0 && (
+                        <div style={{ padding: '0.4rem 0.75rem 0.2rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                          Sugestões
                         </div>
                       )}
                       {suggestions.map((s, i) => (
