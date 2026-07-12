@@ -53,7 +53,7 @@ export function RegisterForm({ className }: { className?: string }) {
         },
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(error.message || 'Não foi possível criar a conta. Verifica a configuração de email (SMTP) ou tenta mais tarde.');
         return;
       }
       // Se a confirmação de email estiver ativa, não há sessão até confirmar.

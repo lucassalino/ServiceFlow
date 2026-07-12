@@ -48,7 +48,7 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
         password: values.password,
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(error.message || 'Não foi possível entrar. Verifica os dados e tenta novamente.');
         return;
       }
       router.push('/');

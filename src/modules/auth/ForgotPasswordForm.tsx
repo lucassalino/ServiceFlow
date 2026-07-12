@@ -38,7 +38,7 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
         redirectTo: window.location.origin + '/auth/callback?next=/definir-password',
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(error.message || 'Não foi possível enviar o email. Verifica a configuração de email (SMTP) ou tenta mais tarde.');
         return;
       }
       setSent(true);
