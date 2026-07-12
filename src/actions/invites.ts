@@ -70,8 +70,8 @@ export async function createInviteAction(
     .single();
   if (error) throw new Error(error.message);
 
-  // Envia o email de convite via Supabase (cria a conta e envia o link).
-  // Se a pessoa já tiver conta, o email não é enviado — será adicionada no próximo login.
+  // Envia o email de convite via Supabase (cria a conta e envia o link para
+  // definir a password). Se a pessoa já tiver conta, o Supabase devolve erro.
   const { error: emailError } = await admin.auth.admin.inviteUserByEmail(cleanEmail, {
     data: { full_name: cleanName },
     redirectTo: `${APP_URL}/auth/callback?next=/definir-password`,
@@ -79,7 +79,26 @@ export async function createInviteAction(
   const alreadyRegistered =
     !!emailError && /already been registered|already registered|already exists/i.test(emailError.message);
 
-  return { ...(data as PendingInvite), emailSent: !emailError, alreadyRegistered } as PendingInvite & {
+  // Se já tem conta, não precisa de criar password: enviamos um magic link
+  // para ela entrar direto. Ao entrar, é adicionada à organização automaticamente
+  // (via acceptPendingInvitesAction). Assim recebe sempre um email.
+  let emailSent = !emailError;
+  if (alreadyRegistered) {
+    const anon = createAdminClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { error: magicError } = await anon.auth.signInWithOtp({
+      email: cleanEmail,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${APP_URL}/auth/callback?next=/`,
+      },
+    });
+    emailSent = !magicError;
+  }
+
+  return { ...(data as PendingInvite), emailSent, alreadyRegistered } as PendingInvite & {
     emailSent: boolean;
     alreadyRegistered: boolean;
   };
