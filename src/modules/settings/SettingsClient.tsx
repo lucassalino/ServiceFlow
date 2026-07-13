@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
-import { useLeaveOrganization } from '@/hooks/useOrganizations';
+import { useLeaveOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
 import { uploadOrgLogoAction } from '@/actions/organizations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -79,6 +79,7 @@ export function SettingsClient({ orgId }: Props) {
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
   const leaveOrg = useLeaveOrganization();
+  const deleteOrg = useDeleteOrganization();
   const deleteAccount = useDeleteAccount();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +87,7 @@ export function SettingsClient({ orgId }: Props) {
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [leaveOrgOpen, setLeaveOrgOpen] = useState(false);
+  const [deleteOrgOpen, setDeleteOrgOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
@@ -223,6 +225,12 @@ export function SettingsClient({ orgId }: Props) {
   async function handleLeaveOrg() {
     try {
       const res = await leaveOrg.mutateAsync(orgId);
+      // És a última pessoa → sair significa eliminar a organização.
+      if (res?.needsDelete) {
+        setLeaveOrgOpen(false);
+        setDeleteOrgOpen(true);
+        return;
+      }
       if (res?.error) {
         toast.error(res.error);
         setLeaveOrgOpen(false);
@@ -237,6 +245,24 @@ export function SettingsClient({ orgId }: Props) {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao saír da organização');
       setLeaveOrgOpen(false);
+    }
+  }
+
+  async function handleDeleteOrg() {
+    try {
+      const res = await deleteOrg.mutateAsync(orgId);
+      if (res?.error) {
+        toast.error(res.error);
+        setDeleteOrgOpen(false);
+        return;
+      }
+      toast.success('Organização eliminada');
+      setDeleteOrgOpen(false);
+      document.cookie = 'sf_last_org=; path=/; max-age=0';
+      window.location.href = '/';
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao eliminar a organização');
+      setDeleteOrgOpen(false);
     }
   }
 
@@ -622,6 +648,29 @@ export function SettingsClient({ orgId }: Props) {
               disabled={leaveOrg.isPending}
             >
               {leaveOrg.isPending ? 'A saír…' : 'Saír'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteOrgOpen} onOpenChange={setDeleteOrgOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar {activeOrg?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              És a última pessoa desta organização. Ao saír, a organização e todos os
+              seus dados — eventos, escalas, ministérios e músicas — serão eliminados
+              permanentemente. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteOrg}
+              disabled={deleteOrg.isPending}
+            >
+              {deleteOrg.isPending ? 'A eliminar…' : 'Eliminar organização'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
