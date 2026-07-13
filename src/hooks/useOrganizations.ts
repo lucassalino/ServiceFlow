@@ -4,6 +4,7 @@ import type { Organization, OrganizationMember } from '@/types/models';
 import {
   fetchOrgMembershipsAction,
   leaveOrganizationAction,
+  deleteOrganizationAction,
 } from '@/actions/organizations';
 
 export function useOrgMemberships() {
@@ -17,6 +18,14 @@ export function useLeaveOrganization() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (orgId: string) => leaveOrganizationAction(orgId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org-memberships'] }),
+  });
+}
+
+export function useDeleteOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orgId: string) => deleteOrganizationAction(orgId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['org-memberships'] }),
   });
 }
