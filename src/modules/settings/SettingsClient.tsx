@@ -222,10 +222,18 @@ export function SettingsClient({ orgId }: Props) {
 
   async function handleLeaveOrg() {
     try {
-      await leaveOrg.mutateAsync(orgId);
+      const res = await leaveOrg.mutateAsync(orgId);
+      if (res?.error) {
+        toast.error(res.error);
+        setLeaveOrgOpen(false);
+        return;
+      }
       toast.success('Saíste da organização');
       setLeaveOrgOpen(false);
-      router.push('/');
+      // Limpa a última organização e faz uma navegação completa para evitar
+      // re-render da página atual (já não és membro desta organização).
+      document.cookie = 'sf_last_org=; path=/; max-age=0';
+      window.location.href = '/';
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao saír da organização');
       setLeaveOrgOpen(false);
