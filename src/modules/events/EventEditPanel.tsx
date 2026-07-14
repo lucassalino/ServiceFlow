@@ -33,6 +33,7 @@ const schema = z.object({
   name:         z.string().min(1, 'Nome é obrigatório'),
   date:         z.string().min(1, 'Data é obrigatória'),
   time:         z.string().min(1, 'Horário é obrigatório'),
+  arrival_time: z.string().nullable().optional(),
   location:     z.string().nullable().optional(),
   description:  z.string().nullable().optional(),
   observations: z.string().nullable().optional(),
@@ -231,6 +232,7 @@ export function EventEditPanel({ event, onBack }: Props) {
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: event.name, date: event.date, time: event.time,
+      arrival_time: event.arrival_time ?? '',
       location: event.location ?? '', description: event.description ?? '',
       observations: event.observations ?? '', is_published: event.is_published,
     },
@@ -354,6 +356,7 @@ export function EventEditPanel({ event, onBack }: Props) {
         }
         await updateEvent.mutateAsync({
           id: event.id, name: values.name, date: values.date, time: values.time,
+          arrival_time: values.arrival_time || null,
           location: values.location || null, description: values.description || null,
           observations: values.observations || null, is_published: values.is_published,
           color: event.color, cover_image_url: coverImageUrl,
@@ -475,6 +478,14 @@ export function EventEditPanel({ event, onBack }: Props) {
                       <Input type="time" {...register('time')} />
                       {errors.time && <p style={{ fontSize: '0.75rem', color: '#fca5a5' }}>{errors.time.message}</p>}
                     </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label>Hora de chegada da equipa</Label>
+                    <Input type="time" {...register('arrival_time')} />
+                    <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
+                      Opcional — a que horas a equipa deve chegar (ensaio/passagem de som).
+                    </p>
                   </div>
 
                   <div className="space-y-1.5">

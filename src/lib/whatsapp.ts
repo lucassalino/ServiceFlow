@@ -41,15 +41,20 @@ export function scheduleMessage(opts: {
   eventName: string;
   date: string;
   time?: string | null;
+  arrivalTime?: string | null;
   appUrl: string;
 }): string {
   const firstName = opts.name.split(' ')[0] || opts.name;
   const when = `${formatDateLong(opts.date)}${opts.time ? ` às ${opts.time.slice(0, 5)}` : ''}`;
   const ministry = opts.ministry || opts.eventName;
+  const arrival = opts.arrivalTime
+    ? `\n⏰ Chegada da equipa: *${opts.arrivalTime.slice(0, 5)}*\n`
+    : '';
   return (
     `Olá, *${firstName}*! 🙌\n\n` +
-    `A *${opts.orgName}* escalou-te no *${ministry}* para o culto do dia *${when}*.\n\n` +
-    `Para veres os detalhes da escala, cifras ou ficheiros, abre a app:\n${opts.appUrl}\n\n` +
+    `A *${opts.orgName}* escalou-te no *${ministry}* para o culto do dia *${when}*.\n` +
+    arrival +
+    `\nPara veres os detalhes da escala, cifras ou ficheiros, abre a app:\n${opts.appUrl}\n\n` +
     `Confirma a tua presença na app:\n` +
     `✅ Sim, confirmo\n` +
     `❌ Não poderei ir`

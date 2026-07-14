@@ -9,7 +9,7 @@ import {
 import { useOrgStore } from '@/stores/orgStore';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatTime, getInitials } from '@/lib/utils';
+import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
 import type { Event } from '@/types/models';
 
 export interface BirthdayPerson {
@@ -126,6 +126,19 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
                         {event.is_published
                           ? <Badge className="text-[10px] h-[18px] px-1.5 py-0 bg-white/15 text-white border-white/20 hover:bg-white/15">Publicado</Badge>
                           : <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 py-0 bg-white/08 text-white/60 border-white/12">Rascunho</Badge>}
+                        {(() => {
+                          const p = eventPeriod(event.time);
+                          return p ? (
+                            <span style={{
+                              fontSize: '0.62rem', fontWeight: 700, padding: '0.05rem 0.4rem',
+                              borderRadius: '9999px', letterSpacing: '0.03em', textTransform: 'uppercase',
+                              background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+                              border: '1px solid rgba(165,180,252,0.25)',
+                            }}>
+                              {p.emoji} {p.label}
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-white/40 flex-wrap">
                         {event.time && (

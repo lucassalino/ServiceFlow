@@ -51,3 +51,16 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Período do dia de um evento, derivado da hora ("HH:MM" ou "HH:MM:SS").
+ * Manhã 05:00–11:59 · Tarde 12:00–17:59 · Noite 18:00–04:59.
+ */
+export function eventPeriod(time: string | null | undefined): { label: string; emoji: string } | null {
+  if (!time) return null;
+  const hour = parseInt(time.slice(0, 2), 10);
+  if (Number.isNaN(hour)) return null;
+  if (hour >= 5 && hour < 12) return { label: 'Manhã', emoji: '🌅' };
+  if (hour >= 12 && hour < 18) return { label: 'Tarde', emoji: '☀️' };
+  return { label: 'Noite', emoji: '🌙' };
+}

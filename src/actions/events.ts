@@ -27,7 +27,7 @@ async function scheduledEventIdSet(
 }
 
 export interface EventPayload {
-  name: string; date: string; time: string;
+  name: string; date: string; time: string; arrival_time?: string | null;
   location: string | null; color: string | null; cover_image_url?: string | null;
   description: string | null; observations: string | null;
   is_published?: boolean;

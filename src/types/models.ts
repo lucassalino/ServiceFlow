@@ -27,6 +27,7 @@ export interface MinistryMember {
 }
 export interface Event {
   id: string; org_id: string; name: string; date: string; time: string;
+  arrival_time: string | null;
   location: string | null; color: string | null; cover_image_url: string | null;
   description: string | null; observations: string | null; is_published: boolean;
   created_by: string; created_at: string; updated_at: string;

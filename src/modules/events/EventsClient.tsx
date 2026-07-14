@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime, eventPeriod } from '@/lib/utils';
 import { EventCreatePanel } from './EventCreatePanel';
 import { EventDetailPanel } from './EventDetailPanel';
 import { EventEditPanel } from './EventEditPanel';
@@ -222,6 +222,19 @@ export function EventsClient({ orgId: _orgId }: Props) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-white truncate">{event.name}</span>
                     <StatusBadge published={event.is_published} />
+                    {(() => {
+                      const p = eventPeriod(event.time);
+                      return p ? (
+                        <span style={{
+                          fontSize: '0.62rem', fontWeight: 700, padding: '0.1rem 0.45rem',
+                          borderRadius: '9999px', letterSpacing: '0.04em', textTransform: 'uppercase',
+                          background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+                          border: '1px solid rgba(165,180,252,0.25)',
+                        }}>
+                          {p.emoji} {p.label}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                   <div className="flex items-center gap-3 mt-1 text-xs flex-wrap"
                     style={{ color: 'rgba(255,255,255,0.38)' }}>

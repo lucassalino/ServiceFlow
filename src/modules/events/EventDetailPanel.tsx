@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useEventMinistries,
@@ -10,7 +10,7 @@ import {
   useConfirmSchedule,
 } from '@/hooks/useSchedule';
 import { getFunctionLabel } from '@/lib/constants';
-import { formatDate, formatTime, getInitials } from '@/lib/utils';
+import { formatDate, formatTime, getInitials, eventPeriod } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
@@ -253,7 +253,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
 function HeroContent({ event }: { event: Event }) {
   return (
     <>
-      <div style={{ marginBottom: '0.5rem' }}>
+      <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         <span style={{
           fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
           borderRadius: '9999px', letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -263,6 +263,20 @@ function HeroContent({ event }: { event: Event }) {
         }}>
           {event.is_published ? 'Publicado' : 'Rascunho'}
         </span>
+        {(() => {
+          const p = eventPeriod(event.time);
+          if (!p) return null;
+          return (
+            <span style={{
+              fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
+              borderRadius: '9999px', letterSpacing: '0.06em', textTransform: 'uppercase',
+              background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+              border: '1px solid rgba(165,180,252,0.25)',
+            }}>
+              {p.emoji} {p.label}
+            </span>
+          );
+        })()}
       </div>
       <h1 style={{
         fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em',
@@ -277,6 +291,11 @@ function HeroContent({ event }: { event: Event }) {
         {event.time && (
           <MetaItem icon={<Clock style={{ width: '0.8rem', height: '0.8rem' }} />}>
             {formatTime(event.time)}
+          </MetaItem>
+        )}
+        {event.arrival_time && (
+          <MetaItem icon={<Timer style={{ width: '0.8rem', height: '0.8rem' }} />}>
+            Chegada {formatTime(event.arrival_time)}
           </MetaItem>
         )}
         {event.location && (
