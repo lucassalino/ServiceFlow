@@ -36,9 +36,10 @@ export default function SetPasswordPage() {
       <div className="w-full max-w-[380px]">
         <div className="auth-glass">
           <div className="text-center mb-6">
-            <div className="inline-flex h-10 w-10 rounded-xl items-center justify-center mb-3"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
-              <span className="text-white font-bold text-sm">SF</span>
+            <div className="inline-flex h-12 w-12 rounded-xl items-center justify-center mb-3"
+              style={{ background: 'linear-gradient(135deg, #0D3B66 0%, #0F5C6E 100%)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '1.9rem', height: 'auto' }} />
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">Define a tua password</h1>
             <p className="text-[13px] text-white/40 mt-1">
