@@ -550,6 +550,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
       eventName: selectedEvent.name,
       date: selectedEvent.date,
       time: selectedEvent.time,
+      arrivalTime: selectedEvent.arrival_time,
       appUrl: APP_URL,
     });
     window.open(buildWhatsAppLink(next.phone, message), '_blank', 'noopener,noreferrer');

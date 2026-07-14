@@ -34,6 +34,7 @@ const schema = z.object({
   name:         z.string().min(1, 'Nome é obrigatório'),
   date:         z.string().min(1, 'Data é obrigatória'),
   time:         z.string().min(1, 'Horário é obrigatório'),
+  arrival_time: z.string().nullable().optional(),
   location:     z.string().nullable().optional(),
   description:  z.string().nullable().optional(),
   observations: z.string().nullable().optional(),
@@ -215,7 +216,7 @@ export function EventCreatePanel({ onBack }: Props) {
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
-    defaultValues: { name: '', date: '', time: '', location: '', description: '', observations: '', is_published: false },
+    defaultValues: { name: '', date: '', time: '', arrival_time: '', location: '', description: '', observations: '', is_published: false },
   });
   const isPublished = watch('is_published');
 
@@ -318,6 +319,7 @@ export function EventCreatePanel({ onBack }: Props) {
         }
         const ev = await createEvent.mutateAsync({
           ...values, color: null, cover_image_url: coverImageUrl,
+          arrival_time: values.arrival_time || null,
           location: values.location || null, description: values.description || null,
           observations: values.observations || null,
         });
@@ -441,6 +443,15 @@ export function EventCreatePanel({ onBack }: Props) {
                       <Input type="time" {...register('time')} />
                       {errors.time && <p style={{ fontSize: '0.75rem', color: '#fca5a5' }}>{errors.time.message}</p>}
                     </div>
+                  </div>
+
+                  {/* Hora de chegada */}
+                  <div className="space-y-1.5">
+                    <Label>Hora de chegada da equipa</Label>
+                    <Input type="time" {...register('arrival_time')} />
+                    <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
+                      Opcional — a que horas a equipa deve chegar (ensaio/passagem de som).
+                    </p>
                   </div>
 
                   {/* Location */}
