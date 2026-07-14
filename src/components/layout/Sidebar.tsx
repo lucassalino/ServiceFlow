@@ -59,10 +59,11 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
       <div className="sidebar-dark-section flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            <span className="text-white text-xs font-bold">WIS</span>
+            style={{ background: 'linear-gradient(135deg, #0D3B66 0%, #0F5C6E 100%)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '1.15rem', height: 'auto' }} />
           </div>
-          <span className="text-white font-semibold text-sm tracking-tight">WIS - Services</span>
+          <span className="text-white font-semibold text-sm tracking-tight">WIS</span>
         </div>
         <button
           onClick={onMobileClose}

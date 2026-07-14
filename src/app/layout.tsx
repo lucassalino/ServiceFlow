@@ -7,24 +7,27 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'WIS - Services',
+  metadataBase: new URL('https://wis-services.com'),
+  title: 'WIS — Worship In Sync',
   description: 'Gestão de ministérios e escalas para igrejas',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'WIS - Services' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'WIS' },
   icons: {
     icon: [
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icons/icon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/apple-touch-icon.png',
+    apple: '/icons/apple-touch-icon.png',
+  },
+  openGraph: {
+    title: 'WIS — Worship In Sync',
+    description: 'Gestão de ministérios e escalas para igrejas',
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F8F8F7' },
-    { media: '(prefers-color-scheme: dark)',  color: '#1C1C1A' },
-  ],
+  themeColor: '#0D3B66',
   width: 'device-width',
   initialScale: 1,
 };
