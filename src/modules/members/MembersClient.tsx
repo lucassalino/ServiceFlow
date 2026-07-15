@@ -245,7 +245,7 @@ export function MembersClient() {
           <div className="space-y-2.5">
             {typedMembers.map((member) => {
               const profile = member.profile;
-              const name = profile?.full_name ?? profile?.email ?? '?';
+              const name = profile?.full_name ?? (isAdmin ? profile?.email : undefined) ?? '?';
               const role = member.role as OrgRole;
 
               return (
@@ -283,10 +283,12 @@ export function MembersClient() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs mt-0.5 truncate"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}>
-                      {profile?.email}
-                    </p>
+                    {isAdmin && (
+                      <p className="text-xs mt-0.5 truncate"
+                        style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        {profile?.email}
+                      </p>
+                    )}
                   </div>
 
                   {/* Role selector + deactivate */}

@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
 import { BottomNav } from './BottomNav';
 import { NavProgress } from './NavProgress';
+import { GlobalActivityBar } from './GlobalActivityBar';
 
 interface Props {
   orgId: string;
@@ -17,6 +18,7 @@ export function AppShell({ orgId, children }: Props) {
   return (
     <div className="flex overflow-hidden" style={{ height: '100dvh' }}>
       <NavProgress />
+      <GlobalActivityBar />
       <Sidebar orgId={orgId} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       <div className="flex flex-1 flex-col overflow-hidden">
