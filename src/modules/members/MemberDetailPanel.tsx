@@ -44,7 +44,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
   }
 
   const role = member.role as OrgRole;
-  const name = member.profile?.full_name ?? member.profile?.email ?? '?';
+  const name = member.profile?.full_name ?? (isAdmin ? member.profile?.email : undefined) ?? '?';
   const joinedDate = new Date(member.joined_at).toLocaleDateString('pt-PT', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
@@ -149,9 +149,11 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                 width: '100%', paddingTop: '0.875rem',
                 borderTop: '1px solid rgba(255,255,255,0.07)',
               }}>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', margin: '0 0 0.25rem', wordBreak: 'break-all' }}>
-                  {member.profile?.email}
-                </p>
+                {isAdmin && (
+                  <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', margin: '0 0 0.25rem', wordBreak: 'break-all' }}>
+                    {member.profile?.email}
+                  </p>
+                )}
                 <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
                   Desde {joinedDate}
                 </p>

@@ -778,3 +778,9 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
   border-radius: 0 2px 2px 0;
   background-color: hsl(var(--foreground));
 }
+
+/* Barra de atividade global (gravar/editar/carregar) */
+@keyframes wis-activity {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
