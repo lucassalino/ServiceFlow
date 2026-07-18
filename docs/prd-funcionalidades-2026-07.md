@@ -196,6 +196,7 @@ Um utilizador real recebeu Error 1102 no browser. Os logs do Cloudflare (Workers
 
 - **Causa mais provável:** o limite de 10ms do plano gratuito, não um bug específico de loop/N+1 (revisto o código dos layouts e actions envolvidos, nada de anómalo).
 - **Ação tomada:** removida a funcionalidade "Histórico pessoal do voluntário" (secção 7) e a dependência `recharts` — era a única biblioteca genuinamente pesada adicionada nesta sessão. Código preservado em `full-features-2026-07`.
+- **Limpeza adicional:** removidas 5 dependências mortas (zero imports em `src/`, confirmado por grep): `date-fns`, `minimatch`, `cmdk`, `@radix-ui/react-toast`, `@tanstack/react-query-devtools`. Como não eram importadas em lado nenhum, o Next.js já não as incluía no bundle do Worker — esta limpeza não reduz CPU, só reduz o `node_modules` e a superfície de dependências.
 - **Ação recomendada, não aplicada:** upgrade do Cloudflare Workers para o plano pago (5 USD/mês, sobe o limite para 30s de CPU) — é a correção estrutural; aligeirar o bundle só reduz a frequência do erro, não elimina a causa raiz.
 
 ---
