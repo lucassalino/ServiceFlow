@@ -449,7 +449,7 @@ function MinistrySection({
           const isLast = idx === schedules.length - 1;
           return (
             <div key={schedule.id} style={{
-              display: 'flex', alignItems: 'center', gap: '0.875rem',
+              display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.625rem 0.875rem',
               padding: '0.75rem 1.125rem',
               borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)',
             }}>
@@ -459,7 +459,7 @@ function MinistrySection({
                 </AvatarFallback>
               </Avatar>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: '1 1 8rem', minWidth: 0 }}>
                 <p style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                   {name}
                   {isMe && (
@@ -558,7 +558,10 @@ function ConfirmControl({
   const border = isConfirmed ? 'rgba(110,231,183,0.3)' : 'transparent';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+    <div style={{
+      display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end',
+      gap: '0.5rem', flexShrink: 0, marginLeft: 'auto',
+    }}>
       {isConfirmed && (
         <button
           onClick={() => downloadEventICS(event)}
