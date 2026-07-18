@@ -27,7 +27,7 @@ export function AvailabilityClient() {
         {/* Hero */}
         <div className="pt-2">
           <p className="text-xs font-semibold tracking-[0.16em] uppercase text-white/40">Organização</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">Disponibilidade</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">Indisponibilidade</h1>
           <p className="text-white/40 text-sm mt-0.5">Marca os teus períodos de indisponibilidade — só tu e quem escala veem o motivo</p>
         </div>
 
@@ -41,7 +41,7 @@ export function AvailabilityClient() {
           <div className="flex items-center gap-2 px-5 pt-5 pb-4">
             <Users className="h-4 w-4" style={{ color: '#a5b4fc' }} />
             <p className="text-white/40 text-[11px] font-semibold uppercase tracking-widest">
-              Disponibilidade da equipa
+              Indisponibilidade da equipa
             </p>
           </div>
           {membersWithUnavailability.length === 0 ? (

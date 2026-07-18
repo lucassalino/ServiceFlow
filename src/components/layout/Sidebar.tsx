@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { href: 'events',     label: 'Eventos',     icon: Calendar },
   { href: 'schedule',   label: 'Escalas',     icon: CalendarCheck },
   { href: 'calendar',   label: 'Calendário',  icon: CalendarDays },
-  { href: 'availability', label: 'Disponibilidade', icon: CalendarOff },
+  { href: 'availability', label: 'Indisponibilidade', icon: CalendarOff },
   { href: 'members',    label: 'Pessoas',     icon: Users },
   { href: 'ministries', label: 'Ministérios', icon: Music2 },
   { href: 'songs',      label: 'Repertório',  icon: BookOpen },
