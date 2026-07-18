@@ -21,7 +21,7 @@ Fica fora deste PRD: estrutura de preços, gateway de pagamento, enforcement de 
 | 2 | Calendário geral | Todos | Grátis (Semente) |
 | 3 | Ranking de músicas mais tocadas | Todos (Repertório) | Comunhão |
 | 4 | Exportar roteiro/escala em PDF | Admin | Comunhão/Expansão |
-| 5 | Histórico pessoal do voluntário | Todos (o próprio + quem vê o perfil) | Crescimento |
+| 5 | ~~Histórico pessoal do voluntário~~ (revertido — ver secção 7) | — | Crescimento |
 | 6 | Disponibilidade (pontual/recorrente) | Todos | Comunhão (pontual já no Crescimento) |
 | 7 | Guardar evento no calendário do telemóvel | Todos | Grátis (não depende de servidor) |
 
@@ -103,23 +103,29 @@ No dia do evento, a equipa (produção, som, direção) quer uma folha impressa 
 
 ---
 
-## 7. Histórico pessoal do voluntário
+## 7. Histórico pessoal do voluntário (REVERTIDO em 2026-07-18)
 
 ### Problema
 Um voluntário não tinha forma de ver em quantos eventos já serviu, nem os líderes tinham essa informação num relance ao ver o perfil de alguém.
 
-### Requisitos
+### Requisitos (como implementado originalmente)
 - Secção "O meu histórico" em Definições → Perfil, e secção "Histórico" no perfil de qualquer membro (`MemberDetailPanel`).
 - Mostra: total desde sempre, repartição por mês (gráfico de linha), seletor de mês (default = mês atual).
 - Membro só vê o seu próprio; quem tem permissão de ver o perfil de outro membro vê o histórico dessa pessoa.
 
-### Design técnico
+### Design técnico (como implementado originalmente)
 - `fetchMyServiceHistoryAction(userId, orgId)` em `src/actions/schedule.ts` → `{ totalAllTime, byMonth: ServiceHistoryMonth[], entries: ServiceHistoryEntry[] }` (agrega `event_schedules` por mês).
 - Hooks: `useServiceHistory(userId)` (genérico) e `useMyServiceHistory()` (wrapper para o próprio utilizador) em `src/hooks/useSchedule.ts`.
 - Componente partilhado `src/components/ServiceHistorySection.tsx` (recharts `LineChart`, `<Select>` de mês) — usado em `SettingsClient.tsx` e `MemberDetailPanel.tsx`.
 
 ### Bug corrigido durante o desenvolvimento
 Crash `Cannot read properties of undefined (reading 'length')` por cache antiga do TanStack Query com a forma de dados anterior — corrigido com optional chaining e troca da chave de cache (`my-service-history` → `service-history`).
+
+### Motivo da reversão
+No mesmo dia, um utilizador real recebeu **Error 1102 ("Worker exceeded CPU time limit")** em produção. Os logs do Cloudflare (Observability) confirmaram o erro exato e mostraram a app a correr no **plano gratuito do Workers** (10ms de CPU por pedido — muito apertado para SSR de Next.js). O `recharts` (usado só nesta funcionalidade) foi identificado como a única dependência genuinamente pesada adicionada nesta sessão, por isso foi removida junto com toda a funcionalidade, para reduzir o peso do bundle enquanto o plano continuar gratuito.
+
+**Removido:** `ServiceHistorySection.tsx`, `useServiceHistory`/`useMyServiceHistory`, `fetchMyServiceHistoryAction` + tipos `ServiceHistoryEntry`/`ServiceHistoryMonth`/`MyServiceHistory`, dependência `recharts`.
+**Preservado:** código completo na branch `full-features-2026-07` — reativar é só reverter este commit quando o Cloudflare Workers passar a plano pago (30s de CPU).
 
 ---
 
@@ -185,10 +191,21 @@ Durante o desenvolvimento da funcionalidade 9 (iteração 1), descobriu-se que o
 ### Tabela `subscriptions` já existe na base de dados
 Descoberta lateral: já existe uma tabela `public.subscriptions` em produção (0 linhas), com o formato descrito em [wis-app-overview-and-rn-prompt.md](wis-app-overview-and-rn-prompt.md) (`plan`, `member_limit`, `revenuecat_id`, `expires_at`). Não está a ser usada pela app. Relevante para quando se avançar para o sistema de planos (secção 5 do roadmap) — convém decidir se se reaproveita esta tabela ou se se recria.
 
+### Incidente: Error 1102 (Worker exceeded CPU time limit) em produção — 2026-07-18
+Um utilizador real recebeu Error 1102 no browser. Os logs do Cloudflare (Workers & Pages → serviceflow → Observability) confirmaram: `Worker exceeded CPU time limit`, no pedido `GET /events?event=...&_rsc=...` (navegação suave a partir da Dashboard). A app corre no **plano gratuito do Cloudflare Workers**, que dá apenas **10ms de CPU por pedido** — muito apertado para SSR de Next.js, e a margem fica cada vez menor à medida que a app cresce.
+
+- **Causa mais provável:** o limite de 10ms do plano gratuito, não um bug específico de loop/N+1 (revisto o código dos layouts e actions envolvidos, nada de anómalo).
+- **Ação tomada:** removida a funcionalidade "Histórico pessoal do voluntário" (secção 7) e a dependência `recharts` — era a única biblioteca genuinamente pesada adicionada nesta sessão. Código preservado em `full-features-2026-07`.
+- **Ação recomendada, não aplicada:** upgrade do Cloudflare Workers para o plano pago (5 USD/mês, sobe o limite para 30s de CPU) — é a correção estrutural; aligeirar o bundle só reduz a frequência do erro, não elimina a causa raiz.
+
 ---
 
 ## 11. Estado e próximos passos
 
-Todas as 7 funcionalidades estão implementadas e com `npm run type-check` limpo. Nenhuma foi testada em produção real (browser) neste ciclo — recomenda-se um teste manual do fluxo completo antes de anunciar aos utilizadores, sobretudo a funcionalidade 9 num iPhone e num Android reais (o comportamento do `.ics` depende do SO e é difícil de simular em desenvolvimento).
+6 das 7 funcionalidades continuam implementadas, com `npm run type-check` limpo. A funcionalidade 7 (Histórico pessoal) foi revertida no mesmo dia por causa do incidente acima — código completo preservado na branch `full-features-2026-07` para reativar quando o plano Cloudflare subir de tier.
 
-Próximo passo em aberto (não iniciado): estrutura de planos de assinatura e faturação — ver roadmap, secções 1, 2, 5 e 6.
+Nenhuma funcionalidade foi testada em produção real (browser) neste ciclo — recomenda-se um teste manual do fluxo completo antes de anunciar aos utilizadores, sobretudo a funcionalidade 9 num iPhone e num Android reais (o comportamento do `.ics` depende do SO e é difícil de simular em desenvolvimento).
+
+Próximos passos em aberto (não iniciados):
+- Estrutura de planos de assinatura e faturação — ver roadmap, secções 1, 2, 5 e 6.
+- Decidir sobre o upgrade do plano Cloudflare Workers (ver incidente acima) — condiciona se/quando o Histórico pessoal pode voltar.

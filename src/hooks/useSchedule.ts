@@ -1,13 +1,11 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { EventMinistry, EventSchedule, Ministry, Song } from '@/types/models';
-import { useOrgStore } from '@/stores/orgStore';
 import {
   fetchEventMinistriesAction,
   fetchEventSchedulesAction,
   fetchEventSetlistAction,
   fetchEventTimelineAction,
-  fetchMyServiceHistoryAction,
   addMinistryToEventAction,
   removeMinistryFromEventAction,
   addPersonToScheduleAction,
@@ -114,22 +112,6 @@ export function useEventTimeline(eventId: string | null) {
     enabled: !!eventId,
     queryFn: () => fetchEventTimelineAction(eventId!),
   });
-}
-
-/** Histórico de participação de qualquer membro da organização ativa (ex: no detalhe de um membro). */
-export function useServiceHistory(userId: string | null) {
-  const { activeOrg } = useOrgStore();
-  return useQuery({
-    queryKey: ['service-history', activeOrg?.id, userId],
-    enabled: !!activeOrg?.id && !!userId,
-    queryFn: () => fetchMyServiceHistoryAction(userId!, activeOrg!.id),
-  });
-}
-
-/** Histórico de participação do próprio utilizador autenticado. */
-export function useMyServiceHistory() {
-  const { activeMembership } = useOrgStore();
-  return useServiceHistory(activeMembership?.user_id ?? null);
 }
 
 export type { EventMinistry, EventSchedule, Ministry, Song };
