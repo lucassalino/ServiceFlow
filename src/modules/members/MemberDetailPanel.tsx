@@ -5,8 +5,10 @@ import { ArrowLeft, Pencil } from 'lucide-react';
 import type { OrganizationMember, OrgRole } from '@/types/models';
 import { useMemberMinistries } from '@/hooks/useMembers';
 import { useMinistries } from '@/hooks/useMinistries';
+import { useServiceHistory } from '@/hooks/useSchedule';
 import { getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ServiceHistorySection } from '@/components/ServiceHistorySection';
 import { getInitials } from '@/lib/utils';
 import { MemberMinistriesPanel } from './MemberMinistriesPanel';
 
@@ -31,6 +33,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
   const [showMinistriesPanel, setShowMinistriesPanel] = useState(false);
   const { data: assignments = [], isLoading } = useMemberMinistries(member.user_id);
   const { data: allMinistries = [] } = useMinistries();
+  const { data: history, isLoading: historyLoading } = useServiceHistory(member.user_id);
 
   if (showMinistriesPanel) {
     return (
@@ -267,6 +270,25 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
           </div>
 
         </div>{/* end mdp-main */}
+
+        {/* Histórico */}
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1.5rem', borderRadius: '1.25rem',
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+        }}>
+          <p style={{
+            fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '1.25rem',
+          }}>
+            Histórico
+          </p>
+          <ServiceHistorySection
+            history={history}
+            isLoading={historyLoading}
+            emptyLabel={`${name} ainda não foi escalado(a) para nenhum evento nesta organização.`}
+          />
+        </div>
 
       </div>
     </div>

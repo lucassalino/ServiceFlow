@@ -1,0 +1,166 @@
+'use client';
+
+import Link from 'next/link';
+import { ArrowLeft, Printer } from 'lucide-react';
+import { useEvents } from '@/hooks/useEvents';
+import { useEventMinistries, useEventSchedules, useEventSetlist, useEventTimeline } from '@/hooks/useSchedule';
+import { useOrgStore } from '@/stores/orgStore';
+import { formatDate, formatTime } from '@/lib/utils';
+import { getFunctionLabel } from '@/lib/constants';
+import type { EventMinistry, Ministry, Song } from '@/types/models';
+
+interface Props { orgId: string; eventId: string }
+
+export function EventPrintClient({ orgId, eventId }: Props) {
+  const { activeOrg } = useOrgStore();
+  const { data: events = [], isLoading: eventsLoading } = useEvents();
+  const event = events.find((e) => e.id === eventId) ?? null;
+
+  const { data: eventMinistries = [] } = useEventMinistries(event?.id ?? null);
+  const { data: setlist = [] } = useEventSetlist(event?.id ?? null);
+  const { data: timeline = [] } = useEventTimeline(event?.id ?? null);
+
+  if (eventsLoading) {
+    return <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', color: '#3f3f46' }}>A carregar…</div>;
+  }
+
+  if (!event) {
+    return (
+      <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', color: '#3f3f46' }}>
+        <p style={{ marginBottom: '0.75rem' }}>Evento não encontrado.</p>
+        <Link href={`/${orgId}/events`} style={{ color: '#18181b' }}>Voltar aos eventos</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#e4e4e7' }}>
+      {/* Barra de ações — não sai impressa */}
+      <div className="no-print" style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '1rem 1.5rem', borderBottom: '1px solid #d4d4d8',
+        background: '#fff', position: 'sticky', top: 0, zIndex: 10,
+      }}>
+        <Link href={`/${orgId}/events?event=${event.id}`} style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+          fontSize: '0.85rem', color: '#52525b', textDecoration: 'none',
+        }}>
+          <ArrowLeft size={16} /> Voltar ao evento
+        </Link>
+        <button
+          onClick={() => window.print()}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            padding: '0.5rem 1.1rem', borderRadius: '0.5rem',
+            background: '#18181b', color: '#fff',
+            fontSize: '0.85rem', fontWeight: 600, border: 'none', cursor: 'pointer',
+          }}
+        >
+          <Printer size={16} /> Imprimir / Guardar PDF
+        </button>
+      </div>
+
+      {/* Conteúdo imprimível */}
+      <div id="print-area" style={{
+        maxWidth: '780px', margin: '0 auto', padding: '2.5rem 2rem',
+        background: '#fff', color: '#18181b', fontFamily: 'system-ui, sans-serif',
+      }}>
+        <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a' }}>
+          {activeOrg?.name ?? 'Roteiro do evento'}
+        </p>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0.25rem 0 0.5rem' }}>{event.name}</h1>
+        <p style={{ fontSize: '0.9rem', color: '#3f3f46', marginBottom: '1.75rem' }}>
+          {formatDate(event.date)}
+          {event.time && ` · ${formatTime(event.time)}`}
+          {event.location && ` · ${event.location}`}
+          {event.arrival_time && ` · Chegada da equipa: ${formatTime(event.arrival_time)}`}
+        </p>
+
+        {timeline.length > 0 && (
+          <PrintSection title="Roteiro">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <tbody>
+                {timeline.map((item, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #e4e4e7' }}>
+                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', fontWeight: 700, width: '3.5rem' }}>
+                      {formatTime(item.time)}
+                    </td>
+                    <td style={{ padding: '0.4rem 0' }}>{item.title}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </PrintSection>
+        )}
+
+        {eventMinistries.length > 0 && (
+          <PrintSection title="Ministérios & Equipa">
+            {(eventMinistries as (EventMinistry & { ministry: Ministry })[]).map((em) => (
+              <PrintMinistryBlock key={em.id} em={em} />
+            ))}
+          </PrintSection>
+        )}
+
+        {setlist.length > 0 && (
+          <PrintSection title="Setlist">
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <tbody>
+                {(setlist as (Song & { order_index: number; event_key: string | null })[]).map((song, idx) => (
+                  <tr key={song.id} style={{ borderBottom: '1px solid #e4e4e7' }}>
+                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', color: '#a1a1aa', width: '1.5rem' }}>
+                      {idx + 1}
+                    </td>
+                    <td style={{ padding: '0.4rem 0' }}>
+                      <span style={{ fontWeight: 600 }}>{song.name}</span>
+                      {song.artist && <span style={{ color: '#71717a' }}> — {song.artist}</span>}
+                    </td>
+                    <td style={{ padding: '0.4rem 0', textAlign: 'right', color: '#3f3f46' }}>
+                      {(song.event_key ?? song.musical_key) || ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </PrintSection>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PrintSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: '1.75rem', breakInside: 'avoid' }}>
+      <p style={{
+        fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+        color: '#71717a', marginBottom: '0.5rem', borderBottom: '2px solid #18181b', paddingBottom: '0.25rem',
+      }}>
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function PrintMinistryBlock({ em }: { em: EventMinistry & { ministry: Ministry } }) {
+  const { data: schedules = [] } = useEventSchedules(em.id);
+  return (
+    <div style={{ marginBottom: '0.75rem', breakInside: 'avoid' }}>
+      <p style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>{em.ministry.name}</p>
+      {schedules.length === 0 ? (
+        <p style={{ fontSize: '0.8rem', color: '#a1a1aa' }}>Ninguém escalado.</p>
+      ) : (
+        <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem' }}>
+          {schedules.map((s) => (
+            <li key={s.id} style={{ marginBottom: '0.15rem' }}>
+              {s.profile?.full_name ?? s.user_id}
+              {s.functions.length > 0 && (
+                <span style={{ color: '#71717a' }}> — {s.functions.map(getFunctionLabel).join(', ')}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

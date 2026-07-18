@@ -8,16 +8,18 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
-  CalendarDays, Music2,
+  CalendarDays, Music2, Clock, Plus, CalendarOff,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrgStore } from '@/stores/orgStore';
 import { useCreateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useSongs } from '@/hooks/useSongs';
+import { useOrgUnavailability } from '@/hooks/useAvailability';
 import { uploadEventImageAction } from '@/actions/events';
-import { setupEventScheduleAction, setupEventSetlistAction } from '@/actions/schedule';
+import { setupEventScheduleAction, setupEventSetlistAction, setupEventTimelineAction } from '@/actions/schedule';
 import { resolveFunction, SONG_KEYS } from '@/lib/constants';
+import { findConflictingUnavailability, describeUnavailability } from '@/lib/availability';
 import { fetchMinistryMembersAction } from '@/actions/members';
 import type { Ministry, Song } from '@/types/models';
 import { Input } from '@/components/ui/input';
@@ -47,6 +49,7 @@ const STEPS: { label: string; description: string; icon: React.ReactNode }[] = [
   { label: 'Ministérios',  description: 'Quais equipas participam',    icon: <LayoutGrid   style={{ width: '0.9rem', height: '0.9rem' }} /> },
   { label: 'Integrantes',  description: 'Escala de membros',           icon: <Users        style={{ width: '0.9rem', height: '0.9rem' }} /> },
   { label: 'Setlist',      description: 'Músicas do evento',           icon: <Music2       style={{ width: '0.9rem', height: '0.9rem' }} /> },
+  { label: 'Roteiro',      description: 'Horários do evento',          icon: <Clock        style={{ width: '0.9rem', height: '0.9rem' }} /> },
 ];
 
 // ── Shared button styles ──────────────────────────────────────────────────────
@@ -196,8 +199,9 @@ export function EventCreatePanel({ onBack }: Props) {
   const createEvent = useCreateEvent();
   const { data: ministries = [] } = useMinistries();
   const { data: songs = [] } = useSongs();
+  const { data: unavailabilityByUser } = useOrgUnavailability();
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [saving, setSaving] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -213,12 +217,17 @@ export function EventCreatePanel({ onBack }: Props) {
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   const [songKeys, setSongKeys] = useState<Record<string, string>>({});
   const [songSearch, setSongSearch] = useState('');
+  const [timelineItems, setTimelineItems] = useState<{ time: string; title: string }[]>([]);
+  const [newTimelineTime, setNewTimelineTime] = useState('');
+  const [newTimelineTitle, setNewTimelineTitle] = useState('');
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: { name: '', date: '', time: '', arrival_time: '', location: '', description: '', observations: '', is_published: false },
   });
   const isPublished = watch('is_published');
+  const watchedDate = watch('date');
+  const watchedTime = watch('time');
 
   useEffect(() => {
     if (step !== 3 || selectedMinistryIds.length === 0) return;
@@ -304,6 +313,23 @@ export function EventCreatePanel({ onBack }: Props) {
     });
   }
 
+  function addTimelineItem() {
+    if (!newTimelineTime || !newTimelineTitle.trim()) {
+      toast.error('Preenche a hora e o título do momento');
+      return;
+    }
+    setTimelineItems((prev) =>
+      [...prev, { time: newTimelineTime, title: newTimelineTitle.trim() }]
+        .sort((a, b) => a.time.localeCompare(b.time)),
+    );
+    setNewTimelineTime('');
+    setNewTimelineTitle('');
+  }
+
+  function removeTimelineItem(index: number) {
+    setTimelineItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
   // Cria o evento e grava TUDO de uma vez: informações + imagem + ministérios/integrantes + setlist.
   const doSaveAll = handleSubmit(
     async (values) => {
@@ -326,6 +352,7 @@ export function EventCreatePanel({ onBack }: Props) {
         const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
         if (setup.length > 0) await setupEventScheduleAction(ev.id, setup);
         if (selectedSongIds.length > 0) await setupEventSetlistAction(ev.id, selectedSongIds, songKeys);
+        if (timelineItems.length > 0) await setupEventTimelineAction(ev.id, timelineItems);
         qc.invalidateQueries({ queryKey: ['events'] });
         toast.success('Evento criado com sucesso');
         onBack();
@@ -376,7 +403,7 @@ export function EventCreatePanel({ onBack }: Props) {
       <div className="dash-purple-bg ep-layout">
 
         {/* ── Sidebar ──────────────────────────────────────────────────── */}
-        <Sidebar current={step} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4)} step1Done={true} />
+        <Sidebar current={step} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4 | 5)} step1Done={true} />
 
         {/* ── Content ──────────────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto' }} className="ep-content">
@@ -384,7 +411,7 @@ export function EventCreatePanel({ onBack }: Props) {
           {/* Abas de passos (só mobile) */}
           <div className="ep-steptabs scrollbar-none">
             {STEPS.map((s, i) => {
-              const num = (i + 1) as 1 | 2 | 3 | 4;
+              const num = (i + 1) as 1 | 2 | 3 | 4 | 5;
               const active = step === num;
               return (
                 <button
@@ -624,6 +651,9 @@ export function EventCreatePanel({ onBack }: Props) {
                               const checked = isMemberSelected(ministryId, rm.userId);
                               const fns = getMemberFunctions(ministryId, rm.userId);
                               const personFunctions = rm.functions.map(resolveFunction);
+                              const conflict = watchedDate
+                                ? findConflictingUnavailability(unavailabilityByUser?.[rm.userId], watchedDate, watchedTime)
+                                : null;
                               return (
                                 <div key={rm.userId} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', cursor: 'pointer', background: checked ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}>
@@ -632,6 +662,11 @@ export function EventCreatePanel({ onBack }: Props) {
                                       <AvatarFallback style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{getInitials(name)}</AvatarFallback>
                                     </Avatar>
                                     <span style={{ flex: 1, fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                                    {conflict && (
+                                      <span title={describeUnavailability(conflict)} style={{ display: 'inline-flex', flexShrink: 0 }}>
+                                        <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: '#f87171' }} />
+                                      </span>
+                                    )}
                                     {checked && fns.length > 0 && (
                                       <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', flexShrink: 0 }}>{fns.length} fn</span>
                                     )}
@@ -775,6 +810,64 @@ export function EventCreatePanel({ onBack }: Props) {
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* ─── Step 5: Roteiro ──────────────────────────────────────── */}
+          {step === 5 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="dark-inputs">
+              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                Opcional — os momentos do evento (chegada, ensaio, devocional, início do culto…), por ordem de hora.
+              </p>
+              <div className="ep-date-grid" style={{ alignItems: 'end' }}>
+                <div className="space-y-1.5">
+                  <Label>Hora</Label>
+                  <Input type="time" value={newTimelineTime} onChange={(e) => setNewTimelineTime(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Momento</Label>
+                  <Input
+                    placeholder="Ex: Início do ensaio"
+                    value={newTimelineTitle}
+                    onChange={(e) => setNewTimelineTitle(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTimelineItem(); } }}
+                  />
+                </div>
+              </div>
+              <button type="button" onClick={addTimelineItem} style={{ ...ghostBtn, alignSelf: 'flex-start' }}>
+                <Plus style={{ width: '0.875rem', height: '0.875rem' }} />
+                Adicionar momento
+              </button>
+
+              {timelineItems.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', ...card }}>
+                  <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.25)' }}>Nenhum momento adicionado</p>
+                </div>
+              ) : (
+                <div style={card}>
+                  {timelineItems.map((item, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.75rem',
+                      padding: '0.625rem 1rem',
+                      borderBottom: idx < timelineItems.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                    }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', width: '3rem', flexShrink: 0 }}>
+                        {item.time}
+                      </span>
+                      <span style={{ flex: 1, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{item.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeTimelineItem(idx)}
+                        style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                      >
+                        <X style={{ width: '0.75rem', height: '0.75rem' }} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

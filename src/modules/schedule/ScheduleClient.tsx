@@ -4,13 +4,15 @@ import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Plus, X, Check, Users, ChevronDown, ChevronRight,
-  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin,
+  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin, Bell, Minus, CalendarOff,
 } from 'lucide-react';
 import { useEvents, usePublishEvent } from '@/hooks/useEvents';
 import { useOrgStore } from '@/stores/orgStore';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useMinistryMembers } from '@/hooks/useMembers';
 import { useNotifyEventSchedules } from '@/hooks/useNotifications';
+import { useOrgUnavailability } from '@/hooks/useAvailability';
+import { findConflictingUnavailability, describeUnavailability } from '@/lib/availability';
 import {
   useEventMinistries,
   useEventSchedules,
@@ -109,7 +111,7 @@ function AddMinistryDialog({
 // ── Person Dialog ────────────────────────────────────────────────────────────
 
 function PersonDialog({
-  open, onOpenChange, mode, eventMinistryId, ministryId, assignedUserIds, editTarget,
+  open, onOpenChange, mode, eventMinistryId, ministryId, assignedUserIds, editTarget, eventDate, eventTime,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -118,8 +120,11 @@ function PersonDialog({
   ministryId: string;
   assignedUserIds: string[];
   editTarget?: EventSchedule | null;
+  eventDate: string;
+  eventTime: string;
 }) {
   const { data: ministryMembers = [] } = useMinistryMembers(ministryId);
+  const { data: unavailabilityByUser } = useOrgUnavailability();
   const addPerson = useAddPersonToSchedule();
   const updateSchedule = useUpdateEventSchedule();
 
@@ -209,13 +214,19 @@ function PersonDialog({
                 <div className="p-1">
                   {available.map((m) => {
                     const name = m.profile?.full_name ?? m.user_id;
+                    const conflict = findConflictingUnavailability(unavailabilityByUser?.[m.user_id], eventDate, eventTime);
                     return (
                       <button key={m.user_id} onClick={() => handleSelectPerson(m.user_id)}
                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-accent transition-colors text-left ${selectedUserId === m.user_id ? 'bg-accent' : ''}`}>
                         <Avatar className="h-6 w-6">
                           <AvatarFallback className="text-[10px]">{getInitials(name)}</AvatarFallback>
                         </Avatar>
-                        <span>{name}</span>
+                        <span className="flex-1">{name}</span>
+                        {conflict && (
+                          <span title={describeUnavailability(conflict)} className="shrink-0">
+                            <CalendarOff className="h-3.5 w-3.5" style={{ color: '#f87171' }} />
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -264,16 +275,22 @@ function PersonDialog({
 
 // ── Ministry Slot ────────────────────────────────────────────────────────────
 
-function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry: Ministry }; eventId: string; isAdmin: boolean }) {
+function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
+  em: EventMinistry & { ministry: Ministry }; eventId: string; isAdmin: boolean;
+  eventDate: string; eventTime: string;
+}) {
   const [expanded, setExpanded] = useState(true);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<EventSchedule | null>(null);
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
 
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
+  const { data: unavailabilityByUser } = useOrgUnavailability();
   const removeMinistry = useRemoveMinistryFromEvent();
   const removePerson = useRemovePersonFromSchedule();
   const confirmSchedule = useConfirmSchedule();
+  const { activeMembership } = useOrgStore();
+  const currentUserId = activeMembership?.user_id;
 
   async function handleRemoveMinistry() {
     try {
@@ -295,6 +312,7 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
   }
 
   async function handleConfirm(schedule: EventSchedule, confirmed: boolean) {
+    if (schedule.user_id !== currentUserId) return;
     try {
       await confirmSchedule.mutateAsync({ id: schedule.id, eventMinistryId: em.id, confirmed });
     } catch (e: unknown) {
@@ -364,6 +382,7 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
             schedules.map((schedule, idx) => {
               const name = schedule.profile?.full_name ?? schedule.user_id;
               const isLast = idx === schedules.length - 1;
+              const conflict = findConflictingUnavailability(unavailabilityByUser?.[schedule.user_id], eventDate, eventTime);
               return (
                 <div key={schedule.id} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -381,8 +400,13 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
                   </Avatar>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       {name}
+                      {conflict && (
+                        <span title={describeUnavailability(conflict)} style={{ display: 'inline-flex', flexShrink: 0 }}>
+                          <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: '#f87171' }} />
+                        </span>
+                      )}
                     </p>
                     {schedule.functions.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.25rem' }}>
@@ -395,14 +419,13 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
                     )}
                   </div>
 
-                  {/* Confirm status */}
-                  <button
-                    onClick={() => handleConfirm(schedule, !schedule.confirmed)}
-                    title={schedule.confirmed === true ? 'Confirmado' : schedule.confirmed === false ? 'Recusou' : 'Pendente'}
-                    style={{
+                  {/* Confirm status — só a própria pessoa pode alterar */}
+                  {(() => {
+                    const isMe = schedule.user_id === currentUserId;
+                    const circleStyle: React.CSSProperties = {
                       width: '1.75rem', height: '1.75rem', borderRadius: '50%',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: 'none', cursor: 'pointer', flexShrink: 0,
+                      border: 'none', flexShrink: 0,
                       background: schedule.confirmed === true
                         ? 'rgba(110,231,183,0.18)'
                         : schedule.confirmed === false
@@ -414,10 +437,27 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
                         ? '#f87171'
                         : 'rgba(255,255,255,0.3)',
                       transition: 'background 0.12s',
-                    }}
-                  >
-                    <Check style={{ width: '0.75rem', height: '0.75rem' }} />
-                  </button>
+                    };
+                    const icon = schedule.confirmed === true
+                      ? <Check style={{ width: '0.75rem', height: '0.75rem' }} />
+                      : schedule.confirmed === false
+                      ? <X style={{ width: '0.75rem', height: '0.75rem' }} />
+                      : <Minus style={{ width: '0.75rem', height: '0.75rem' }} />;
+                    const title = schedule.confirmed === true ? 'Confirmado' : schedule.confirmed === false ? 'Recusou' : 'Pendente';
+
+                    if (!isMe) {
+                      return <div title={title} style={circleStyle}>{icon}</div>;
+                    }
+                    return (
+                      <button
+                        onClick={() => handleConfirm(schedule, !schedule.confirmed)}
+                        title={title}
+                        style={{ ...circleStyle, cursor: 'pointer' }}
+                      >
+                        {icon}
+                      </button>
+                    );
+                  })()}
 
                   {isAdmin && (
                     <>
@@ -437,11 +477,13 @@ function MinistrySlot({ em, eventId, isAdmin }: { em: EventMinistry & { ministry
       )}
 
       <PersonDialog open={addPersonOpen} onOpenChange={setAddPersonOpen} mode="add"
-        eventMinistryId={em.id} ministryId={em.ministry_id} assignedUserIds={assignedUserIds} />
+        eventMinistryId={em.id} ministryId={em.ministry_id} assignedUserIds={assignedUserIds}
+        eventDate={eventDate} eventTime={eventTime} />
 
       <PersonDialog open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }}
         mode="edit" eventMinistryId={em.id} ministryId={em.ministry_id}
-        assignedUserIds={assignedUserIds} editTarget={editTarget} />
+        assignedUserIds={assignedUserIds} editTarget={editTarget}
+        eventDate={eventDate} eventTime={eventTime} />
 
       <AlertDialog open={confirmRemoveOpen} onOpenChange={setConfirmRemoveOpen}>
         <AlertDialogContent>
@@ -478,6 +520,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   >(null);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [appNotified, setAppNotified] = useState(false);
 
   // Abre automaticamente o evento vindo de uma notificação (?event=<id>).
   useEffect(() => {
@@ -503,29 +546,44 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
 
   const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;
 
-  async function handlePublishAndNotify() {
+  // Publica a escala (se ainda não estiver) e abre o painel para notificar por WhatsApp.
+  // A notificação dentro da app (sino) passou a ser manual — ver handleNotifyApp.
+  async function handlePublishAndOpenWhatsapp() {
     if (!selectedEvent) return;
     try {
       if (!selectedEvent.is_published) {
         await publishEvent.mutateAsync({ id: selectedEvent.id, publish: true });
       }
-      const result = await notifySchedules.mutateAsync({ eventId: selectedEvent.id, eventName: selectedEvent.name });
-      if (result.notified === 0) {
+      const contacts = await fetchEventScheduledContactsAction(selectedEvent.id);
+      if (contacts.length === 0) {
         toast.info('Escala publicada. Ainda não há pessoas escaladas para notificar.');
         return;
       }
-      toast.success(`Escala publicada · ${result.notified} ${result.notified === 1 ? 'pessoa notificada' : 'pessoas notificadas'} na app.`);
-      // Abrir o painel de WhatsApp com os contactos
-      const contacts = await fetchEventScheduledContactsAction(selectedEvent.id);
       setSentTo(new Set());
-      setSelectedIds(new Set(contacts.map((c) => c.userId)));
+      setAppNotified(false);
+      // Só pré-seleciona quem tem telemóvel — sem número não há para onde enviar.
+      setSelectedIds(new Set(contacts.filter((c) => c.phone).map((c) => c.userId)));
       setWhatsappContacts(contacts);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao publicar escala');
     }
   }
 
+  // Cria a notificação dentro da app (sino) — agora é uma ação manual e separada do WhatsApp.
+  async function handleNotifyApp() {
+    if (!selectedEvent) return;
+    try {
+      const result = await notifySchedules.mutateAsync({ eventId: selectedEvent.id, eventName: selectedEvent.name });
+      setAppNotified(true);
+      toast.success(`${result.notified} ${result.notified === 1 ? 'pessoa notificada' : 'pessoas notificadas'} na app.`);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao notificar');
+    }
+  }
+
   function toggleContact(userId: string) {
+    const contact = (whatsappContacts ?? []).find((c) => c.userId === userId);
+    if (!contact?.phone) return; // sem telemóvel não há para onde enviar
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(userId)) next.delete(userId); else next.add(userId);
@@ -534,8 +592,8 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   }
 
   function toggleAllContacts() {
-    const all = whatsappContacts ?? [];
-    setSelectedIds((prev) => prev.size === all.length ? new Set() : new Set(all.map((c) => c.userId)));
+    const withPhone = (whatsappContacts ?? []).filter((c) => c.phone);
+    setSelectedIds((prev) => prev.size === withPhone.length ? new Set() : new Set(withPhone.map((c) => c.userId)));
   }
 
   // Envia à PRÓXIMA pessoa selecionada ainda não enviada (o WhatsApp abre uma conversa de cada vez).
@@ -743,8 +801,8 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
 
                 {isAdmin && (
                   <button
-                    onClick={handlePublishAndNotify}
-                    disabled={publishEvent.isPending || notifySchedules.isPending}
+                    onClick={handlePublishAndOpenWhatsapp}
+                    disabled={publishEvent.isPending}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                       padding: '0.4rem 0.875rem',
@@ -758,9 +816,9 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
                   >
                     <Send style={{ width: '0.875rem', height: '0.875rem' }} />
-                    {publishEvent.isPending || notifySchedules.isPending
+                    {publishEvent.isPending
                       ? 'A publicar…'
-                      : selectedEvent.is_published ? 'Notificar escala' : 'Publicar e notificar'}
+                      : selectedEvent.is_published ? 'Notificar por WhatsApp' : 'Publicar e notificar'}
                   </button>
                 )}
               </div>
@@ -792,7 +850,8 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {(eventMinistries as (EventMinistry & { ministry: Ministry })[]).map((em) => (
-                  <MinistrySlot key={em.id} em={em} eventId={selectedEvent.id} isAdmin={isAdmin} />
+                  <MinistrySlot key={em.id} em={em} eventId={selectedEvent.id} isAdmin={isAdmin}
+                    eventDate={selectedEvent.date} eventTime={selectedEvent.time} />
                 ))}
               </div>
             )}
@@ -816,15 +875,27 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             <DialogTitle>Notificar por WhatsApp</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Seleciona quem queres notificar e toca em <strong>Enviar</strong>. O WhatsApp abre uma conversa
-            de cada vez com a mensagem pronta — envia e volta para continuar.
+            O WhatsApp não deixa enviar a vários contactos de uma vez — cada clique em <strong>Enviar</strong> abre
+            a conversa com a próxima pessoa selecionada. Envia dentro do WhatsApp e volta para continuar.
           </p>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleNotifyApp}
+            disabled={notifySchedules.isPending || appNotified}
+            className="gap-1.5 self-start"
+          >
+            <Bell className="h-3.5 w-3.5" />
+            {appNotified ? 'Notificado na app' : notifySchedules.isPending ? 'A notificar…' : 'Notificar na app'}
+          </Button>
 
           {(whatsappContacts?.length ?? 0) > 0 && (
             <button type="button" onClick={toggleAllContacts}
               className="self-start text-xs font-medium"
               style={{ color: 'rgba(255,255,255,0.55)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              {selectedIds.size === (whatsappContacts?.length ?? 0) ? 'Desmarcar todos' : 'Selecionar todos'}
+              {selectedIds.size === (whatsappContacts ?? []).filter((c) => c.phone).length ? 'Desmarcar todos' : 'Selecionar todos'}
             </button>
           )}
 
@@ -832,11 +903,17 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             {(whatsappContacts ?? []).map((c) => {
               const sent = sentTo.has(c.userId);
               const checked = selectedIds.has(c.userId);
+              const hasPhone = !!c.phone;
               return (
                 <div key={c.userId} onClick={() => toggleContact(c.userId)}
-                  className="flex items-center gap-3 rounded-lg border p-2.5 cursor-pointer"
-                  style={{ borderColor: 'rgba(255,255,255,0.1)', background: checked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)' }}>
-                  <Checkbox checked={checked} style={{ pointerEvents: 'none' }} />
+                  className="flex items-center gap-3 rounded-lg border p-2.5"
+                  style={{
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    background: checked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+                    cursor: hasPhone ? 'pointer' : 'not-allowed',
+                    opacity: hasPhone ? 1 : 0.55,
+                  }}>
+                  <Checkbox checked={checked} disabled={!hasPhone} style={{ pointerEvents: 'none' }} />
                   <Avatar className="h-9 w-9 shrink-0">
                     <AvatarFallback className="text-xs" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
                       {getInitials(c.name)}
@@ -847,7 +924,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                       {c.name}
                       {sent && <Check className="h-3.5 w-3.5" style={{ color: '#6ee7b7' }} />}
                     </p>
-                    <p className="text-xs" style={{ color: c.phone ? 'rgba(255,255,255,0.4)' : '#f59e0b' }}>
+                    <p className="text-xs" style={{ color: hasPhone ? 'rgba(255,255,255,0.4)' : '#f59e0b' }}>
                       {c.phone || 'Sem telemóvel no perfil'}
                     </p>
                   </div>
@@ -859,19 +936,25 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={() => setWhatsappContacts(null)}>Fechar</Button>
             {(() => {
-              const remaining = (whatsappContacts ?? []).filter((c) => selectedIds.has(c.userId) && !sentTo.has(c.userId)).length;
+              const selectedContacts = (whatsappContacts ?? []).filter((c) => selectedIds.has(c.userId));
+              const remaining = selectedContacts.filter((c) => !sentTo.has(c.userId));
+              const done = selectedContacts.length - remaining.length;
+              const next = remaining[0];
+              const label = remaining.length === 0
+                ? 'Todos enviados'
+                : `Enviar para ${next.name.split(' ')[0]} (${done + 1}/${selectedContacts.length})`;
               return (
                 <Button
                   type="button"
                   onClick={handleSendNext}
-                  disabled={remaining === 0}
+                  disabled={remaining.length === 0}
                   className="gap-1.5"
-                  style={remaining === 0
+                  style={remaining.length === 0
                     ? { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }
                     : { background: '#25D366', color: '#0a0a0e' }}
                 >
                   <Send className="h-3.5 w-3.5" />
-                  {remaining === 0 ? 'Todos enviados' : `Enviar (${remaining})`}
+                  {label}
                 </Button>
               );
             })()}

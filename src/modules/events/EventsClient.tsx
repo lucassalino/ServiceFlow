@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
@@ -59,6 +59,14 @@ export function EventsClient({ orgId: _orgId }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  // Abre automaticamente o evento vindo da Dashboard ou de uma notificação (?event=<id>).
+  useEffect(() => {
+    const eventParam = new URLSearchParams(window.location.search).get('event');
+    if (!eventParam) return;
+    const found = events.find((e) => e.id === eventParam);
+    if (found) setDetailEvent(found);
+  }, [events]);
 
   function handleNew() { setCreateMode(true); }
   function handleEdit(_e: Event) { setEditMode(true); }

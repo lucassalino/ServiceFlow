@@ -26,6 +26,53 @@ export async function fetchSongsAction(orgId: string): Promise<Song[]> {
   return data as Song[];
 }
 
+export interface SongRankingEntry {
+  songId: string;
+  name: string;
+  artist: string | null;
+  ministryId: string | null;
+  timesPlayed: number;
+  lastPlayedDate: string | null;
+}
+
+/** Ranking de músicas mais tocadas: conta ocorrências em event_setlists por música da organização. */
+export async function fetchSongsRankingAction(orgId: string): Promise<SongRankingEntry[]> {
+  const supabase = await createClient();
+
+  const { data: songs, error: songsError } = await supabase
+    .from('songs').select('id, name, artist, ministry_id').eq('org_id', orgId);
+  if (songsError) throw new Error(songsError.message);
+  const songList = (songs ?? []) as { id: string; name: string; artist: string | null; ministry_id: string | null }[];
+  if (songList.length === 0) return [];
+
+  const { data: setlistRows, error: setlistError } = await supabase
+    .from('event_setlists')
+    .select('song_id, event:events(date)')
+    .in('song_id', songList.map((s) => s.id));
+  if (setlistError) throw new Error(setlistError.message);
+  const rows = (setlistRows ?? []) as { song_id: string; event: { date: string } | null }[];
+
+  const statsBySong = new Map<string, { count: number; lastDate: string | null }>();
+  for (const row of rows) {
+    const entry = statsBySong.get(row.song_id) ?? { count: 0, lastDate: null };
+    entry.count += 1;
+    if (row.event?.date && (!entry.lastDate || row.event.date > entry.lastDate)) entry.lastDate = row.event.date;
+    statsBySong.set(row.song_id, entry);
+  }
+
+  return songList
+    .map((s) => {
+      const stats = statsBySong.get(s.id);
+      return {
+        songId: s.id, name: s.name, artist: s.artist, ministryId: s.ministry_id,
+        timesPlayed: stats?.count ?? 0,
+        lastPlayedDate: stats?.lastDate ?? null,
+      };
+    })
+    .filter((s) => s.timesPlayed > 0)
+    .sort((a, b) => b.timesPlayed - a.timesPlayed || a.name.localeCompare(b.name));
+}
+
 // ── Catálogo global partilhado ─────────────────────────────────────────────
 
 type AdminClient = ReturnType<typeof getAdmin>;

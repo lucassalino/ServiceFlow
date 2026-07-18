@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, CalendarCheck, Users, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Calendar, CalendarCheck, CalendarDays, Users, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TAB_ITEMS = [
   { href: 'dashboard',  label: 'Início',     icon: LayoutDashboard },
   { href: 'events',     label: 'Eventos',    icon: Calendar },
   { href: 'schedule',   label: 'Escalas',    icon: CalendarCheck },
+  { href: 'calendar',   label: 'Calendário', icon: CalendarDays },
   { href: 'members',    label: 'Pessoas',    icon: Users },
   { href: 'songs',      label: 'Repertório', icon: BookOpen },
 ];

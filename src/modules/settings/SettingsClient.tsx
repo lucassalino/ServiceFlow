@@ -16,6 +16,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
 import { useLeaveOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
+import { useMyServiceHistory } from '@/hooks/useSchedule';
 import { uploadOrgLogoAction } from '@/actions/organizations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ServiceHistorySection } from '@/components/ServiceHistorySection';
 import { getInitials } from '@/lib/utils';
 
 const profileSchema = z.object({
@@ -76,6 +78,7 @@ export function SettingsClient({ orgId }: Props) {
   const isAdmin = activeMembership?.role === 'admin';
 
   const { data: profile } = useProfile();
+  const { data: history } = useMyServiceHistory();
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
   const leaveOrg = useLeaveOrganization();
@@ -414,6 +417,11 @@ export function SettingsClient({ orgId }: Props) {
               {updateProfile.isPending ? 'A guardar…' : 'Guardar perfil'}
             </button>
           </form>
+        </Section>
+
+        {/* ── O meu histórico ──────────────────────────── */}
+        <Section title="O meu histórico">
+          <ServiceHistorySection history={history} emptyLabel="Ainda não foste escalado para nenhum evento nesta organização." />
         </Section>
 
         {/* ── Organisation (admin only) ────────────────── */}
