@@ -91,7 +91,7 @@ export function UnavailabilitySection() {
 
       {/* Form */}
       {kind === 'date_range' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.875rem' }}>
           <div className="space-y-1.5">
             <Label>De</Label>
             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
