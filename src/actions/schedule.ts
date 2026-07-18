@@ -30,11 +30,14 @@ export async function fetchEventSchedulesAction(eventMinistryId: string): Promis
   return data as EventSchedule[];
 }
 
+export interface EventTimelineItemInput { time: string; title: string }
+
 export async function fetchEventSetupAction(eventId: string): Promise<{
   ministryIds: string[];
   membersByMinistry: Record<string, { userId: string; functions: string[] }[]>;
   songIds: string[];
   songKeys: Record<string, string>;
+  timeline: EventTimelineItemInput[];
 }> {
   const supabase = await createClient();
   const { data: rawMins, error: minsErr } = await supabase
@@ -63,11 +66,16 @@ export async function fetchEventSetupAction(eventId: string): Promise<{
   const songKeys: Record<string, string> = {};
   for (const s of setlist) if (s.musical_key) songKeys[s.song_id] = s.musical_key;
 
+  const { data: rawTimeline } = await supabase
+    .from('event_timeline_items').select('time, title').eq('event_id', eventId).order('order_index');
+  const timeline = (rawTimeline ?? []) as EventTimelineItemInput[];
+
   return {
     ministryIds,
     membersByMinistry,
     songIds: setlist.map((s) => s.song_id),
     songKeys,
+    timeline,
   };
 }
 
@@ -76,6 +84,7 @@ export async function replaceEventSetupAction(
   setup: { ministryId: string; members: { userId: string; functions: string[] }[] }[],
   songIds: string[],
   songKeys: Record<string, string> = {},
+  timeline: EventTimelineItemInput[] = [],
 ): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -112,6 +121,15 @@ export async function replaceEventSetupAction(
     }));
     const { error: slErr } = await admin.from('event_setlists').insert(rows);
     if (slErr) throw new Error(slErr.message);
+  }
+
+  await admin.from('event_timeline_items').delete().eq('event_id', eventId);
+  if (timeline.length > 0) {
+    const rows = timeline.map((item, index) => ({
+      event_id: eventId, time: item.time, title: item.title, order_index: index,
+    }));
+    const { error: tlErr } = await admin.from('event_timeline_items').insert(rows);
+    if (tlErr) throw new Error(tlErr.message);
   }
 }
 
@@ -276,6 +294,101 @@ export async function setupEventSetlistAction(
   }));
   const { error } = await admin.from('event_setlists').insert(rows);
   if (error) throw new Error(error.message);
+}
+
+export async function fetchEventTimelineAction(eventId: string): Promise<EventTimelineItemInput[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('event_timeline_items')
+    .select('time, title')
+    .eq('event_id', eventId)
+    .order('order_index');
+  if (error) throw new Error(error.message);
+  return (data ?? []) as EventTimelineItemInput[];
+}
+
+export async function setupEventTimelineAction(
+  eventId: string,
+  items: EventTimelineItemInput[],
+): Promise<void> {
+  if (items.length === 0) return;
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+  const rows = items.map((item, index) => ({
+    event_id: eventId, time: item.time, title: item.title, order_index: index,
+  }));
+  const { error } = await admin.from('event_timeline_items').insert(rows);
+  if (error) throw new Error(error.message);
+}
+
+export interface ServiceHistoryEntry {
+  eventId: string;
+  eventName: string;
+  date: string;
+  ministryName: string;
+  functions: string[];
+}
+
+export interface ServiceHistoryMonth {
+  month: string;  // "2026-07"
+  label: string;  // "Julho de 2026"
+  count: number;
+}
+
+export interface MyServiceHistory {
+  totalAllTime: number;
+  byMonth: ServiceHistoryMonth[]; // desc, só meses com pelo menos 1 vez
+  entries: ServiceHistoryEntry[]; // desc, todo o histórico (para filtrar por mês escolhido)
+}
+
+/** Histórico de participação do próprio utilizador nesta organização (quantas vezes serviu, por mês e ao todo). */
+export async function fetchMyServiceHistoryAction(userId: string, orgId: string): Promise<MyServiceHistory> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('event_schedules')
+    .select('id, functions, event_ministry:event_ministries(ministry:ministries(name), event:events(id, name, date, org_id))')
+    .eq('user_id', userId);
+  if (error) throw new Error(error.message);
+
+  type Row = {
+    id: string;
+    functions: string[];
+    event_ministry: {
+      ministry: { name: string } | null;
+      event: { id: string; name: string; date: string; org_id: string } | null;
+    } | null;
+  };
+
+  const entries: ServiceHistoryEntry[] = ((data ?? []) as unknown as Row[])
+    .filter((r) => r.event_ministry?.event?.org_id === orgId)
+    .map((r) => ({
+      eventId: r.event_ministry!.event!.id,
+      eventName: r.event_ministry!.event!.name,
+      date: r.event_ministry!.event!.date,
+      ministryName: r.event_ministry!.ministry?.name ?? '',
+      functions: r.functions,
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const countByMonth = new Map<string, number>();
+  for (const e of entries) {
+    const month = e.date.slice(0, 7); // "YYYY-MM"
+    countByMonth.set(month, (countByMonth.get(month) ?? 0) + 1);
+  }
+  const byMonth: ServiceHistoryMonth[] = [...countByMonth.entries()]
+    .map(([month, count]) => {
+      const rawLabel = new Date(month + '-01T00:00:00').toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
+      return { month, label: rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1), count };
+    })
+    .sort((a, b) => b.month.localeCompare(a.month));
+
+  return {
+    totalAllTime: entries.length,
+    byMonth,
+    entries,
+  };
 }
 
 export async function setupEventScheduleAction(

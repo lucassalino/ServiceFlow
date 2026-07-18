@@ -4,6 +4,7 @@ import { useOrgStore } from '@/stores/orgStore';
 import type { Song } from '@/types/models';
 import {
   fetchSongsAction,
+  fetchSongsRankingAction,
   createSongAction,
   updateSongAction,
   deleteSongAction,
@@ -18,6 +19,15 @@ export function useSongs() {
     queryKey: ['songs', activeOrg?.id],
     enabled: !!activeOrg?.id,
     queryFn: () => fetchSongsAction(activeOrg!.id),
+  });
+}
+
+export function useSongsRanking() {
+  const { activeOrg } = useOrgStore();
+  return useQuery({
+    queryKey: ['songs-ranking', activeOrg?.id],
+    enabled: !!activeOrg?.id,
+    queryFn: () => fetchSongsRankingAction(activeOrg!.id),
   });
 }
 

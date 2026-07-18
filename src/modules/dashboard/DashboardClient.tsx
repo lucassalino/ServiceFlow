@@ -108,7 +108,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
                 const { month, day } = getDateParts(event.date);
                 const color = event.color ?? '#a5b4fc';
                 return (
-                  <Link key={event.id} href={`/${orgId}/events`} className="dash-glass-event">
+                  <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="dash-glass-event">
                     {/* Date bubble */}
                     <div className="flex flex-col items-center justify-center w-11 h-12 rounded-xl shrink-0 text-center"
                       style={{ background: color + '20', color }}>
