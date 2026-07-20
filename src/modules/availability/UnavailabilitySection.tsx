@@ -9,6 +9,7 @@ import type { UnavailabilityKind, UnavailabilityPeriod } from '@/actions/availab
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker, DateRangePicker } from '@/components/ui/date-picker';
 
 const PERIOD_OPTIONS: { value: UnavailabilityPeriod | 'all'; label: string }[] = [
   { value: 'all', label: 'O dia todo' },
@@ -25,26 +26,33 @@ export function UnavailabilitySection() {
   const [kind, setKind] = useState<UnavailabilityKind>('date_range');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [weekday, setWeekday] = useState('0');
+  const [recurringDate, setRecurringDate] = useState<string | null>(null);
   const [period, setPeriod] = useState<UnavailabilityPeriod | 'all'>('all');
   const [reason, setReason] = useState('');
+
+  /** "YYYY-MM-DD" -> day of week (0=domingo…6=sábado), parsed as local date. */
+  function weekdayFromDateStr(value: string): number {
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d).getDay();
+  }
 
   async function handleAdd() {
     try {
       if (kind === 'date_range') {
-        if (!startDate || !endDate) { toast.error('Preenche as duas datas'); return; }
+        if (!startDate || !endDate) { toast.error('Escolhe a data inicial e a final'); return; }
         if (endDate < startDate) { toast.error('A data final tem de ser depois da inicial'); return; }
         await addUnavailability.mutateAsync({
           kind: 'date_range', startDate, endDate, reason: reason.trim() || null,
         });
       } else {
+        if (!recurringDate) { toast.error('Escolhe uma data para indicar o dia da semana'); return; }
         await addUnavailability.mutateAsync({
-          kind: 'weekly', weekday: Number(weekday),
+          kind: 'weekly', weekday: weekdayFromDateStr(recurringDate),
           period: period === 'all' ? null : period,
           reason: reason.trim() || null,
         });
       }
-      setStartDate(''); setEndDate(''); setReason('');
+      setStartDate(''); setEndDate(''); setRecurringDate(null); setReason('');
       toast.success('Indisponibilidade adicionada');
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao adicionar');
@@ -91,28 +99,25 @@ export function UnavailabilitySection() {
 
       {/* Form */}
       {kind === 'date_range' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.875rem' }}>
-          <div className="space-y-1.5">
-            <Label>De</Label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Até</Label>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-          </div>
+        <div className="space-y-1.5">
+          <Label>De — até</Label>
+          <DateRangePicker
+            startValue={startDate || null}
+            endValue={endDate || null}
+            onChange={({ start, end }) => { setStartDate(start); setEndDate(end); }}
+            placeholder="Escolhe o período"
+          />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
           <div className="space-y-1.5">
             <Label>Dia da semana</Label>
-            <Select value={weekday} onValueChange={setWeekday}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {WEEKDAY_LABELS.map((label, i) => (
-                  <SelectItem key={i} value={String(i)}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DatePicker value={recurringDate} onChange={setRecurringDate} placeholder="Escolhe uma data" />
+            {recurringDate && (
+              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
+                Repete todas as {WEEKDAY_LABELS[weekdayFromDateStr(recurringDate)]}s
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>Período</Label>
