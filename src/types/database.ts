@@ -733,6 +733,46 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _admin_analytics_is_admin: { Args: never; Returns: boolean }
+      admin_analytics_growth_by_month: {
+        Args: { months_back?: number }
+        Returns: {
+          month: string
+          new_organizations: number
+          new_profiles: number
+        }[]
+      }
+      admin_analytics_organizations: {
+        Args: never
+        Returns: {
+          created_at: string
+          event_count: number
+          member_count: number
+          name: string
+          org_id: string
+          song_count: number
+        }[]
+      }
+      admin_analytics_overview: { Args: never; Returns: Json }
+      admin_analytics_people: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          organizations: string
+          person_id: string
+          phone: string
+        }[]
+      }
+      admin_analytics_top_songs: {
+        Args: { limit_count?: number }
+        Returns: {
+          artist: string
+          song_name: string
+          times_used: number
+        }[]
+      }
       create_org_with_member: {
         Args: { invite_code: string; org_name: string; user_id: string }
         Returns: {
@@ -754,6 +794,14 @@ export type Database = {
       is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
       is_org_admin_or_leader: { Args: { p_org_id: string }; Returns: boolean }
       is_org_member: { Args: { p_org_id: string }; Returns: boolean }
+      shares_organization_with: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
+      transfer_org_admin: {
+        Args: { p_new_admin_user_id: string; p_org_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       org_role: "admin" | "leader" | "member"
