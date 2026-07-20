@@ -299,7 +299,6 @@ export function MembersClient() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Administrador</SelectItem>
                           <SelectItem value="leader">Líder</SelectItem>
                           <SelectItem value="member">Membro</SelectItem>
                         </SelectContent>
