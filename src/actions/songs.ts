@@ -1,16 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Song } from '@/types/models';
-import type { Database } from '@/types/database';
-
-function getAdmin() {
-  return createAdminClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 export interface SongPayload {
   name: string; artist: string | null; musical_key: string | null;
@@ -75,8 +66,6 @@ export async function fetchSongsRankingAction(orgId: string): Promise<SongRankin
 
 // ── Catálogo global partilhado ─────────────────────────────────────────────
 
-type AdminClient = ReturnType<typeof getAdmin>;
-
 /** Campos partilhados no catálogo global (o Tom NÃO é partilhado). */
 const SHARED_KEYS = ['lyrics', 'chords', 'youtube_url', 'spotify_url', 'bpm'] as const;
 
@@ -92,14 +81,14 @@ function isEmpty(v: unknown): boolean {
  * Devolve o id da entrada do catálogo.
  */
 async function resolveCatalog(
-  admin: AdminClient, payload: SongPayload, orgId: string, userId: string,
+  supabase: Awaited<ReturnType<typeof createClient>>, payload: SongPayload, orgId: string, userId: string,
 ): Promise<string | null> {
   const name = payload.name.trim();
   const artist = (payload.artist ?? '').trim();
   if (!name) return null;
   const esc = (s: string) => s.replace(/[%_]/g, '\\$&');
 
-  const { data: found } = await admin.from('catalog_songs').select('*')
+  const { data: found } = await supabase.from('catalog_songs').select('*')
     .ilike('name', esc(name)).ilike('artist', esc(artist)).limit(1).maybeSingle();
   const cat = found as Record<string, unknown> | null;
 
@@ -110,12 +99,12 @@ async function resolveCatalog(
     }
     if (Object.keys(patch).length > 0) {
       patch.updated_at = new Date().toISOString();
-      await admin.from('catalog_songs').update(patch as never).eq('id', cat.id as string);
+      await supabase.from('catalog_songs').update(patch as never).eq('id', cat.id as string);
     }
     return cat.id as string;
   }
 
-  const { data: created, error } = await admin.from('catalog_songs').insert({
+  const { data: created, error } = await supabase.from('catalog_songs').insert({
     name, artist,
     lyrics: payload.lyrics, chords: payload.chords,
     youtube_url: payload.youtube_url, spotify_url: payload.spotify_url,
@@ -124,7 +113,7 @@ async function resolveCatalog(
 
   if (error) {
     // corrida: outra igreja criou a mesma entrada — procurar de novo
-    const { data: retry } = await admin.from('catalog_songs').select('id')
+    const { data: retry } = await supabase.from('catalog_songs').select('id')
       .ilike('name', esc(name)).ilike('artist', esc(artist)).limit(1).maybeSingle();
     return (retry as { id: string } | null)?.id ?? null;
   }
@@ -155,9 +144,8 @@ export async function createSongAction(orgId: string, payload: SongPayload): Pro
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const catalogId = await resolveCatalog(admin, payload, orgId, user.id);
-  const { data, error } = await admin.from('songs')
+  const catalogId = await resolveCatalog(supabase, payload, orgId, user.id);
+  const { data, error } = await supabase.from('songs')
     .insert({ ...payload, org_id: orgId, catalog_song_id: catalogId }).select().single();
   if (error) throw new Error(error.message);
   return data as Song;
@@ -167,24 +155,22 @@ export async function updateSongAction(id: string, payload: SongPayload): Promis
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
   // Atualiza a cópia da igreja (cada igreja tem a sua versão).
-  const { data: updated, error } = await admin.from('songs')
+  const { data: updated, error } = await supabase.from('songs')
     .update({ ...payload, updated_at: new Date().toISOString() })
     .eq('id', id).select('org_id').single();
   if (error) throw new Error(error.message);
   // Contribui campos vazios de volta ao catálogo e mantém a ligação certa.
   const orgId = (updated as { org_id: string }).org_id;
-  const catalogId = await resolveCatalog(admin, payload, orgId, user.id);
-  if (catalogId) await admin.from('songs').update({ catalog_song_id: catalogId }).eq('id', id);
+  const catalogId = await resolveCatalog(supabase, payload, orgId, user.id);
+  if (catalogId) await supabase.from('songs').update({ catalog_song_id: catalogId }).eq('id', id);
 }
 
 export async function deleteSongAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('songs').delete().eq('id', id);
+  const { error } = await supabase.from('songs').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
 
