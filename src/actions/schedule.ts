@@ -1,16 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { EventMinistry, EventSchedule, Ministry, Song } from '@/types/models';
-import type { Database } from '@/types/database';
-
-function getAdmin() {
-  return createAdminClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 export async function fetchEventMinistriesAction(
   eventId: string,
@@ -89,18 +80,17 @@ export async function replaceEventSetupAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
 
-  const { data: existingMins } = await admin
+  const { data: existingMins } = await supabase
     .from('event_ministries').select('id').eq('event_id', eventId);
   if (existingMins && existingMins.length > 0) {
-    await admin.from('event_schedules').delete()
+    await supabase.from('event_schedules').delete()
       .in('event_ministry_id', existingMins.map((m) => m.id));
   }
-  await admin.from('event_ministries').delete().eq('event_id', eventId);
+  await supabase.from('event_ministries').delete().eq('event_id', eventId);
 
   for (const { ministryId, members } of setup) {
-    const { data: em, error: emError } = await admin
+    const { data: em, error: emError } = await supabase
       .from('event_ministries').insert({ event_id: eventId, ministry_id: ministryId })
       .select().single();
     if (emError) throw new Error(emError.message);
@@ -108,27 +98,27 @@ export async function replaceEventSetupAction(
       const rows = members.map(({ userId, functions }) => ({
         event_ministry_id: em.id, user_id: userId, functions,
       }));
-      const { error: sErr } = await admin.from('event_schedules').insert(rows);
+      const { error: sErr } = await supabase.from('event_schedules').insert(rows);
       if (sErr) throw new Error(sErr.message);
     }
   }
 
-  await admin.from('event_setlists').delete().eq('event_id', eventId);
+  await supabase.from('event_setlists').delete().eq('event_id', eventId);
   if (songIds.length > 0) {
     const rows = songIds.map((songId, index) => ({
       event_id: eventId, song_id: songId, order_index: index,
       musical_key: songKeys[songId] ?? null,
     }));
-    const { error: slErr } = await admin.from('event_setlists').insert(rows);
+    const { error: slErr } = await supabase.from('event_setlists').insert(rows);
     if (slErr) throw new Error(slErr.message);
   }
 
-  await admin.from('event_timeline_items').delete().eq('event_id', eventId);
+  await supabase.from('event_timeline_items').delete().eq('event_id', eventId);
   if (timeline.length > 0) {
     const rows = timeline.map((item, index) => ({
       event_id: eventId, time: item.time, title: item.title, order_index: index,
     }));
-    const { error: tlErr } = await admin.from('event_timeline_items').insert(rows);
+    const { error: tlErr } = await supabase.from('event_timeline_items').insert(rows);
     if (tlErr) throw new Error(tlErr.message);
   }
 }
@@ -140,8 +130,7 @@ export async function addMinistryToEventAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { data, error } = await admin.from('event_ministries')
+  const { data, error } = await supabase.from('event_ministries')
     .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
   if (error) throw new Error(error.message);
   return data as EventMinistry;
@@ -151,8 +140,7 @@ export async function removeMinistryFromEventAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('event_ministries').delete().eq('id', id);
+  const { error } = await supabase.from('event_ministries').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -164,8 +152,7 @@ export async function addPersonToScheduleAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { data, error } = await admin.from('event_schedules')
+  const { data, error } = await supabase.from('event_schedules')
     .insert({ event_ministry_id: eventMinistryId, user_id: userId, functions })
     .select().single();
   if (error) throw new Error(error.message);
@@ -176,8 +163,7 @@ export async function removePersonFromScheduleAction(id: string): Promise<void> 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('event_schedules').delete().eq('id', id);
+  const { error } = await supabase.from('event_schedules').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -196,16 +182,15 @@ export async function fetchEventScheduledContactsAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
 
-  const { data: eventMins } = await admin
+  const { data: eventMins } = await supabase
     .from('event_ministries').select('id, ministry:ministries(name)').eq('event_id', eventId);
   const emList = (eventMins ?? []) as unknown as { id: string; ministry: { name: string } | null }[];
   const emIds = emList.map((em) => em.id);
   if (emIds.length === 0) return [];
   const ministryNameByEm = new Map(emList.map((em) => [em.id, em.ministry?.name ?? '']));
 
-  const { data: schedules } = await admin
+  const { data: schedules } = await supabase
     .from('event_schedules')
     .select('user_id, confirmed, event_ministry_id, profile:profiles(full_name, phone)')
     .in('event_ministry_id', emIds);
@@ -243,17 +228,17 @@ export async function confirmScheduleAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
 
-  // Só a própria pessoa escalada pode confirmar/alterar a sua presença.
-  const { data: schedule, error: fetchError } = await admin
+  // Só a própria pessoa escalada pode confirmar/alterar a sua presença —
+  // reforçado tanto aqui como pela RLS ("event_schedules: own can update confirmed").
+  const { data: schedule, error: fetchError } = await supabase
     .from('event_schedules').select('user_id').eq('id', id).single();
   if (fetchError || !schedule) throw new Error('Escala não encontrada');
   if (schedule.user_id !== user.id) {
     throw new Error('Só podes confirmar a tua própria presença');
   }
 
-  const { error } = await admin.from('event_schedules').update({ confirmed }).eq('id', id);
+  const { error } = await supabase.from('event_schedules').update({ confirmed }).eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -273,8 +258,7 @@ export async function updateEventScheduleAction(id: string, functions: string[])
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('event_schedules').update({ functions }).eq('id', id);
+  const { error } = await supabase.from('event_schedules').update({ functions }).eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -287,12 +271,11 @@ export async function setupEventSetlistAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
   const rows = songIds.map((songId, index) => ({
     event_id: eventId, song_id: songId, order_index: index,
     musical_key: songKeys[songId] ?? null,
   }));
-  const { error } = await admin.from('event_setlists').insert(rows);
+  const { error } = await supabase.from('event_setlists').insert(rows);
   if (error) throw new Error(error.message);
 }
 
@@ -315,11 +298,10 @@ export async function setupEventTimelineAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
   const rows = items.map((item, index) => ({
     event_id: eventId, time: item.time, title: item.title, order_index: index,
   }));
-  const { error } = await admin.from('event_timeline_items').insert(rows);
+  const { error } = await supabase.from('event_timeline_items').insert(rows);
   if (error) throw new Error(error.message);
 }
 
@@ -330,16 +312,15 @@ export async function setupEventScheduleAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
   for (const { ministryId, members } of setup) {
-    const { data: em, error: emError } = await admin.from('event_ministries')
+    const { data: em, error: emError } = await supabase.from('event_ministries')
       .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
     if (emError) throw new Error(emError.message);
     if (members.length === 0) continue;
     const rows = members.map(({ userId, functions }) => ({
       event_ministry_id: em.id, user_id: userId, functions,
     }));
-    const { error: schedError } = await admin.from('event_schedules').insert(rows);
+    const { error: schedError } = await supabase.from('event_schedules').insert(rows);
     if (schedError) throw new Error(schedError.message);
   }
 }

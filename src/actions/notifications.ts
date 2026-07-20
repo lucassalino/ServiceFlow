@@ -1,16 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { AppNotification } from '@/types/models';
-import type { Database } from '@/types/database';
-
-function getAdmin() {
-  return createAdminClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 export async function fetchNotificationsAction(): Promise<AppNotification[]> {
   const supabase = await createClient();
@@ -29,8 +20,7 @@ export async function markNotificationReadAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('notifications').update({ is_read: true }).eq('id', id).eq('user_id', user.id);
+  const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id).eq('user_id', user.id);
   if (error) throw new Error(error.message);
 }
 
@@ -38,8 +28,7 @@ export async function markAllNotificationsReadAction(): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('notifications')
+  const { error } = await supabase.from('notifications')
     .update({ is_read: true })
     .eq('user_id', user.id)
     .eq('is_read', false);
@@ -54,16 +43,16 @@ export async function notifyEventSchedulesAction(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
-  const admin = getAdmin();
-
-  const { data: eventMinistries, error: emError } = await admin
+  // RLS ("notifications: admins/leaders can insert for org events") rejeita
+  // quem não for admin/líder da organização deste evento.
+  const { data: eventMinistries, error: emError } = await supabase
     .from('event_ministries').select('id').eq('event_id', eventId);
   if (emError) throw new Error(emError.message);
 
   const eventMinistryIds = (eventMinistries ?? []).map((em) => em.id);
   if (eventMinistryIds.length === 0) return { notified: 0 };
 
-  const { data: schedules, error: schedulesError } = await admin
+  const { data: schedules, error: schedulesError } = await supabase
     .from('event_schedules').select('user_id').in('event_ministry_id', eventMinistryIds);
   if (schedulesError) throw new Error(schedulesError.message);
 
@@ -73,7 +62,7 @@ export async function notifyEventSchedulesAction(
   const message = `Foste escalado(a) para "${eventName}". Confirma a tua presença.`;
   const rows = userIds.map((userId) => ({ user_id: userId, event_id: eventId, message }));
 
-  const { error: insertError } = await admin.from('notifications').insert(rows);
+  const { error: insertError } = await supabase.from('notifications').insert(rows);
   if (insertError) throw new Error(insertError.message);
 
   return { notified: userIds.length };
