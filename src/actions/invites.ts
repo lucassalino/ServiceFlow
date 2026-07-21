@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { APP_URL } from '@/lib/app-url';
+import { assertCanAddPeople } from '@/actions/subscriptions';
 
 function getAdmin() {
   return createAdminClient<Database>(
@@ -48,6 +49,9 @@ export async function createInviteAction(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Email inválido');
 
   const { admin } = await requireOrgAdmin(orgId);
+
+  // Limite de pessoas do plano (conta membros ativos + convites pendentes).
+  await assertCanAddPeople(orgId);
 
   // Já é membro?
   const { data: existingProfile } = await admin
