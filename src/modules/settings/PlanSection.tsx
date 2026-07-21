@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, ShieldCheck } from 'lucide-react';
+import { Sparkles, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { useOrgSubscription, useIsPlatformAdmin, useGrantPlan } from '@/hooks/useSubscription';
 import { PLAN_LIST, getPlan, type PlanKey } from '@/lib/plans';
+import { PlansDialog } from './PlansDialog';
 
 function Card({ title, icon, accent, children }: {
   title: string; icon?: React.ReactNode; accent?: boolean; children: React.ReactNode;
@@ -33,6 +34,7 @@ export function PlanSection({ orgId }: Props) {
 
   const [selected, setSelected] = useState<PlanKey>('semente');
   const [note, setNote] = useState('');
+  const [plansOpen, setPlansOpen] = useState(false);
 
   useEffect(() => { if (sub) setSelected(sub.plan); }, [sub]);
 
@@ -77,9 +79,25 @@ export function PlanSection({ orgId }: Props) {
                 Expira em {new Date(sub.expires_at).toLocaleDateString('pt-PT')}
               </p>
             )}
+            <button
+              onClick={() => setPlansOpen(true)}
+              style={{
+                alignSelf: 'flex-start', marginTop: '0.15rem',
+                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                padding: '0.45rem 0.9rem', borderRadius: '0.5rem',
+                background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+                border: '1px solid rgba(165,180,252,0.3)', cursor: 'pointer',
+                fontSize: '0.8rem', fontWeight: 700,
+              }}
+            >
+              Ver planos e upgrade
+              <ArrowUpRight style={{ width: '0.85rem', height: '0.85rem' }} />
+            </button>
           </div>
         )}
       </Card>
+
+      <PlansDialog open={plansOpen} onOpenChange={setPlansOpen} currentPlan={current.key} />
 
       {/* Concessão manual — só super-admin da plataforma */}
       {isPlatformAdmin && (
