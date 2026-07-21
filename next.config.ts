@@ -12,7 +12,18 @@ const withSerwist = withSerwistInit({
   swDest: 'public/sw.js',
   disable: process.env.NODE_ENV === 'development',
   cacheOnNavigation: true,
-  additionalPrecacheEntries: [{ url: '/offline', revision }],
+  additionalPrecacheEntries: [
+    { url: '/offline', revision },
+    // Ícones da marca WIS — pré-cacheados para funcionarem offline.
+    { url: '/favicon.ico', revision },
+    { url: '/icons/icon-192.png', revision },
+    { url: '/icons/icon-512.png', revision },
+    { url: '/icons/maskable-192.png', revision },
+    { url: '/icons/maskable-512.png', revision },
+    { url: '/icons/apple-touch-icon.png', revision },
+    { url: '/icons/icon.svg', revision },
+    { url: '/og-image.png', revision },
+  ],
 });
 
 const nextConfig: NextConfig = {

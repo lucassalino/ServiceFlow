@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSongs, useDeleteSong } from '@/hooks/useSongs';
+import { useSongs, useSongsRanking, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useOrgStore } from '@/stores/orgStore';
+import { formatDate } from '@/lib/utils';
 import type { Song } from '@/types/models';
+import type { SongRankingEntry } from '@/actions/songs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -30,6 +32,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export function SongsClient() {
   const { data: songs = [], isLoading } = useSongs();
+  const { data: ranking = [], isLoading: rankingLoading } = useSongsRanking();
   const { data: ministries = [] } = useMinistries();
   const deleteSong = useDeleteSong();
   const { activeMembership } = useOrgStore();
@@ -40,6 +43,7 @@ export function SongsClient() {
   const [detailSong, setDetailSong] = useState<Song | null>(null);
   const [search, setSearch] = useState('');
   const [ministryFilter, setMinistryFilter] = useState<string>('all');
+  const [view, setView] = useState<'list' | 'ranking'>('list');
 
   const ministryMap = useMemo(() => {
     const map = new Map<string, { name: string; icon: string }>();
@@ -158,72 +162,133 @@ export function SongsClient() {
           )}
         </div>
 
-        {/* ── Filters ───────────────────────────────────── */}
-        <div className="dark-inputs flex flex-col gap-2.5 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none"
-              style={{ color: 'rgba(255,255,255,0.3)' }} />
-            <Input
-              placeholder="Pesquisar por nome ou artista…"
-              className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          {ministries.length > 0 && (
-            <Select value={ministryFilter} onValueChange={setMinistryFilter}>
-              <SelectTrigger className="w-full sm:w-52">
-                <SelectValue placeholder="Ministério" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os ministérios</SelectItem>
-                {ministries.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+        {/* ── View toggle ─────────────────────────────────── */}
+        <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {([
+            { key: 'list', label: 'Lista', icon: ListMusic },
+            { key: 'ranking', label: 'Ranking', icon: Trophy },
+          ] as const).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setView(key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                padding: '0.4rem 0.875rem', borderRadius: '0.5rem',
+                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', border: 'none',
+                background: view === key ? '#fff' : 'transparent',
+                color: view === key ? '#0a0a0f' : 'rgba(255,255,255,0.5)',
+                transition: 'background 0.12s, color 0.12s',
+              }}
+            >
+              <Icon style={{ width: '0.85rem', height: '0.85rem' }} />
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* ── List ──────────────────────────────────────── */}
-        {isLoading ? (
-          <div className="space-y-2.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-[4.5rem] animate-pulse rounded-xl"
-                style={{ background: 'rgba(255,255,255,0.05)' }} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="events-dark-empty">
-            <Music className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              {search || ministryFilter !== 'all'
-                ? 'Nenhuma música encontrada.'
-                : 'Nenhuma música adicionada.'}
-            </p>
-            {isAdmin && !search && ministryFilter === 'all' && (
-              <button onClick={handleNew} className="dark-primary-btn mt-4">
-                <Plus className="h-4 w-4" /> Adicionar primeira música
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {filtered.map((song) => {
-              const ministry = song.ministry_id ? ministryMap.get(song.ministry_id) : undefined;
-              return (
-                <SongRow
-                  key={song.id}
-                  song={song}
-                  ministryName={ministry?.name}
-                  onClick={() => setDetailSong(song)}
-                  onEdit={() => handleEdit(song)}
-                  onDelete={() => setDeleteTarget(song)}
-                  isAdmin={isAdmin}
+        {view === 'list' ? (
+          <>
+            {/* ── Filters ───────────────────────────────────── */}
+            <div className="dark-inputs flex flex-col gap-2.5 sm:flex-row">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none"
+                  style={{ color: 'rgba(255,255,255,0.3)' }} />
+                <Input
+                  placeholder="Pesquisar por nome ou artista…"
+                  className="pl-9"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
-              );
-            })}
-          </div>
+              </div>
+              {ministries.length > 0 && (
+                <Select value={ministryFilter} onValueChange={setMinistryFilter}>
+                  <SelectTrigger className="w-full sm:w-52">
+                    <SelectValue placeholder="Ministério" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os ministérios</SelectItem>
+                    {ministries.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* ── List ──────────────────────────────────────── */}
+            {isLoading ? (
+              <div className="space-y-2.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-[4.5rem] animate-pulse rounded-xl"
+                    style={{ background: 'rgba(255,255,255,0.05)' }} />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="events-dark-empty">
+                <Music className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  {search || ministryFilter !== 'all'
+                    ? 'Nenhuma música encontrada.'
+                    : 'Nenhuma música adicionada.'}
+                </p>
+                {isAdmin && !search && ministryFilter === 'all' && (
+                  <button onClick={handleNew} className="dark-primary-btn mt-4">
+                    <Plus className="h-4 w-4" /> Adicionar primeira música
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {filtered.map((song) => {
+                  const ministry = song.ministry_id ? ministryMap.get(song.ministry_id) : undefined;
+                  return (
+                    <SongRow
+                      key={song.id}
+                      song={song}
+                      ministryName={ministry?.name}
+                      onClick={() => setDetailSong(song)}
+                      onEdit={() => handleEdit(song)}
+                      onDelete={() => setDeleteTarget(song)}
+                      isAdmin={isAdmin}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+          /* ── Ranking ───────────────────────────────────── */
+          rankingLoading ? (
+            <div className="space-y-2.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-[4.5rem] animate-pulse rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.05)' }} />
+              ))}
+            </div>
+          ) : ranking.length === 0 ? (
+            <div className="events-dark-empty">
+              <Trophy className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                Ainda nenhuma música foi tocada em eventos.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {ranking.map((entry, idx) => {
+                const ministry = entry.ministryId ? ministryMap.get(entry.ministryId) : undefined;
+                const fullSong = songs.find((s) => s.id === entry.songId);
+                return (
+                  <RankingRow
+                    key={entry.songId}
+                    rank={idx + 1}
+                    entry={entry}
+                    ministryName={ministry?.name}
+                    onClick={() => fullSong && setDetailSong(fullSong)}
+                  />
+                );
+              })}
+            </div>
+          )
         )}
 
       </div>
@@ -248,6 +313,81 @@ export function SongsClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// ── Ranking row ──────────────────────────────────────────────────────────────
+
+const MEDAL_COLORS: Record<number, string> = { 1: '#fcd34d', 2: '#d1d5db', 3: '#d97706' };
+
+function RankingRow({
+  rank, entry, ministryName, onClick,
+}: {
+  rank: number;
+  entry: SongRankingEntry;
+  ministryName?: string;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const medal = MEDAL_COLORS[rank];
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '1rem',
+        padding: '0.875rem 1rem',
+        background: hovered ? 'rgba(35,35,40,0.9)' : 'rgba(22,22,26,0.85)',
+        border: `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)'}`,
+        borderRadius: '0.875rem',
+        cursor: 'pointer',
+        transition: 'background 0.15s, border-color 0.15s, transform 0.12s',
+        transform: hovered ? 'translateY(-1px)' : 'none',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+      }}
+    >
+      {/* Rank */}
+      <div style={{
+        width: '2.25rem', textAlign: 'center', flexShrink: 0,
+        fontSize: medal ? '1.1rem' : '0.95rem', fontWeight: 800,
+        color: medal ?? 'rgba(255,255,255,0.3)',
+      }}>
+        {rank}º
+      </div>
+
+      {/* Info */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{
+          fontSize: '0.875rem', fontWeight: 600, color: '#ffffff',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {entry.name}
+        </p>
+        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
+          {entry.artist ?? '—'}
+          {entry.lastPlayedDate && ` · última vez ${formatDate(entry.lastPlayedDate)}`}
+        </p>
+      </div>
+
+      {/* Chips */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+        {ministryName && (
+          <span className="hidden md:inline-flex">
+            <Chip>{ministryName}</Chip>
+          </span>
+        )}
+        <span style={{
+          fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.6rem',
+          borderRadius: '9999px', letterSpacing: '0.02em', whiteSpace: 'nowrap',
+          background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+          border: '1px solid rgba(165,180,252,0.25)',
+        }}>
+          {entry.timesPlayed}× tocada
+        </span>
+      </div>
     </div>
   );
 }

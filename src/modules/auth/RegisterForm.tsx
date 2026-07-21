@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Loader2, MailCheck } from 'lucide-react';
+import { Loader2, MailCheck, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,8 @@ type RegisterValues = z.infer<typeof registerSchema>;
 export function RegisterForm({ className }: { className?: string }) {
   const [loading, setLoading] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     register,
@@ -51,7 +53,7 @@ export function RegisterForm({ className }: { className?: string }) {
         },
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(error.message || 'Não foi possível criar a conta. Verifica a configuração de email (SMTP) ou tenta mais tarde.');
         return;
       }
       // Se a confirmação de email estiver ativa, não há sessão até confirmar.
@@ -122,13 +124,24 @@ export function RegisterForm({ className }: { className?: string }) {
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          autoComplete="new-password"
-          {...register('password')}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            autoComplete="new-password"
+            className="pr-10"
+            {...register('password')}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? 'Ocultar password' : 'Ver password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
@@ -136,13 +149,24 @@ export function RegisterForm({ className }: { className?: string }) {
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="confirmPassword">Confirmar password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          placeholder="••••••••"
-          autoComplete="new-password"
-          {...register('confirmPassword')}
-        />
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showConfirm ? 'text' : 'password'}
+            placeholder="••••••••"
+            autoComplete="new-password"
+            className="pr-10"
+            {...register('confirmPassword')}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirm((v) => !v)}
+            aria-label={showConfirm ? 'Ocultar password' : 'Ver password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+          >
+            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {errors.confirmPassword && (
           <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
         )}

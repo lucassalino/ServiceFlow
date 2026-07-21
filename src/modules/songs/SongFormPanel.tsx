@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Youtube, Music, FileText, Guitar, Sparkles, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, Youtube, Music, FileText, Guitar, Search, Loader2 } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
-import { fetchSongMetadataAction, searchGospelSongsAction, type SongSuggestion } from '@/actions/songs';
+import { searchCatalogSongsAction, type CatalogSuggestion } from '@/actions/songs';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -77,8 +77,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const nameField = register('name');
   const isPending = createSong.isPending || updateSong.isPending || isSubmitting;
 
-  // ── Sugestões de músicas gospel (iTunes) enquanto se digita o nome ─────────
-  const [suggestions, setSuggestions] = useState<SongSuggestion[]>([]);
+  // ── Pesquisa no catálogo (banco de dados) por nome ou artista ──────────────
+  const [catalogResults, setCatalogResults] = useState<CatalogSuggestion[]>([]);
   const [searchingSongs, setSearchingSongs] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
@@ -88,12 +88,12 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     if (!nameFocused) return;
     if (skipSearchRef.current) { skipSearchRef.current = false; return; }
     const q = (nameValue ?? '').trim();
-    if (q.length < 2) { setSuggestions([]); setSearchingSongs(false); return; }
+    if (q.length < 2) { setCatalogResults([]); setSearchingSongs(false); return; }
     setSearchingSongs(true);
     const t = setTimeout(async () => {
       try {
-        const results = await searchGospelSongsAction(q);
-        setSuggestions(results);
+        const catalog = await searchCatalogSongsAction(q);
+        setCatalogResults(catalog);
         setShowSuggestions(true);
       } finally {
         setSearchingSongs(false);
@@ -102,36 +102,19 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     return () => clearTimeout(t);
   }, [nameValue, nameFocused]);
 
-  function selectSuggestion(s: SongSuggestion) {
+  // Resultado do catálogo (banco): preenche TODOS os campos partilhados.
+  function selectCatalog(c: CatalogSuggestion) {
     skipSearchRef.current = true;
-    setValue('name', s.name);
-    if (s.artist) setValue('artist', s.artist);
+    setValue('name', c.name);
+    setValue('artist', c.artist ?? '');
+    setValue('lyrics', c.lyrics ?? '');
+    setValue('chords', c.chords ?? '');
+    setValue('youtube_url', c.youtube_url ?? '');
+    setValue('spotify_url', c.spotify_url ?? '');
+    setValue('bpm', c.bpm ?? null);
     setShowSuggestions(false);
-    setSuggestions([]);
-  }
-
-  // ── Auto-preenchimento a partir de um link (YouTube/Spotify) ──────────────
-  const [autoUrl, setAutoUrl] = useState('');
-  const [autoLoading, setAutoLoading] = useState(false);
-
-  async function handleAutoFill() {
-    const url = autoUrl.trim();
-    if (!url) { toast.error('Cola um link do YouTube ou Spotify'); return; }
-    setAutoLoading(true);
-    try {
-      const meta = await fetchSongMetadataAction(url);
-      if (!meta.provider) { toast.error('Link não reconhecido (usa YouTube ou Spotify)'); return; }
-      if (meta.name) setValue('name', meta.name);
-      if (meta.artist) setValue('artist', meta.artist);
-      if (meta.provider === 'youtube') setValue('youtube_url', url);
-      if (meta.provider === 'spotify') setValue('spotify_url', url);
-      if (meta.name) toast.success('Preenchido a partir do link');
-      else toast.message('Não consegui obter o nome — preenche manualmente');
-    } catch {
-      toast.error('Erro ao obter dados do link');
-    } finally {
-      setAutoLoading(false);
-    }
+    setCatalogResults([]);
+    toast.success('Preenchido a partir do catálogo');
   }
 
   async function onSubmit(values: SongFormValues) {
@@ -192,41 +175,6 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
           </h1>
         </div>
 
-        {/* ── Auto-preencher a partir de um link ──────────── */}
-        <div style={{
-          padding: '1.25rem 1.5rem', borderRadius: '1.25rem',
-          background: 'rgba(165,180,252,0.08)', border: '1px solid rgba(165,180,252,0.22)',
-          marginBottom: '1rem',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.625rem' }}>
-            <Sparkles style={{ width: '0.95rem', height: '0.95rem', color: '#a5b4fc' }} />
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>Auto-preencher a partir de um link</span>
-          </div>
-          <div className="dark-inputs sf-autofill" style={{ display: 'flex', gap: '0.5rem' }}>
-            <style>{`@media(max-width:560px){.sf-autofill{flex-direction:column!important}}`}</style>
-            <Input
-              placeholder="Cola o link do YouTube ou Spotify"
-              value={autoUrl}
-              onChange={(e) => setAutoUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAutoFill(); } }}
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              onClick={handleAutoFill}
-              disabled={autoLoading}
-              className="dark-primary-btn"
-              style={{ flexShrink: 0, opacity: autoLoading ? 0.7 : 1, justifyContent: 'center' }}
-            >
-              <Sparkles style={{ width: '0.85rem', height: '0.85rem' }} />
-              {autoLoading ? 'A obter…' : 'Preencher'}
-            </button>
-          </div>
-          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem' }}>
-            Preenche o nome e o artista automaticamente. O tom e o BPM continuam manuais.
-          </p>
-        </div>
-
         {/* ── Form ─────────────────────────────────────────── */}
         <form onSubmit={handleSubmit(onSubmit)}>
           <div style={{
@@ -252,7 +200,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   </Label>
                   <Input
                     id="sf-name"
-                    placeholder="Escreve para procurar…"
+                    placeholder="Procurar por música ou artista…"
                     autoComplete="off"
                     {...nameField}
                     onFocus={() => setNameFocused(true)}
@@ -260,8 +208,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   />
                   {errors.name && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
 
-                  {/* Dropdown de sugestões gospel */}
-                  {nameFocused && showSuggestions && (searchingSongs || suggestions.length > 0 || (nameValue ?? '').trim().length >= 2) && (
+                  {/* Dropdown de resultados do catálogo (banco de dados global) */}
+                  {nameFocused && showSuggestions && (searchingSongs || (nameValue ?? '').trim().length >= 2) && (
                     <div style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 40, marginTop: '0.25rem',
                       background: 'rgba(20,20,26,0.98)', border: '1px solid rgba(255,255,255,0.12)',
@@ -270,37 +218,35 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                     }}>
                       {searchingSongs && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
-                          <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar…
+                          <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar no catálogo…
                         </div>
                       )}
-                      {!searchingSongs && suggestions.length === 0 && (
+                      {!searchingSongs && catalogResults.length === 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
-                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Sem resultados gospel — escreve o nome manualmente.
+                          <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Não está no catálogo — escreve os dados manualmente.
                         </div>
                       )}
-                      {suggestions.map((s, i) => (
+
+                      {catalogResults.map((c, i) => (
                         <button
-                          key={`${s.name}-${i}`}
+                          key={`cat-${c.id}`}
                           type="button"
                           onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => selectSuggestion(s)}
+                          onClick={() => selectCatalog(c)}
                           style={{
                             display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', textAlign: 'left',
                             padding: '0.5rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer',
-                            borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                            borderBottom: i < catalogResults.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(165,180,252,0.1)')}
                           onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                         >
-                          {s.artwork ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={s.artwork} alt="" style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, objectFit: 'cover' }} />
-                          ) : (
-                            <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-                          )}
+                          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(165,180,252,0.15)' }}>
+                            <Music style={{ width: '1rem', height: '1rem', color: '#a5b4fc' }} />
+                          </div>
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
-                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.artist}</p>
+                            <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</p>
+                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.artist || 'Sem artista'}</p>
                           </div>
                         </button>
                       ))}

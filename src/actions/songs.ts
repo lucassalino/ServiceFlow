@@ -1,20 +1,12 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Song } from '@/types/models';
-import type { Database } from '@/types/database';
-
-function getAdmin() {
-  return createAdminClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 export interface SongPayload {
   name: string; artist: string | null; musical_key: string | null;
-  bpm: number | null; lyrics: string | null; chords: string | null; youtube_url: string | null;
+  bpm: number | null; lyrics: string | null; chords: string | null;
+  youtube_url: string | null; spotify_url: string | null; ministry_id: string | null;
 }
 
 export async function fetchSongsAction(orgId: string): Promise<Song[]> {
@@ -25,13 +17,136 @@ export async function fetchSongsAction(orgId: string): Promise<Song[]> {
   return data as Song[];
 }
 
+export interface SongRankingEntry {
+  songId: string;
+  name: string;
+  artist: string | null;
+  ministryId: string | null;
+  timesPlayed: number;
+  lastPlayedDate: string | null;
+}
+
+/** Ranking de músicas mais tocadas: conta ocorrências em event_setlists por música da organização. */
+export async function fetchSongsRankingAction(orgId: string): Promise<SongRankingEntry[]> {
+  const supabase = await createClient();
+
+  const { data: songs, error: songsError } = await supabase
+    .from('songs').select('id, name, artist, ministry_id').eq('org_id', orgId);
+  if (songsError) throw new Error(songsError.message);
+  const songList = (songs ?? []) as { id: string; name: string; artist: string | null; ministry_id: string | null }[];
+  if (songList.length === 0) return [];
+
+  const { data: setlistRows, error: setlistError } = await supabase
+    .from('event_setlists')
+    .select('song_id, event:events(date)')
+    .in('song_id', songList.map((s) => s.id));
+  if (setlistError) throw new Error(setlistError.message);
+  const rows = (setlistRows ?? []) as { song_id: string; event: { date: string } | null }[];
+
+  const statsBySong = new Map<string, { count: number; lastDate: string | null }>();
+  for (const row of rows) {
+    const entry = statsBySong.get(row.song_id) ?? { count: 0, lastDate: null };
+    entry.count += 1;
+    if (row.event?.date && (!entry.lastDate || row.event.date > entry.lastDate)) entry.lastDate = row.event.date;
+    statsBySong.set(row.song_id, entry);
+  }
+
+  return songList
+    .map((s) => {
+      const stats = statsBySong.get(s.id);
+      return {
+        songId: s.id, name: s.name, artist: s.artist, ministryId: s.ministry_id,
+        timesPlayed: stats?.count ?? 0,
+        lastPlayedDate: stats?.lastDate ?? null,
+      };
+    })
+    .filter((s) => s.timesPlayed > 0)
+    .sort((a, b) => b.timesPlayed - a.timesPlayed || a.name.localeCompare(b.name));
+}
+
+// ── Catálogo global partilhado ─────────────────────────────────────────────
+
+/** Campos partilhados no catálogo global (o Tom NÃO é partilhado). */
+const SHARED_KEYS = ['lyrics', 'chords', 'youtube_url', 'spotify_url', 'bpm'] as const;
+
+function isEmpty(v: unknown): boolean {
+  return v === null || v === undefined || v === '';
+}
+
+/**
+ * Liga uma música ao catálogo global pela chave (nome + artista).
+ * - Se já existir: contribui apenas os campos que estão VAZIOS no catálogo
+ *   (nunca sobrescreve dados de outra igreja).
+ * - Se não existir: cria a entrada no catálogo.
+ * Devolve o id da entrada do catálogo.
+ */
+async function resolveCatalog(
+  supabase: Awaited<ReturnType<typeof createClient>>, payload: SongPayload, orgId: string, userId: string,
+): Promise<string | null> {
+  const name = payload.name.trim();
+  const artist = (payload.artist ?? '').trim();
+  if (!name) return null;
+  const esc = (s: string) => s.replace(/[%_]/g, '\\$&');
+
+  const { data: found } = await supabase.from('catalog_songs').select('*')
+    .ilike('name', esc(name)).ilike('artist', esc(artist)).limit(1).maybeSingle();
+  const cat = found as Record<string, unknown> | null;
+
+  if (cat) {
+    const patch: Record<string, unknown> = {};
+    for (const k of SHARED_KEYS) {
+      if (isEmpty(cat[k]) && !isEmpty(payload[k])) patch[k] = payload[k];
+    }
+    if (Object.keys(patch).length > 0) {
+      patch.updated_at = new Date().toISOString();
+      await supabase.from('catalog_songs').update(patch as never).eq('id', cat.id as string);
+    }
+    return cat.id as string;
+  }
+
+  const { data: created, error } = await supabase.from('catalog_songs').insert({
+    name, artist,
+    lyrics: payload.lyrics, chords: payload.chords,
+    youtube_url: payload.youtube_url, spotify_url: payload.spotify_url,
+    bpm: payload.bpm, source_org_id: orgId, created_by: userId,
+  }).select('id').single();
+
+  if (error) {
+    // corrida: outra igreja criou a mesma entrada — procurar de novo
+    const { data: retry } = await supabase.from('catalog_songs').select('id')
+      .ilike('name', esc(name)).ilike('artist', esc(artist)).limit(1).maybeSingle();
+    return (retry as { id: string } | null)?.id ?? null;
+  }
+  return (created as { id: string }).id;
+}
+
+export interface CatalogSuggestion {
+  id: string; name: string; artist: string;
+  lyrics: string | null; chords: string | null;
+  youtube_url: string | null; spotify_url: string | null; bpm: number | null;
+}
+
+/** Pesquisa no catálogo GLOBAL por nome ou artista (para reutilizar músicas). */
+export async function searchCatalogSongsAction(term: string): Promise<CatalogSuggestion[]> {
+  const q = (term ?? '').trim().replace(/[,()]/g, ' ').trim();
+  if (q.length < 2) return [];
+  const supabase = await createClient();
+  const like = `%${q}%`;
+  const { data, error } = await supabase.from('catalog_songs')
+    .select('id, name, artist, lyrics, chords, youtube_url, spotify_url, bpm')
+    .or(`name.ilike.${like},artist.ilike.${like}`)
+    .order('name').limit(10);
+  if (error) return [];
+  return (data ?? []) as CatalogSuggestion[];
+}
+
 export async function createSongAction(orgId: string, payload: SongPayload): Promise<Song> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { data, error } = await admin.from('songs')
-    .insert({ ...payload, org_id: orgId }).select().single();
+  const catalogId = await resolveCatalog(supabase, payload, orgId, user.id);
+  const { data, error } = await supabase.from('songs')
+    .insert({ ...payload, org_id: orgId, catalog_song_id: catalogId }).select().single();
   if (error) throw new Error(error.message);
   return data as Song;
 }
@@ -40,18 +155,22 @@ export async function updateSongAction(id: string, payload: SongPayload): Promis
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('songs')
-    .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
+  // Atualiza a cópia da igreja (cada igreja tem a sua versão).
+  const { data: updated, error } = await supabase.from('songs')
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq('id', id).select('org_id').single();
   if (error) throw new Error(error.message);
+  // Contribui campos vazios de volta ao catálogo e mantém a ligação certa.
+  const orgId = (updated as { org_id: string }).org_id;
+  const catalogId = await resolveCatalog(supabase, payload, orgId, user.id);
+  if (catalogId) await supabase.from('songs').update({ catalog_song_id: catalogId }).eq('id', id);
 }
 
 export async function deleteSongAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('songs').delete().eq('id', id);
+  const { error } = await supabase.from('songs').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
 

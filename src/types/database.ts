@@ -7,40 +7,72 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
-      organization_invites: {
+      catalog_songs: {
         Row: {
-          id: string
-          org_id: string
-          email: string
-          name: string
-          role: string
-          created_by: string | null
+          artist: string
+          bpm: number | null
+          chords: string | null
           created_at: string
-          accepted_at: string | null
+          created_by: string | null
+          id: string
+          lyrics: string | null
+          name: string
+          source_org_id: string | null
+          spotify_url: string | null
+          updated_at: string
+          youtube_url: string | null
         }
         Insert: {
-          id?: string
-          org_id: string
-          email: string
-          name: string
-          role?: string
-          created_by?: string | null
+          artist?: string
+          bpm?: number | null
+          chords?: string | null
           created_at?: string
-          accepted_at?: string | null
+          created_by?: string | null
+          id?: string
+          lyrics?: string | null
+          name: string
+          source_org_id?: string | null
+          spotify_url?: string | null
+          updated_at?: string
+          youtube_url?: string | null
         }
         Update: {
-          id?: string
-          org_id?: string
-          email?: string
-          name?: string
-          role?: string
-          created_by?: string | null
+          artist?: string
+          bpm?: number | null
+          chords?: string | null
           created_at?: string
-          accepted_at?: string | null
+          created_by?: string | null
+          id?: string
+          lyrics?: string | null
+          name?: string
+          source_org_id?: string | null
+          spotify_url?: string | null
+          updated_at?: string
+          youtube_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "catalog_songs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalog_songs_source_org_id_fkey"
+            columns: ["source_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_ministries: {
         Row: {
@@ -118,18 +150,21 @@ export type Database = {
         Row: {
           event_id: string
           id: string
+          musical_key: string | null
           order_index: number
           song_id: string
         }
         Insert: {
           event_id: string
           id?: string
+          musical_key?: string | null
           order_index?: number
           song_id: string
         }
         Update: {
           event_id?: string
           id?: string
+          musical_key?: string | null
           order_index?: number
           song_id?: string
         }
@@ -150,8 +185,44 @@ export type Database = {
           },
         ]
       }
+      event_timeline_items: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          order_index: number
+          time: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          order_index?: number
+          time: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          order_index?: number
+          time?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_timeline_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
+          arrival_time: string | null
           color: string | null
           cover_image_url: string | null
           created_at: string
@@ -168,6 +239,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arrival_time?: string | null
           color?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -184,6 +256,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arrival_time?: string | null
           color?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -212,6 +285,60 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_unavailability: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          kind: string
+          org_id: string
+          period: string | null
+          reason: string | null
+          start_date: string | null
+          user_id: string
+          weekday: number | null
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind: string
+          org_id: string
+          period?: string | null
+          reason?: string | null
+          start_date?: string | null
+          user_id: string
+          weekday?: number | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind?: string
+          org_id?: string
+          period?: string | null
+          reason?: string | null
+          start_date?: string | null
+          user_id?: string
+          weekday?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_unavailability_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_unavailability_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -341,6 +468,47 @@ export type Database = {
           },
         ]
       }
+      organization_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+          name: string
+          org_id: string
+          role: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+          name: string
+          org_id: string
+          role?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+          name?: string
+          org_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           id: string
@@ -447,6 +615,7 @@ export type Database = {
         Row: {
           artist: string | null
           bpm: number | null
+          catalog_song_id: string | null
           chords: string | null
           created_at: string
           id: string
@@ -462,6 +631,7 @@ export type Database = {
         Insert: {
           artist?: string | null
           bpm?: number | null
+          catalog_song_id?: string | null
           chords?: string | null
           created_at?: string
           id?: string
@@ -477,6 +647,7 @@ export type Database = {
         Update: {
           artist?: string | null
           bpm?: number | null
+          catalog_song_id?: string | null
           chords?: string | null
           created_at?: string
           id?: string
@@ -490,6 +661,13 @@ export type Database = {
           youtube_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "songs_catalog_song_id_fkey"
+            columns: ["catalog_song_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_songs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "songs_ministry_id_fkey"
             columns: ["ministry_id"]
@@ -555,6 +733,46 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _admin_analytics_is_admin: { Args: never; Returns: boolean }
+      admin_analytics_growth_by_month: {
+        Args: { months_back?: number }
+        Returns: {
+          month: string
+          new_organizations: number
+          new_profiles: number
+        }[]
+      }
+      admin_analytics_organizations: {
+        Args: never
+        Returns: {
+          created_at: string
+          event_count: number
+          member_count: number
+          name: string
+          org_id: string
+          song_count: number
+        }[]
+      }
+      admin_analytics_overview: { Args: never; Returns: Json }
+      admin_analytics_people: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          organizations: string
+          person_id: string
+          phone: string
+        }[]
+      }
+      admin_analytics_top_songs: {
+        Args: { limit_count?: number }
+        Returns: {
+          artist: string
+          song_name: string
+          times_used: number
+        }[]
+      }
       create_org_with_member: {
         Args: { invite_code: string; org_name: string; user_id: string }
         Returns: {
@@ -576,6 +794,14 @@ export type Database = {
       is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
       is_org_admin_or_leader: { Args: { p_org_id: string }; Returns: boolean }
       is_org_member: { Args: { p_org_id: string }; Returns: boolean }
+      shares_organization_with: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
+      transfer_org_admin: {
+        Args: { p_new_admin_user_id: string; p_org_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       org_role: "admin" | "leader" | "member"
@@ -587,23 +813,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -621,16 +849,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -646,16 +874,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -671,16 +899,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -688,16 +916,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

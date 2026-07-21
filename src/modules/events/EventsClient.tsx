@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime, eventPeriod } from '@/lib/utils';
 import { EventCreatePanel } from './EventCreatePanel';
 import { EventDetailPanel } from './EventDetailPanel';
 import { EventEditPanel } from './EventEditPanel';
@@ -57,8 +57,16 @@ export function EventsClient({ orgId: _orgId }: Props) {
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('upcoming');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  // Abre automaticamente o evento vindo da Dashboard ou de uma notificação (?event=<id>).
+  useEffect(() => {
+    const eventParam = new URLSearchParams(window.location.search).get('event');
+    if (!eventParam) return;
+    const found = events.find((e) => e.id === eventParam);
+    if (found) setDetailEvent(found);
+  }, [events]);
 
   function handleNew() { setCreateMode(true); }
   function handleEdit(_e: Event) { setEditMode(true); }
@@ -184,11 +192,15 @@ export function EventsClient({ orgId: _orgId }: Props) {
           <div className="events-dark-empty">
             <CalendarDays className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              {search || statusFilter !== 'all'
+              {search
                 ? 'Nenhum evento encontrado.'
+                : statusFilter === 'upcoming'
+                ? 'Não há eventos próximos.'
+                : statusFilter === 'past'
+                ? 'Não há eventos passados.'
                 : 'Nenhum evento criado ainda.'}
             </p>
-            {isAdmin && !search && statusFilter === 'all' && (
+            {isAdmin && !search && (
               <button onClick={handleNew} className="dark-primary-btn mt-4">
                 <Plus className="h-4 w-4" /> Criar primeiro evento
               </button>
@@ -222,6 +234,19 @@ export function EventsClient({ orgId: _orgId }: Props) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-white truncate">{event.name}</span>
                     <StatusBadge published={event.is_published} />
+                    {(() => {
+                      const p = eventPeriod(event.time);
+                      return p ? (
+                        <span style={{
+                          fontSize: '0.62rem', fontWeight: 700, padding: '0.1rem 0.45rem',
+                          borderRadius: '9999px', letterSpacing: '0.04em', textTransform: 'uppercase',
+                          background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+                          border: '1px solid rgba(165,180,252,0.25)',
+                        }}>
+                          {p.emoji} {p.label}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                   <div className="flex items-center gap-3 mt-1 text-xs flex-wrap"
                     style={{ color: 'rgba(255,255,255,0.38)' }}>

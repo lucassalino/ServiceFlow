@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
 import { MemberDetailPanel } from './MemberDetailPanel';
 
-const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
+import { APP_URL } from '@/lib/app-url';
 
 type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
@@ -74,7 +74,7 @@ export function MembersClient() {
   const [copied, setCopied] = useState(false);
 
   // Convites por nome + email
-  const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, inviteOpen);
+  const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, isAdmin || inviteOpen);
   const createInvite = useCreateInvite();
   const deleteInvite = useDeleteInvite();
   const [inviteName, setInviteName] = useState('');
@@ -85,10 +85,28 @@ export function MembersClient() {
 
   async function handleSendInvite() {
     if (!activeOrg?.id) return;
+    const nome = inviteName.trim();
+    const email = inviteEmail.trim();
+    if (!nome) {
+      toast.error('Escreve o nome da pessoa');
+      return;
+    }
+    if (!email) {
+      toast.error('Escreve o email da pessoa');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Email inválido');
+      return;
+    }
     try {
       const res = await createInvite.mutateAsync({ orgId: activeOrg.id, name: inviteName, email: inviteEmail });
       if (res.alreadyRegistered) {
-        toast.success(`${inviteName.trim()} já tem conta — entra automaticamente na próxima vez que abrir a app.`);
+        if (res.emailSent) {
+          toast.success(`${inviteName.trim()} já tem conta — enviámos um email para entrar direto na organização.`);
+        } else {
+          toast.success(`${inviteName.trim()} já tem conta — entra automaticamente na próxima vez que abrir a app.`);
+        }
       } else if (res.emailSent) {
         toast.success(`Convite enviado por email para ${inviteEmail.trim()}`);
       } else {
@@ -134,8 +152,8 @@ export function MembersClient() {
     if (!codigo) return;
     if (navigator.share) {
       navigator.share({
-        title: 'ServiceFlow — ' + nome,
-        text: `Entra na organização "${nome}" no ServiceFlow!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
+        title: 'WIS - Services — ' + nome,
+        text: `Entra na organização "${nome}" no WIS - Services!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
       }).catch(() => {});
     } else {
       copiarCodigo();
@@ -227,7 +245,7 @@ export function MembersClient() {
           <div className="space-y-2.5">
             {typedMembers.map((member) => {
               const profile = member.profile;
-              const name = profile?.full_name ?? profile?.email ?? '?';
+              const name = profile?.full_name ?? (isAdmin ? profile?.email : undefined) ?? '?';
               const role = member.role as OrgRole;
 
               return (
@@ -265,10 +283,12 @@ export function MembersClient() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs mt-0.5 truncate"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}>
-                      {profile?.email}
-                    </p>
+                    {isAdmin && (
+                      <p className="text-xs mt-0.5 truncate"
+                        style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        {profile?.email}
+                      </p>
+                    )}
                   </div>
 
                   {/* Role selector + deactivate */}
@@ -279,7 +299,6 @@ export function MembersClient() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Administrador</SelectItem>
                           <SelectItem value="leader">Líder</SelectItem>
                           <SelectItem value="member">Membro</SelectItem>
                         </SelectContent>
@@ -304,6 +323,51 @@ export function MembersClient() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* ── Convites pendentes ─────────────────────── */}
+        {isAdmin && pendingInvites.length > 0 && (
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2 pt-2">
+              <Mail className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <p className="text-xs font-semibold tracking-[0.16em] uppercase"
+                style={{ color: 'rgba(255,255,255,0.4)' }}>
+                Convites pendentes ({pendingInvites.length})
+              </p>
+            </div>
+            {pendingInvites.map((inv) => (
+              <div key={inv.id} className="events-dark-card" style={{ cursor: 'default' }}>
+                <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(252,211,77,0.12)', border: '1px solid rgba(252,211,77,0.25)' }}>
+                  <Mail className="h-4 w-4" style={{ color: '#fcd34d' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-white truncate">{inv.name}</span>
+                    <span style={{
+                      fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.55rem',
+                      borderRadius: '9999px',
+                      background: 'rgba(252,211,77,0.12)', color: '#fcd34d',
+                      border: '1px solid rgba(252,211,77,0.25)',
+                    }}>
+                      Aguarda entrada
+                    </span>
+                  </div>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    {inv.email}
+                  </p>
+                </div>
+                <button
+                  className="dark-icon-btn danger shrink-0"
+                  onClick={() => handleCancelInvite(inv.id)}
+                  disabled={deleteInvite.isPending}
+                  title="Cancelar convite"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
@@ -333,7 +397,9 @@ export function MembersClient() {
                 value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSendInvite(); } }} />
             </div>
-            <Button onClick={handleSendInvite} disabled={createInvite.isPending} className="w-full gap-2 h-11">
+            <Button onClick={handleSendInvite}
+              disabled={createInvite.isPending || !inviteName.trim() || !inviteEmail.trim()}
+              className="w-full gap-2 h-11">
               <Mail className="h-4 w-4" />
               {createInvite.isPending ? 'A convidar…' : 'Convidar'}
             </Button>

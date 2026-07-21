@@ -1,14 +1,26 @@
 'use client';
 import { useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { AuthInitializer } from '@/components/auth/AuthInitializer';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: { queries: { staleTime: 60 * 1000, retry: 1 } },
-  }));
+  const [queryClient] = useState(() => {
+    let client!: QueryClient;
+    // Após QUALQUER mutação bem-sucedida (criar/gravar/editar/apagar),
+    // recarrega todos os dados para que todas as telas fiquem atualizadas.
+    const mutationCache = new MutationCache({
+      onSuccess: () => { client.invalidateQueries(); },
+    });
+    client = new QueryClient({
+      mutationCache,
+      defaultOptions: {
+        queries: { staleTime: 30 * 1000, retry: 1, refetchOnWindowFocus: true },
+      },
+    });
+    return client;
+  });
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
       <QueryClientProvider client={queryClient}>

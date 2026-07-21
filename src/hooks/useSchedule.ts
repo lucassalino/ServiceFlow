@@ -5,6 +5,7 @@ import {
   fetchEventMinistriesAction,
   fetchEventSchedulesAction,
   fetchEventSetlistAction,
+  fetchEventTimelineAction,
   addMinistryToEventAction,
   removeMinistryFromEventAction,
   addPersonToScheduleAction,
@@ -102,6 +103,14 @@ export function useEventSetlist(eventId: string | null) {
     queryKey: ['event-setlist', eventId],
     enabled: !!eventId,
     queryFn: () => fetchEventSetlistAction(eventId!),
+  });
+}
+
+export function useEventTimeline(eventId: string | null) {
+  return useQuery({
+    queryKey: ['event-timeline', eventId],
+    enabled: !!eventId,
+    queryFn: () => fetchEventTimelineAction(eventId!),
   });
 }
 

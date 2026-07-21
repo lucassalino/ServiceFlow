@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import {
   CalendarDays, Users, LayoutGrid,
-  AlertCircle, MapPin, Clock, ArrowRight,
+  MapPin, Clock, ArrowRight,
   CalendarCheck, BookOpen, Cake,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatTime, getInitials } from '@/lib/utils';
+import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
 import type { Event } from '@/types/models';
 
 export interface BirthdayPerson {
@@ -52,7 +52,7 @@ const MONTH_NAMES = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ];
 
-export function DashboardClient({ upcomingEvents, pendingConfirmations, birthdayPeople, orgId }: Props) {
+export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props) {
   const { activeMembership, activeOrg } = useOrgStore();
   const firstName = activeMembership?.profile?.full_name?.split(' ')[0] ?? 'Bem-vindo';
   const isAdmin = activeMembership?.role === 'admin';
@@ -77,15 +77,6 @@ export function DashboardClient({ upcomingEvents, pendingConfirmations, birthday
               ? `${upcomingEvents.length} evento${upcomingEvents.length !== 1 ? 's' : ''} próximo${upcomingEvents.length !== 1 ? 's' : ''}`
               : 'tudo tranquilo por aqui'}
           </p>
-          {isAdmin && pendingConfirmations > 0 && (
-            <div className="inline-flex items-center gap-2 mt-2 bg-amber-400/15 border border-amber-400/25 text-amber-200 rounded-lg px-3 py-2 text-xs font-medium">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <strong>{pendingConfirmations}</strong>{' '}
-                {pendingConfirmations === 1 ? 'pessoa não confirmou' : 'pessoas não confirmaram'} a escala
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Upcoming events */}
@@ -117,7 +108,7 @@ export function DashboardClient({ upcomingEvents, pendingConfirmations, birthday
                 const { month, day } = getDateParts(event.date);
                 const color = event.color ?? '#a5b4fc';
                 return (
-                  <Link key={event.id} href={`/${orgId}/events`} className="dash-glass-event">
+                  <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="dash-glass-event">
                     {/* Date bubble */}
                     <div className="flex flex-col items-center justify-center w-11 h-12 rounded-xl shrink-0 text-center"
                       style={{ background: color + '20', color }}>
@@ -135,6 +126,19 @@ export function DashboardClient({ upcomingEvents, pendingConfirmations, birthday
                         {event.is_published
                           ? <Badge className="text-[10px] h-[18px] px-1.5 py-0 bg-white/15 text-white border-white/20 hover:bg-white/15">Publicado</Badge>
                           : <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 py-0 bg-white/08 text-white/60 border-white/12">Rascunho</Badge>}
+                        {(() => {
+                          const p = eventPeriod(event.time);
+                          return p ? (
+                            <span style={{
+                              fontSize: '0.62rem', fontWeight: 700, padding: '0.05rem 0.4rem',
+                              borderRadius: '9999px', letterSpacing: '0.03em', textTransform: 'uppercase',
+                              background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+                              border: '1px solid rgba(165,180,252,0.25)',
+                            }}>
+                              {p.emoji} {p.label}
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-white/40 flex-wrap">
                         {event.time && (

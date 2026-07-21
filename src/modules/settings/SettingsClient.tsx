@@ -8,14 +8,15 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { Camera, LogOut, Trash2, Copy, Check, Share2, ImagePlus } from 'lucide-react';
 
-const APP_URL = 'https://serviceflow.it-workdeveloper.workers.dev';
+import { APP_URL } from '@/lib/app-url';
 import { ImageCropDialog } from '@/components/ui/image-crop-dialog';
 import { ProfileCardDialog } from '@/components/ui/profile-card-dialog';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
-import { useLeaveOrganization } from '@/hooks/useOrganizations';
+import { useLeaveOrganization, useDeleteOrganization, useTransferOrgAdmin } from '@/hooks/useOrganizations';
+import { useOrgMembers } from '@/hooks/useMembers';
 import { uploadOrgLogoAction } from '@/actions/organizations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
 
 const profileSchema = z.object({
@@ -79,15 +82,21 @@ export function SettingsClient({ orgId }: Props) {
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
   const leaveOrg = useLeaveOrganization();
+  const deleteOrg = useDeleteOrganization();
   const deleteAccount = useDeleteAccount();
+  const transferAdmin = useTransferOrgAdmin();
+  const { data: orgMembers = [] } = useOrgMembers();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [leaveOrgOpen, setLeaveOrgOpen] = useState(false);
+  const [deleteOrgOpen, setDeleteOrgOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferTargetId, setTransferTargetId] = useState<string>('');
 
   // Logótipo da organização
   const orgLogoInputRef = useRef<HTMLInputElement>(null);
@@ -222,13 +231,62 @@ export function SettingsClient({ orgId }: Props) {
 
   async function handleLeaveOrg() {
     try {
-      await leaveOrg.mutateAsync(orgId);
+      const res = await leaveOrg.mutateAsync(orgId);
+      // És a última pessoa → sair significa eliminar a organização.
+      if (res?.needsDelete) {
+        setLeaveOrgOpen(false);
+        setDeleteOrgOpen(true);
+        return;
+      }
+      if (res?.error) {
+        toast.error(res.error);
+        setLeaveOrgOpen(false);
+        return;
+      }
       toast.success('Saíste da organização');
       setLeaveOrgOpen(false);
-      router.push('/');
+      // Limpa a última organização e faz uma navegação completa para evitar
+      // re-render da página atual (já não és membro desta organização).
+      document.cookie = 'sf_last_org=; path=/; max-age=0';
+      window.location.href = '/';
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao saír da organização');
       setLeaveOrgOpen(false);
+    }
+  }
+
+  async function handleTransferAdmin() {
+    if (!transferTargetId) return;
+    try {
+      const res = await transferAdmin.mutateAsync({ orgId, newAdminUserId: transferTargetId });
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success('Administração transferida — agora és líder');
+      if (activeOrg && activeMembership) setActiveOrg(activeOrg, { ...activeMembership, role: 'leader' });
+      setTransferOpen(false);
+      setTransferTargetId('');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao transferir administração');
+    }
+  }
+
+  async function handleDeleteOrg() {
+    try {
+      const res = await deleteOrg.mutateAsync(orgId);
+      if (res?.error) {
+        toast.error(res.error);
+        setDeleteOrgOpen(false);
+        return;
+      }
+      toast.success('Organização eliminada');
+      setDeleteOrgOpen(false);
+      document.cookie = 'sf_last_org=; path=/; max-age=0';
+      window.location.href = '/';
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao eliminar a organização');
+      setDeleteOrgOpen(false);
     }
   }
 
@@ -267,8 +325,8 @@ export function SettingsClient({ orgId }: Props) {
     if (!codigo) return;
     if (navigator.share) {
       navigator.share({
-        title: 'ServiceFlow — ' + nome,
-        text: `Entra na organização "${nome}" no ServiceFlow!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
+        title: 'WIS - Services — ' + nome,
+        text: `Entra na organização "${nome}" no WIS - Services!\n\nUsa o código: ${codigo}\n\nAbre a app em: ${APP_URL}`,
       }).catch(() => {});
     } else {
       copiarCodigo();
@@ -508,6 +566,33 @@ export function SettingsClient({ orgId }: Props) {
 
         {/* ── Leave org ───────────────────────────────── */}
         <Section title="Esta organização">
+          {isAdmin && (
+            <>
+              <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+                Só pode existir um administrador por organização. Passa o cargo a outra pessoa —
+                tu passas a líder e ela passa a administradora.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTransferOpen(true)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
+                  background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.85)',
+                  border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+                  marginBottom: '1.25rem',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+              >
+                Transferir administração
+              </button>
+
+              <Divider />
+            </>
+          )}
+
           <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
             Deixa de pertencer a <span style={{ color: 'rgba(255,255,255,0.65)' }}>{activeOrg?.name ?? 'esta organização'}</span>.
             Podes voltar a entrar mais tarde com o código de convite.
@@ -597,6 +682,53 @@ export function SettingsClient({ orgId }: Props) {
         />
       )}
 
+      <Dialog open={transferOpen} onOpenChange={(open) => { setTransferOpen(open); if (!open) setTransferTargetId(''); }}>
+        <DialogContent className="dark-inputs">
+          <DialogHeader>
+            <DialogTitle>Transferir administração</DialogTitle>
+          </DialogHeader>
+          <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '0.75rem', lineHeight: 1.6 }}>
+            Escolhe quem passa a administrador(a) de {activeOrg?.name}. Tu passas a líder.
+          </p>
+          <Select value={transferTargetId} onValueChange={setTransferTargetId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Escolhe uma pessoa" />
+            </SelectTrigger>
+            <SelectContent>
+              {orgMembers
+                .filter((m) => m.user_id !== activeMembership?.user_id && m.is_active)
+                .map((m) => (
+                  <SelectItem key={m.id} value={m.user_id}>
+                    {m.profile?.full_name ?? m.profile?.email ?? 'Sem nome'}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setTransferOpen(false)}
+              style={{
+                padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
+                background: 'transparent', color: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleTransferAdmin}
+              disabled={!transferTargetId || transferAdmin.isPending}
+              className="dark-primary-btn"
+              style={{ opacity: !transferTargetId || transferAdmin.isPending ? 0.6 : 1 }}
+            >
+              {transferAdmin.isPending ? 'A transferir…' : 'Transferir'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={leaveOrgOpen} onOpenChange={setLeaveOrgOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -614,6 +746,29 @@ export function SettingsClient({ orgId }: Props) {
               disabled={leaveOrg.isPending}
             >
               {leaveOrg.isPending ? 'A saír…' : 'Saír'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteOrgOpen} onOpenChange={setDeleteOrgOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar {activeOrg?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              És a última pessoa desta organização. Ao saír, a organização e todos os
+              seus dados — eventos, escalas, ministérios e músicas — serão eliminados
+              permanentemente. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteOrg}
+              disabled={deleteOrg.isPending}
+            >
+              {deleteOrg.isPending ? 'A eliminar…' : 'Eliminar organização'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

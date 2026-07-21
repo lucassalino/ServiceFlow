@@ -628,6 +628,14 @@
   .app-main { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
 }
 
+/* Impressão — isola só o conteúdo marcado com #print-area (esconde sidebar/nav/etc) */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; inset: 0; width: 100%; }
+  .no-print { display: none !important; }
+}
+
 /* Campos de data/hora ocupam toda a largura da célula (evita sobreposição no mobile) */
 input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: border-box; }
 
@@ -777,4 +785,10 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
   width: 3px;
   border-radius: 0 2px 2px 0;
   background-color: hsl(var(--foreground));
+}
+
+/* Barra de atividade global (gravar/editar/carregar) */
+@keyframes wis-activity {
+  0%   { left: -40%; }
+  100% { left: 100%; }
 }

@@ -1,17 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useEventMinistries,
   useEventSchedules,
   useEventSetlist,
+  useEventTimeline,
   useConfirmSchedule,
 } from '@/hooks/useSchedule';
 import { getFunctionLabel } from '@/lib/constants';
-import { formatDate, formatTime, getInitials } from '@/lib/utils';
+import { formatDate, formatTime, getInitials, eventPeriod } from '@/lib/utils';
+import { downloadEventICS } from '@/lib/ics';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
 import { SongDetailPanel } from '@/modules/songs/SongDetailPanel';
@@ -24,13 +31,14 @@ interface Props {
 }
 
 export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
-  const { activeMembership } = useOrgStore();
+  const { activeMembership, activeOrg } = useOrgStore();
   const currentUserId = activeMembership?.user_id;
-  const [tab, setTab] = useState<'team' | 'setlist'>('team');
+  const [tab, setTab] = useState<'team' | 'setlist' | 'roteiro'>('team');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(event.id);
   const { data: setlist = [], isLoading: setlistLoading } = useEventSetlist(event.id);
+  const { data: timeline = [], isLoading: timelineLoading } = useEventTimeline(event.id);
 
   const color = event.color ?? '#a5b4fc';
 
@@ -68,21 +76,42 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
           </button>
 
           {isAdmin && (
-            <button onClick={onEdit} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.375rem 0.875rem',
-              fontSize: '0.775rem', fontWeight: 500,
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '0.5rem',
-              color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-              transition: 'background 0.12s',
-            }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
-            >
-              Editar evento
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {activeOrg?.id && (
+                <Link href={`/${activeOrg.id}/events/${event.id}/print`} target="_blank" rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.375rem 0.875rem',
+                    fontSize: '0.775rem', fontWeight: 500,
+                    background: 'rgba(255,255,255,0.07)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '0.5rem',
+                    color: 'rgba(255,255,255,0.7)', cursor: 'pointer', textDecoration: 'none',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                >
+                  <Printer style={{ width: '0.8rem', height: '0.8rem' }} />
+                  Exportar
+                </Link>
+              )}
+              <button onClick={onEdit} style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                padding: '0.375rem 0.875rem',
+                fontSize: '0.775rem', fontWeight: 500,
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '0.5rem',
+                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                transition: 'background 0.12s',
+              }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+              >
+                Editar evento
+              </button>
+            </div>
           )}
         </div>
 
@@ -148,6 +177,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
             {([
               { key: 'team', label: 'Ministérios & Equipa', icon: <Users style={{ width: '0.875rem', height: '0.875rem' }} />, count: eventMinistries.length },
               { key: 'setlist', label: 'Setlist', icon: <ListMusic style={{ width: '0.875rem', height: '0.875rem' }} />, count: setlist.length },
+              { key: 'roteiro', label: 'Roteiro', icon: <Clock style={{ width: '0.875rem', height: '0.875rem' }} />, count: timeline.length },
             ] as const).map(({ key, label, icon, count }) => (
               <button
                 key={key}
@@ -199,7 +229,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {(eventMinistries as (EventMinistry & { ministry: Ministry })[]).map((em) => (
-                  <MinistrySection key={em.id} em={em} currentUserId={currentUserId} />
+                  <MinistrySection key={em.id} em={em} currentUserId={currentUserId} event={event} />
                 ))}
               </div>
             )
@@ -233,12 +263,55 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
             ) : (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  {(setlist as (Song & { order_index: number })[]).map((song, idx) => (
+                  {(setlist as (Song & { order_index: number; event_key: string | null })[]).map((song, idx) => (
                     <SetlistRow key={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
                   ))}
                 </div>
                 <YoutubePlaylistButton songs={setlist as Song[]} />
               </>
+            )
+          )}
+
+          {/* Tab: Roteiro */}
+          {tab === 'roteiro' && (
+            timelineLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ height: '3rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                ))}
+              </div>
+            ) : timeline.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <Clock style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
+                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+                  Nenhum momento definido para este evento.
+                </p>
+                {isAdmin && (
+                  <button onClick={onEdit} style={{
+                    marginTop: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.4rem 0.875rem', fontSize: '0.8rem', fontWeight: 500,
+                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  }}>
+                    Editar evento para adicionar o roteiro
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div style={{ borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                {timeline.map((item, idx) => (
+                  <div key={idx} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.875rem',
+                    padding: '0.75rem 1.125rem',
+                    borderBottom: idx < timeline.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', width: '3.25rem', flexShrink: 0 }}>
+                      {formatTime(item.time)}
+                    </span>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>{item.title}</span>
+                  </div>
+                ))}
+              </div>
             )
           )}
         </div>
@@ -253,7 +326,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
 function HeroContent({ event }: { event: Event }) {
   return (
     <>
-      <div style={{ marginBottom: '0.5rem' }}>
+      <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         <span style={{
           fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
           borderRadius: '9999px', letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -263,6 +336,20 @@ function HeroContent({ event }: { event: Event }) {
         }}>
           {event.is_published ? 'Publicado' : 'Rascunho'}
         </span>
+        {(() => {
+          const p = eventPeriod(event.time);
+          if (!p) return null;
+          return (
+            <span style={{
+              fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
+              borderRadius: '9999px', letterSpacing: '0.06em', textTransform: 'uppercase',
+              background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+              border: '1px solid rgba(165,180,252,0.25)',
+            }}>
+              {p.emoji} {p.label}
+            </span>
+          );
+        })()}
       </div>
       <h1 style={{
         fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em',
@@ -279,6 +366,11 @@ function HeroContent({ event }: { event: Event }) {
             {formatTime(event.time)}
           </MetaItem>
         )}
+        {event.arrival_time && (
+          <MetaItem icon={<Timer style={{ width: '0.8rem', height: '0.8rem' }} />}>
+            Chegada {formatTime(event.arrival_time)}
+          </MetaItem>
+        )}
         {event.location && (
           <MetaItem icon={<MapPin style={{ width: '0.8rem', height: '0.8rem' }} />}>
             {event.location}
@@ -292,14 +384,16 @@ function HeroContent({ event }: { event: Event }) {
 // ── Ministry section ──────────────────────────────────────────────────────────
 
 function MinistrySection({
-  em, currentUserId,
+  em, currentUserId, event,
 }: {
   em: EventMinistry & { ministry: Ministry };
   currentUserId: string | undefined;
+  event: Event;
 }) {
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const confirmSchedule = useConfirmSchedule();
   const color = em.ministry.color ?? '#a5b4fc';
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   const confirmedCount = schedules.filter((s) => s.confirmed === true).length;
 
@@ -308,12 +402,14 @@ function MinistrySection({
     const next = schedule.confirmed !== true;
     try {
       await confirmSchedule.mutateAsync({ id: schedule.id, eventMinistryId: em.id, confirmed: next });
+      if (next) setSaveDialogOpen(true);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
   }
 
   return (
+    <>
     <div style={{
       background: 'rgba(22,22,26,0.85)',
       border: '1px solid rgba(255,255,255,0.08)',
@@ -353,7 +449,7 @@ function MinistrySection({
           const isLast = idx === schedules.length - 1;
           return (
             <div key={schedule.id} style={{
-              display: 'flex', alignItems: 'center', gap: '0.875rem',
+              display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.625rem 0.875rem',
               padding: '0.75rem 1.125rem',
               borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)',
             }}>
@@ -363,7 +459,7 @@ function MinistrySection({
                 </AvatarFallback>
               </Avatar>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: '1 1 8rem', minWidth: 0 }}>
                 <p style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                   {name}
                   {isMe && (
@@ -391,24 +487,44 @@ function MinistrySection({
                 isMe={isMe}
                 isPending={confirmSchedule.isPending}
                 onToggle={() => handleConfirm(schedule)}
+                event={event}
               />
             </div>
           );
         })
       )}
     </div>
+
+    <AlertDialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Guardar evento no calendário?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Presença confirmada em &quot;{event.name}&quot;. Queres adicionar este evento ao calendário do teu telemóvel (Google Calendar, Calendário da Apple, etc.)?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Agora não</AlertDialogCancel>
+          <AlertDialogAction onClick={() => downloadEventICS(event)}>
+            Guardar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 
 // ── Confirmação de presença ────────────────────────────────────────────────────
 
 function ConfirmControl({
-  schedule, isMe, isPending, onToggle,
+  schedule, isMe, isPending, onToggle, event,
 }: {
   schedule: EventSchedule;
   isMe: boolean;
   isPending: boolean;
   onToggle: () => void;
+  event: Event;
 }) {
   const confirmed = schedule.confirmed;
 
@@ -442,32 +558,57 @@ function ConfirmControl({
   const border = isConfirmed ? 'rgba(110,231,183,0.3)' : 'transparent';
 
   return (
-    <button
-      disabled={isPending}
-      onClick={onToggle}
-      title={isConfirmed ? 'Clique para cancelar a confirmação' : 'Clique para confirmar a tua presença'}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
-        padding: '0.45rem 0.9rem', borderRadius: '9999px',
-        fontSize: '0.75rem', fontWeight: 600,
-        color: fg, background: bg, border: `1px solid ${border}`,
-        cursor: isPending ? 'wait' : 'pointer',
-        opacity: isPending ? 0.6 : 1,
-        whiteSpace: 'nowrap',
-        transition: 'background 0.12s, opacity 0.12s, transform 0.1s',
-      }}
-      onMouseEnter={(e) => { if (!isPending) e.currentTarget.style.transform = 'translateY(-1px)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
-    >
-      {isConfirmed ? <Check style={{ width: '0.85rem', height: '0.85rem' }} /> : null}
-      {label}
-    </button>
+    <div style={{
+      display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end',
+      gap: '0.5rem', flexShrink: 0, marginLeft: 'auto',
+    }}>
+      {isConfirmed && (
+        <button
+          onClick={() => downloadEventICS(event)}
+          title="Descarregar ficheiro .ics para adicionar ao Google Calendar, Apple Calendar ou Outlook"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+            padding: '0.45rem 0.7rem', borderRadius: '9999px',
+            fontSize: '0.75rem', fontWeight: 600,
+            color: 'rgba(255,255,255,0.75)', background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.14)',
+            cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.12s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+        >
+          <CalendarPlus style={{ width: '0.85rem', height: '0.85rem' }} />
+          Adicionar ao calendário
+        </button>
+      )}
+      <button
+        disabled={isPending}
+        onClick={onToggle}
+        title={isConfirmed ? 'Clique para cancelar a confirmação' : 'Clique para confirmar a tua presença'}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+          padding: '0.45rem 0.9rem', borderRadius: '9999px',
+          fontSize: '0.75rem', fontWeight: 600,
+          color: fg, background: bg, border: `1px solid ${border}`,
+          cursor: isPending ? 'wait' : 'pointer',
+          opacity: isPending ? 0.6 : 1,
+          whiteSpace: 'nowrap',
+          transition: 'background 0.12s, opacity 0.12s, transform 0.1s',
+        }}
+        onMouseEnter={(e) => { if (!isPending) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+      >
+        {isConfirmed ? <Check style={{ width: '0.85rem', height: '0.85rem' }} /> : null}
+        {label}
+      </button>
+    </div>
   );
 }
 
 // ── Setlist row ───────────────────────────────────────────────────────────────
 
-function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number }; index: number; onClick: () => void }) {
+function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number; event_key?: string | null }; index: number; onClick: () => void }) {
+  const key = song.event_key ?? song.musical_key;
   return (
     <div
       onClick={onClick}
@@ -513,7 +654,7 @@ function SetlistRow({ song, index, onClick }: { song: Song & { order_index: numb
         )}
       </div>
       <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
-        {song.musical_key && <Chip>{song.musical_key}</Chip>}
+        {key && <Chip>{key}</Chip>}
         {song.bpm && <Chip>{song.bpm} BPM</Chip>}
       </div>
     </div>
@@ -591,21 +732,21 @@ function YoutubePlaylistButton({ songs }: { songs: Song[] }) {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.625rem 1.125rem',
-          background: 'rgba(248,113,113,0.12)',
-          border: '1px solid rgba(248,113,113,0.25)',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: '0.625rem',
-          color: '#f87171',
+          color: 'rgba(255,255,255,0.85)',
           fontSize: '0.825rem', fontWeight: 600,
           textDecoration: 'none',
           transition: 'background 0.15s, transform 0.12s',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.12)'; e.currentTarget.style.transform = 'none'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'none'; }}
       >
-        <Youtube style={{ width: '1rem', height: '1rem' }} />
+        <Youtube style={{ width: '1rem', height: '1rem', color: '#f87171' }} />
         Abrir playlist no YouTube
-        <span style={{ fontSize: '0.72rem', opacity: 0.65 }}>({ids.length} música{ids.length !== 1 ? 's' : ''})</span>
-        <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.6 }} />
+        <span style={{ fontSize: '0.72rem', opacity: 0.5 }}>({ids.length} música{ids.length !== 1 ? 's' : ''})</span>
+        <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.5 }} />
       </a>
     </div>
   );

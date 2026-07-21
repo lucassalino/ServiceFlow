@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ interface LoginFormProps {
 export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -47,7 +48,7 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
         password: values.password,
       });
       if (error) {
-        toast.error(error.message);
+        toast.error(error.message || 'Não foi possível entrar. Verifica os dados e tenta novamente.');
         return;
       }
       router.push('/');
@@ -68,7 +69,7 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
         <Input
           id="email"
           type="email"
-          placeholder="Enter your email address"
+          placeholder="email@exemplo.com"
           autoComplete="email"
           {...register('email')}
         />
@@ -82,17 +83,28 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
           <Label htmlFor="password">Password</Label>
           {forgotPasswordHref && (
             <Link href={forgotPasswordHref} className="auth-link">
-              Forgot Password?
+              Esqueci a password
             </Link>
           )}
         </div>
-        <Input
-          id="password"
-          type="password"
-          placeholder="Password"
-          autoComplete="current-password"
-          {...register('password')}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            autoComplete="current-password"
+            className="pr-10"
+            {...register('password')}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? 'Ocultar password' : 'Ver password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
@@ -100,7 +112,7 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
 
       <Button type="submit" disabled={loading} className="w-full mt-1">
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Sign in
+        Entrar
       </Button>
     </form>
   );

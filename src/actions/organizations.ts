@@ -63,27 +63,99 @@ export async function uploadOrgLogoAction(formData: FormData): Promise<string> {
   return logoUrl;
 }
 
-export async function leaveOrganizationAction(orgId: string): Promise<void> {
+export async function leaveOrganizationAction(orgId: string): Promise<{ error?: string; needsDelete?: boolean }> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error('Sessão expirada');
+  if (authError || !user) return { error: 'Sessão expirada' };
 
   const admin = getAdmin();
 
-  const { data: admins, error: adminsError } = await admin
+  const { data: members, error: membersError } = await admin
     .from('organization_members')
-    .select('id, user_id')
-    .eq('org_id', orgId).eq('role', 'admin').eq('is_active', true);
-  if (adminsError) throw new Error(adminsError.message);
+    .select('user_id, role')
+    .eq('org_id', orgId).eq('is_active', true);
+  if (membersError) return { error: membersError.message };
 
-  const isOnlyAdmin = (admins ?? []).length === 1 && admins![0].user_id === user.id;
+  const list = (members ?? []) as { user_id: string; role: string }[];
+
+  // Última pessoa da organização → saír significa eliminar a organização.
+  const isLastPerson = list.length <= 1 && list.every((m) => m.user_id === user.id);
+  if (isLastPerson) {
+    return { needsDelete: true };
+  }
+
+  // Único admin (mas há mais pessoas) → tem de passar o cargo a outra pessoa primeiro.
+  const admins = list.filter((m) => m.role === 'admin');
+  const isOnlyAdmin = admins.length === 1 && admins[0].user_id === user.id;
   if (isOnlyAdmin) {
-    throw new Error(
-      'Não podes saír: és o único administrador desta organização. Atribui outro admin primeiro.',
-    );
+    return {
+      error: 'Não podes saír: és o único administrador desta organização. Atribui outro admin ou elimina a organização.',
+    };
   }
 
   const { error } = await admin.from('organization_members')
     .delete().eq('org_id', orgId).eq('user_id', user.id);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
+  return {};
+}
+
+/**
+ * Passa a administração da organização para outra pessoa. Só o admin atual
+ * pode chamar isto — a checagem e a troca (despromover-se, promover o alvo)
+ * acontecem atomicamente dentro da função `transfer_org_admin` na base de
+ * dados, garantindo que nunca há zero nem dois admins ao mesmo tempo.
+ */
+export async function transferOrgAdminAction(orgId: string, newAdminUserId: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('transfer_org_admin', {
+    p_org_id: orgId,
+    p_new_admin_user_id: newAdminUserId,
+  });
+  if (error) return { error: error.message };
+  return {};
+}
+
+/**
+ * Elimina permanentemente a organização e todos os dados associados
+ * (eventos, escalas, ministérios, músicas, convites, membros). Só admin.
+ */
+export async function deleteOrganizationAction(orgId: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { error: 'Sessão expirada' };
+
+  const admin = getAdmin();
+
+  const { data: myMembership } = await admin
+    .from('organization_members').select('role')
+    .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
+  if ((myMembership as { role?: string } | null)?.role !== 'admin') {
+    return { error: 'Apenas administradores podem eliminar a organização.' };
+  }
+
+  // Apaga os dados dependentes por ordem (filhos primeiro).
+  const { data: events } = await admin.from('events').select('id').eq('org_id', orgId);
+  const eventIds = (events ?? []).map((e) => (e as { id: string }).id);
+  const { data: ministries } = await admin.from('ministries').select('id').eq('org_id', orgId);
+  const ministryIds = (ministries ?? []).map((m) => (m as { id: string }).id);
+
+  if (eventIds.length > 0) {
+    const { data: ems } = await admin.from('event_ministries').select('id').in('event_id', eventIds);
+    const emIds = (ems ?? []).map((e) => (e as { id: string }).id);
+    if (emIds.length > 0) await admin.from('event_schedules').delete().in('event_ministry_id', emIds);
+    await admin.from('event_setlists').delete().in('event_id', eventIds);
+    await admin.from('event_ministries').delete().in('event_id', eventIds);
+    await admin.from('notifications').delete().in('event_id', eventIds);
+  }
+  await admin.from('events').delete().eq('org_id', orgId);
+  await admin.from('songs').delete().eq('org_id', orgId);
+  if (ministryIds.length > 0) await admin.from('ministry_members').delete().in('ministry_id', ministryIds);
+  await admin.from('ministries').delete().eq('org_id', orgId);
+  await admin.from('organization_invites').delete().eq('org_id', orgId);
+  await admin.from('subscriptions').delete().eq('org_id', orgId);
+  await admin.from('organization_members').delete().eq('org_id', orgId);
+
+  const { error } = await admin.from('organizations').delete().eq('id', orgId);
+  if (error) return { error: error.message };
+  return {};
 }
