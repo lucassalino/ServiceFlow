@@ -6,20 +6,20 @@ import { Ticket, Trash2, Plus } from 'lucide-react';
 import { useRedeemCoupon, useCoupons, useCreateCoupon, useDeleteCoupon } from '@/hooks/useCoupons';
 import { getPlan, PLAN_LIST, type PlanKey } from '@/lib/plans';
 
+// Sub-secção "plana" (sem moldura própria) para integrar no cartão Organização.
 function Card({ title, icon, accent, children }: {
   title: string; icon?: React.ReactNode; accent?: boolean; children: React.ReactNode;
 }) {
   return (
-    <div style={{
-      background: 'rgba(22,22,26,0.85)',
-      border: `1px solid ${accent ? 'rgba(165,180,252,0.3)' : 'rgba(255,255,255,0.08)'}`,
-      borderRadius: '0.875rem', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-    }}>
-      <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
         {icon}
-        <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: accent ? '#a5b4fc' : '#fff' }}>{title}</h2>
+        <h3 style={{
+          fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+          color: accent ? '#a5b4fc' : 'rgba(255,255,255,0.55)',
+        }}>{title}</h3>
       </div>
-      <div style={{ padding: '1.25rem' }}>{children}</div>
+      {children}
     </div>
   );
 }
