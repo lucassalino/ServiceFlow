@@ -362,7 +362,7 @@ export function SettingsClient({ orgId }: Props) {
         </div>
 
         {/* ── Plano + concessão dev ───────────────────── */}
-        <PlanSection orgId={orgId} />
+        <PlanSection orgId={orgId} isAdmin={isAdmin} />
 
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">

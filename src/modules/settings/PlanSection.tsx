@@ -6,6 +6,7 @@ import { Sparkles, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { useOrgSubscription, useIsPlatformAdmin, useGrantPlan } from '@/hooks/useSubscription';
 import { PLAN_LIST, getPlan, type PlanKey } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
+import { CouponsSection } from './CouponsSection';
 
 function Card({ title, icon, accent, children }: {
   title: string; icon?: React.ReactNode; accent?: boolean; children: React.ReactNode;
@@ -25,9 +26,9 @@ function Card({ title, icon, accent, children }: {
   );
 }
 
-interface Props { orgId: string }
+interface Props { orgId: string; isAdmin: boolean }
 
-export function PlanSection({ orgId }: Props) {
+export function PlanSection({ orgId, isAdmin }: Props) {
   const { data: sub, isLoading } = useOrgSubscription(orgId);
   const { data: isPlatformAdmin } = useIsPlatformAdmin();
   const grantPlan = useGrantPlan();
@@ -150,6 +151,9 @@ export function PlanSection({ orgId }: Props) {
           </div>
         </Card>
       )}
+
+      {/* Cupões — resgate (admin da org) + gestão (super-admin) */}
+      <CouponsSection orgId={orgId} isAdmin={isAdmin} isPlatformAdmin={!!isPlatformAdmin} />
     </div>
   );
 }
