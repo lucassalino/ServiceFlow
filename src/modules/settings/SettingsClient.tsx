@@ -28,7 +28,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
-import { PlanSection } from './PlanSection';
+// import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Nome obrigatório'),
@@ -541,8 +541,9 @@ export function SettingsClient({ orgId }: Props) {
             </form>
 
             {/* Plano + concessão dev + cupões — dentro do cartão Organização */}
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '1.25rem 0' }} />
-            <PlanSection orgId={orgId} isAdmin={isAdmin} />
+            {/* Planos/cupões temporariamente ocultos — descomentar para reativar. */}
+            {/* <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '1.25rem 0' }} />
+            <PlanSection orgId={orgId} isAdmin={isAdmin} /> */}
           </Section>
         )}
 
