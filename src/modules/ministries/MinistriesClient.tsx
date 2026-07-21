@@ -24,7 +24,9 @@ const TABS: { value: Tab; label: string }[] = [
 
 export function MinistriesClient() {
   const { activeMembership } = useOrgStore();
-  const isAdmin = activeMembership?.role === 'admin';
+  const role = activeMembership?.role;
+  const isAdmin = role === 'admin';
+  const canManage = role === 'admin' || role === 'leader'; // criar/editar
   const { data: ministries = [], isLoading } = useMinistries();
   const deleteMinistry = useDeleteMinistry();
   const toggleActive = useToggleMinistryActive();
@@ -93,6 +95,7 @@ export function MinistriesClient() {
         <MinistryDetailPanel
           ministry={detailMinistry}
           isAdmin={isAdmin}
+          canManage={canManage}
           onBack={() => setDetailMinistry(null)}
           onEdit={() => setMembersMinistry(detailMinistry)}
           onEditProperties={() => setFormMode(detailMinistry)}
@@ -144,7 +147,7 @@ export function MinistriesClient() {
                 : 'Grupos e equipas da organização'}
             </p>
           </div>
-          {isAdmin && (
+          {canManage && (
             <button onClick={() => setFormMode('create')} className="dark-primary-btn">
               <Plus className="h-4 w-4" />
               Novo Ministério

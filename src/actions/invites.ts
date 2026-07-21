@@ -30,8 +30,10 @@ async function requireOrgAdmin(orgId: string) {
   const { data: membership } = await admin
     .from('organization_members').select('role')
     .eq('org_id', orgId).eq('user_id', user.id).single();
-  if ((membership as { role?: string } | null)?.role !== 'admin') {
-    throw new Error('Apenas administradores podem gerir convites');
+  const role = (membership as { role?: string } | null)?.role;
+  // Admins e líderes podem gerir convites (criar/cancelar).
+  if (role !== 'admin' && role !== 'leader') {
+    throw new Error('Apenas administradores ou líderes podem gerir convites');
   }
   return { admin, user };
 }

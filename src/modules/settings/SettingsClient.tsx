@@ -28,7 +28,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
-import { PlanSection } from './PlanSection';
+// import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Nome obrigatório'),
@@ -361,8 +361,9 @@ export function SettingsClient({ orgId }: Props) {
           </p>
         </div>
 
-        {/* ── Plano + concessão dev ───────────────────── */}
-        <PlanSection orgId={orgId} isAdmin={isAdmin} />
+        {/* ── Plano + concessão dev + cupões ──────────── */}
+        {/* Temporariamente oculto (planos e cupões ainda em desenvolvimento). */}
+        {/* <PlanSection orgId={orgId} isAdmin={isAdmin} /> */}
 
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">

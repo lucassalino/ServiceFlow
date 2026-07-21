@@ -36,7 +36,9 @@ export function SongsClient() {
   const { data: ministries = [] } = useMinistries();
   const deleteSong = useDeleteSong();
   const { activeMembership } = useOrgStore();
-  const isAdmin = activeMembership?.role === 'admin';
+  const role = activeMembership?.role;
+  const isAdmin = role === 'admin';
+  const canManage = role === 'admin' || role === 'leader'; // criar/editar
 
   const [formSong, setFormSong] = useState<Song | null | 'new'>(null);
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
@@ -106,6 +108,7 @@ export function SongsClient() {
           ministryIcon={ministry?.icon}
           onBack={() => setDetailSong(null)}
           isAdmin={isAdmin}
+          canManage={canManage}
           onEdit={() => handleEdit(detailSong)}
           onDelete={() => handleDeleteRequest(detailSong)}
         />
@@ -154,7 +157,7 @@ export function SongsClient() {
                 : 'Músicas da organização'}
             </p>
           </div>
-          {isAdmin && (
+          {canManage && (
             <button onClick={handleNew} className="dark-primary-btn">
               <Plus className="h-4 w-4" />
               Nova Música
@@ -231,7 +234,7 @@ export function SongsClient() {
                     ? 'Nenhuma música encontrada.'
                     : 'Nenhuma música adicionada.'}
                 </p>
-                {isAdmin && !search && ministryFilter === 'all' && (
+                {canManage && !search && ministryFilter === 'all' && (
                   <button onClick={handleNew} className="dark-primary-btn mt-4">
                     <Plus className="h-4 w-4" /> Adicionar primeira música
                   </button>
@@ -250,6 +253,7 @@ export function SongsClient() {
                       onEdit={() => handleEdit(song)}
                       onDelete={() => setDeleteTarget(song)}
                       isAdmin={isAdmin}
+                      canManage={canManage}
                     />
                   );
                 })}
@@ -395,7 +399,7 @@ function RankingRow({
 // ── Song row ─────────────────────────────────────────────────────────────────
 
 function SongRow({
-  song, ministryName, onClick, onEdit, onDelete, isAdmin,
+  song, ministryName, onClick, onEdit, onDelete, isAdmin, canManage,
 }: {
   song: Song;
   ministryName?: string;
@@ -403,6 +407,7 @@ function SongRow({
   onEdit: () => void;
   onDelete: () => void;
   isAdmin: boolean;
+  canManage: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -469,8 +474,8 @@ function SongRow({
         )}
       </div>
 
-      {/* Actions — admin only, on hover */}
-      {isAdmin && (
+      {/* Actions — gestor (admin/líder), on hover */}
+      {canManage && (
         <div
           style={{ display: 'flex', gap: '0.25rem', flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
           onClick={(e) => e.stopPropagation()}
@@ -478,9 +483,11 @@ function SongRow({
           <button className="dark-icon-btn" onClick={onEdit} title="Editar">
             <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
           </button>
-          <button className="dark-icon-btn danger" onClick={onDelete} title="Remover">
-            <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
-          </button>
+          {isAdmin && (
+            <button className="dark-icon-btn danger" onClick={onDelete} title="Remover">
+              <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
+            </button>
+          )}
         </div>
       )}
     </div>
