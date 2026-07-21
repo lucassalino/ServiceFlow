@@ -11,17 +11,25 @@
   "observability": {
     "enabled": true
   },
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://ikhxbczktmwkeglomgrv.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlraHhiY3prdG13a2VnbG9tZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NjI5MTcsImV4cCI6MjA5NjIzODkxN30.tYmHGRCmVbPNIkGCWo0k_Zmpy6i9S7-brWBLQ8Jjd_I"
+  },
   "env": {
     "dev": {
       "name": "serviceflow-dev",
       "vars": {
-        "NEXT_PUBLIC_APP_ENV": "development"
+        "NEXT_PUBLIC_APP_ENV": "development",
+        "NEXT_PUBLIC_SUPABASE_URL": "https://ikhxbczktmwkeglomgrv.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlraHhiY3prdG13a2VnbG9tZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NjI5MTcsImV4cCI6MjA5NjIzODkxN30.tYmHGRCmVbPNIkGCWo0k_Zmpy6i9S7-brWBLQ8Jjd_I"
       }
     },
     "prd": {
       "name": "serviceflow-prd",
       "vars": {
-        "NEXT_PUBLIC_APP_ENV": "production"
+        "NEXT_PUBLIC_APP_ENV": "production",
+        "NEXT_PUBLIC_SUPABASE_URL": "https://ikhxbczktmwkeglomgrv.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlraHhiY3prdG13a2VnbG9tZ3J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NjI5MTcsImV4cCI6MjA5NjIzODkxN30.tYmHGRCmVbPNIkGCWo0k_Zmpy6i9S7-brWBLQ8Jjd_I"
       }
     }
   }
