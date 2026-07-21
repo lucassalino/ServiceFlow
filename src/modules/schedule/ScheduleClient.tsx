@@ -615,7 +615,11 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
     setSentTo((prev) => new Set(prev).add(next.userId));
   }
 
-  const sortedEvents = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Nas escalas só aparecem os próximos eventos — nunca os já passados.
+  const today = new Date().toISOString().split('T')[0];
+  const sortedEvents = [...events]
+    .filter((e) => e.date >= today)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const existingMinistryIds = eventMinistries.map((em) => em.ministry_id);
 
   return (
