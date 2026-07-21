@@ -539,12 +539,11 @@ export function SettingsClient({ orgId }: Props) {
                 {orgForm.formState.isSubmitting ? 'A guardar…' : 'Guardar organização'}
               </button>
             </form>
-          </Section>
-        )}
 
-        {/* ── Plano + concessão dev + cupões (dentro da área da organização) ── */}
-        {isAdmin && activeOrg && (
-          <PlanSection orgId={orgId} isAdmin={isAdmin} />
+            {/* Plano + concessão dev + cupões — dentro do cartão Organização */}
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '1.25rem 0' }} />
+            <PlanSection orgId={orgId} isAdmin={isAdmin} />
+          </Section>
         )}
 
         {/* ── Sessão ──────────────────────────────────── */}
