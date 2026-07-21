@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { PRESET_MINISTRIES } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
+import { assertCanAddMinistry } from '@/actions/subscriptions';
 
 export async function fetchMinistriesAction(orgId: string): Promise<Ministry[]> {
   const supabase = await createClient();
@@ -19,6 +20,8 @@ export async function createMinistryAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  // Limite de ministérios do plano.
+  await assertCanAddMinistry(orgId);
   const { data, error } = await supabase.from('ministries')
     .insert({ ...payload, functions: payload.functions ?? [], org_id: orgId }).select().single();
   if (error) throw new Error(error.message);

@@ -9,11 +9,12 @@ interface Props {
   ministryIcon?: string;
   onBack: () => void;
   isAdmin: boolean;
+  canManage?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAdmin, onEdit, onDelete }: Props) {
+export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAdmin, canManage = isAdmin, onEdit, onDelete }: Props) {
   const links = [
     { label: 'YouTube', url: song.youtube_url, icon: <Youtube style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#f87171' },
     { label: 'Spotify',  url: song.spotify_url, icon: <Music   style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#1db954' },
@@ -44,7 +45,7 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
             Repertório
           </button>
 
-          {isAdmin && (
+          {canManage && (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={onEdit}
@@ -64,24 +65,26 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
                 <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
                 Editar
               </button>
-              <button
-                onClick={onDelete}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  padding: '0.375rem 0.875rem',
-                  fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: '0.5rem',
-                  color: '#f87171', cursor: 'pointer',
-                  transition: 'background 0.12s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
-              >
-                <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
-                Remover
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={onDelete}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.375rem 0.875rem',
+                    fontSize: '0.775rem', fontWeight: 500,
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.2)',
+                    borderRadius: '0.5rem',
+                    color: '#f87171', cursor: 'pointer',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                >
+                  <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
+                  Remover
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -166,7 +169,7 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
             <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
               Nenhum link adicionado.
             </p>
-            {isAdmin && (
+            {canManage && (
               <button
                 onClick={onEdit}
                 style={{

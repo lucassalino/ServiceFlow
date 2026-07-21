@@ -511,7 +511,8 @@ function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
 export function ScheduleClient({ orgId: _orgId }: Props) {
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { activeMembership, activeOrg } = useOrgStore();
-  const isAdmin = activeMembership?.role === 'admin';
+  // Admins e líderes gerem escalas (criar/editar). RLS permite ambos.
+  const isAdmin = activeMembership?.role === 'admin' || activeMembership?.role === 'leader';
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [addMinistryOpen, setAddMinistryOpen] = useState(false);
   const [mobileShowDetail, setMobileShowDetail] = useState(false);
