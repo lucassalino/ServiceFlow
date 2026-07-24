@@ -540,8 +540,12 @@ export function SettingsClient({ orgId }: Props) {
               </button>
             </form>
 
-            {/* Plano + concessão dev + cupões — dentro do cartão Organização */}
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '1.25rem 0' }} />
+          </Section>
+        )}
+
+        {/* ── Plano + concessão dev + cupões (cartão próprio) ── */}
+        {isAdmin && activeOrg && (
+          <Section title="Plano e cupões">
             <PlanSection orgId={orgId} isAdmin={isAdmin} />
           </Section>
         )}
