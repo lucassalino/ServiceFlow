@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutGrid, Plus, UserCog } from 'lucide-react';
+import { LayoutGrid, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import {
@@ -13,7 +13,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MinistryMembersPanel } from './MinistryMembersPanel';
 import { MinistryDetailPanel } from './MinistryDetailPanel';
 import { MinistryFormPanel } from './MinistryFormPanel';
-import { MyParticipationDialog } from '@/modules/organizations/MyParticipationDialog';
 
 type Tab = 'active' | 'inactive' | 'all';
 
@@ -32,8 +31,6 @@ export function MinistriesClient() {
   const deleteMinistry = useDeleteMinistry();
   const toggleActive = useToggleMinistryActive();
 
-  const { activeOrg } = useOrgStore();
-  const [myPartOpen, setMyPartOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('active');
   const [detailMinistry, setDetailMinistry] = useState<Ministry | null>(null);
   const [membersMinistry, setMembersMinistry] = useState<Ministry | null>(null);
@@ -150,26 +147,12 @@ export function MinistriesClient() {
                 : 'Grupos e equipas da organização'}
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => setMyPartOpen(true)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.5rem 0.9rem', borderRadius: '0.5rem',
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-              }}
-            >
-              <UserCog className="h-4 w-4" />
-              As minhas participações
+          {canManage && (
+            <button onClick={() => setFormMode('create')} className="dark-primary-btn">
+              <Plus className="h-4 w-4" />
+              Novo Ministério
             </button>
-            {canManage && (
-              <button onClick={() => setFormMode('create')} className="dark-primary-btn">
-                <Plus className="h-4 w-4" />
-                Novo Ministério
-              </button>
-            )}
-          </div>
+          )}
         </div>
 
         {/* ── Tab filter ──────────────────────────────── */}
@@ -266,9 +249,6 @@ export function MinistriesClient() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {activeOrg && (
-        <MyParticipationDialog orgId={activeOrg.id} open={myPartOpen} onOpenChange={setMyPartOpen} />
-      )}
     </div>
   );
 }
