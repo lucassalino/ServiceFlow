@@ -45,43 +45,60 @@ export async function fetchMyParticipationAction(orgId: string): Promise<MyParti
 
 /**
  * Grava as participações do próprio utilizador nesta org + dados de perfil.
- * Guarda também as funções escolhidas como "default_functions" (globais) para
- * pré-preencher quando entrar noutra organização.
+ * `functions` são as funções globais do utilizador (guardadas em
+ * default_functions para pré-preencher noutras orgs). Para cada ministério
+ * selecionado, atribui a interseção das funções globais com as funções desse
+ * ministério (ou todas, se o ministério não tiver catálogo de funções).
  */
 export async function saveMyParticipationAction(
   orgId: string,
   input: {
     phone: string | null;
     birthday: string | null;
-    entries: { ministryId: string; functions: string[] }[];
+    functions: string[];
+    ministryIds: string[];
   },
 ): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
-  // União de todas as funções escolhidas → guardar como preferências globais.
-  const chosenFns = Array.from(new Set(input.entries.flatMap((e) => e.functions)));
-
   const profileUpdate = {
     phone: input.phone,
     birthday: input.birthday,
-    default_functions: chosenFns,
+    default_functions: input.functions,
     updated_at: new Date().toISOString(),
   } as never;
   const { error: profErr } = await supabase.from('profiles').update(profileUpdate).eq('id', user.id);
   if (profErr) throw new Error(profErr.message);
 
-  // Reset das minhas participações nesta org e re-inserção das selecionadas.
-  const { data: orgMinistries } = await supabase.from('ministries').select('id').eq('org_id', orgId);
-  const orgMinistryIds = (orgMinistries ?? []).map((m: { id: string }) => m.id);
+  // Ministérios da org (com as suas funções) para calcular interseção.
+  const { data: orgMinistries } = await supabase.from('ministries').select('id, functions').eq('org_id', orgId);
+  const list = (orgMinistries ?? []) as { id: string; functions: string[] | null }[];
+  const orgMinistryIds = list.map((m) => m.id);
+
   if (orgMinistryIds.length > 0) {
     await supabase.from('ministry_members').delete().eq('user_id', user.id).in('ministry_id', orgMinistryIds);
   }
-  const valid = input.entries.filter((e) => orgMinistryIds.includes(e.ministryId));
-  if (valid.length > 0) {
-    const rows = valid.map((e) => ({ ministry_id: e.ministryId, user_id: user.id, functions: e.functions, is_active: true }));
+
+  const selected = list.filter((m) => input.ministryIds.includes(m.id));
+  if (selected.length > 0) {
+    const rows = selected.map((m) => {
+      const catalog = m.functions ?? [];
+      const fns = catalog.length > 0 ? input.functions.filter((f) => catalog.includes(f)) : input.functions;
+      return { ministry_id: m.id, user_id: user.id, functions: fns, is_active: true };
+    });
     const { error } = await supabase.from('ministry_members').insert(rows);
     if (error) throw new Error(error.message);
   }
+}
+
+/** Guarda apenas as funções globais do utilizador (Definições → As minhas funções). */
+export async function saveMyDefaultFunctionsAction(functions: string[]): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const update = { default_functions: functions, updated_at: new Date().toISOString() } as never;
+  const { error } = await supabase.from('profiles').update(update).eq('id', user.id);
+  if (error) throw new Error(error.message);
 }

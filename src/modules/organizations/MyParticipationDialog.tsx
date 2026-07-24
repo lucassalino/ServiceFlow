@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Check } from 'lucide-react';
 import { useMyParticipation, useSaveMyParticipation } from '@/hooks/useParticipation';
-import { resolveFunction } from '@/lib/constants';
+import { FunctionChips } from '@/components/FunctionChips';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Props {
   orgId: string;
@@ -25,46 +24,29 @@ export function MyParticipationDialog({ orgId, open, onOpenChange, onboarding }:
 
   const [phone, setPhone] = useState('');
   const [birthday, setBirthday] = useState('');
-  // ministryId -> functions[]  (apenas os ministérios selecionados estão no mapa)
-  const [selection, setSelection] = useState<Record<string, string[]>>({});
+  const [functions, setFunctions] = useState<string[]>([]);
+  const [ministryIds, setMinistryIds] = useState<string[]>([]);
 
-  // Pré-preencher a partir do que já está gravado (perfil + participações + default_functions).
   useEffect(() => {
     if (!open || !data) return;
     setPhone(data.profile.phone ?? '');
     setBirthday(data.profile.birthday ?? '');
-    const map: Record<string, string[]> = {};
-    for (const m of data.mine) map[m.ministry_id] = m.functions;
-    setSelection(map);
+    // Funções: preferências globais, ou união das que já tem nesta org.
+    const fromMine = Array.from(new Set(data.mine.flatMap((m) => m.functions)));
+    setFunctions(data.profile.default_functions.length > 0 ? data.profile.default_functions : fromMine);
+    setMinistryIds(data.mine.map((m) => m.ministry_id));
   }, [open, data]);
 
-  const defaults = useMemo(() => new Set(data?.profile.default_functions ?? []), [data]);
-
-  function toggleMinistry(minId: string, availableFns: string[]) {
-    setSelection((prev) => {
-      const next = { ...prev };
-      if (minId in next) {
-        delete next[minId];
-      } else {
-        // Ao selecionar, pré-marca as funções deste ministério que o utilizador já costuma fazer.
-        next[minId] = availableFns.filter((f) => defaults.has(f));
-      }
-      return next;
-    });
+  function toggleFn(key: string) {
+    setFunctions((prev) => prev.includes(key) ? prev.filter((f) => f !== key) : [...prev, key]);
   }
-
-  function toggleFn(minId: string, fn: string) {
-    setSelection((prev) => {
-      const cur = prev[minId] ?? [];
-      const has = cur.includes(fn);
-      return { ...prev, [minId]: has ? cur.filter((f) => f !== fn) : [...cur, fn] };
-    });
+  function toggleMinistry(id: string) {
+    setMinistryIds((prev) => prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]);
   }
 
   async function handleSave() {
     try {
-      const entries = Object.entries(selection).map(([ministryId, functions]) => ({ ministryId, functions }));
-      await save.mutateAsync({ orgId, phone: phone.trim() || null, birthday: birthday || null, entries });
+      await save.mutateAsync({ orgId, phone: phone.trim() || null, birthday: birthday || null, functions, ministryIds });
       toast.success('Os teus dados foram guardados');
       onOpenChange(false);
     } catch (e: unknown) {
@@ -79,67 +61,59 @@ export function MyParticipationDialog({ orgId, open, onOpenChange, onboarding }:
           <DialogTitle>{onboarding ? 'Bem-vindo! Completa o teu perfil' : 'As minhas participações'}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             {onboarding
-              ? 'Diz-nos em que ministérios serves e as tuas funções. Fica gravado para as próximas vezes.'
-              : 'Escolhe os ministérios onde serves e as tuas funções.'}
+              ? 'Diz-nos os teus dados, funções e ministérios. Fica gravado para as próximas vezes.'
+              : 'Escolhe as tuas funções e os ministérios onde serves.'}
           </p>
         </DialogHeader>
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground py-4">A carregar…</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Dados pessoais */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="phone">Telemóvel</Label>
-                <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+351 …" />
+                <Input id="phone" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+351 …" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="birthday">Aniversário</Label>
-                <Input id="birthday" type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
+                <Label htmlFor="birthday">Data de nascimento</Label>
+                <Input id="birthday" type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} style={{ colorScheme: 'dark' }} />
               </div>
             </div>
 
-            {/* Ministérios + funções */}
-            <div className="space-y-1">
-              <Label>Ministérios e funções</Label>
+            {/* Funções (chips) */}
+            <div className="space-y-2">
+              <Label>As minhas funções</Label>
+              <FunctionChips selected={functions} onToggle={toggleFn} />
+            </div>
+
+            {/* Ministérios (chips) */}
+            <div className="space-y-2">
+              <Label>Os meus ministérios</Label>
               {(data?.ministries.length ?? 0) === 0 ? (
                 <p className="text-xs text-muted-foreground">Esta organização ainda não tem ministérios.</p>
               ) : (
-                <ScrollArea className="max-h-[45vh] rounded-md border">
-                  <div className="p-2 space-y-0.5">
-                    {data!.ministries.map((m) => {
-                      const selected = m.id in selection;
-                      const fns = selection[m.id] ?? [];
-                      const available = (m.functions ?? []).map((k) => resolveFunction(k));
-                      return (
-                        <div key={m.id}>
-                          <label className="flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer hover:bg-accent">
-                            <Checkbox checked={selected} onCheckedChange={() => toggleMinistry(m.id, m.functions ?? [])} />
-                            <span className="text-base">{m.icon}</span>
-                            <span className="text-sm flex-1 truncate">{m.name}</span>
-                            {selected && fns.length > 0 && (
-                              <span className="text-xs text-muted-foreground shrink-0">{fns.length} função{fns.length !== 1 ? 'ões' : ''}</span>
-                            )}
-                          </label>
-                          {selected && available.length > 0 && (
-                            <div className="ml-8 pb-1 grid grid-cols-2 gap-0.5">
-                              {available.map((f) => (
-                                <label key={f.key} className="flex items-center gap-1.5 px-2 py-1.5 text-xs cursor-pointer rounded hover:bg-accent">
-                                  <Checkbox checked={fns.includes(f.key)} onCheckedChange={() => toggleFn(m.id, f.key)} />
-                                  <span>{f.emoji} {f.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                          {selected && available.length === 0 && (
-                            <p className="ml-8 pb-1 text-[0.7rem] text-muted-foreground">Este ministério não tem funções definidas.</p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {data!.ministries.map((m) => {
+                    const sel = ministryIds.includes(m.id);
+                    return (
+                      <button key={m.id} type="button" onClick={() => toggleMinistry(m.id)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                          padding: '0.375rem 0.7rem', borderRadius: '9999px',
+                          fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer',
+                          background: sel ? 'rgba(165,180,252,0.14)' : 'rgba(255,255,255,0.05)',
+                          color: sel ? '#a5b4fc' : 'rgba(255,255,255,0.6)',
+                          border: `1px solid ${sel ? 'rgba(165,180,252,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                        }}>
+                        <span>{m.icon}</span>
+                        <span>{m.name}</span>
+                        {sel && <Check style={{ width: '0.7rem', height: '0.7rem' }} />}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>

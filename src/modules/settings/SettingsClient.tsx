@@ -28,6 +28,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
+import { MyFunctionsSection } from './MyFunctionsSection';
 // import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
@@ -440,6 +441,13 @@ export function SettingsClient({ orgId }: Props) {
             </button>
           </form>
         </Section>
+
+        {/* ── As minhas funções ────────────────────────── */}
+        {activeOrg && (
+          <Section title="As minhas funções">
+            <MyFunctionsSection orgId={orgId} />
+          </Section>
+        )}
 
         {/* ── Organisation (admin only) ────────────────── */}
         {isAdmin && activeOrg && (
