@@ -53,41 +53,38 @@ export async function fetchMyParticipationAction(orgId: string): Promise<MyParti
 export async function saveMyParticipationAction(
   orgId: string,
   input: {
-    phone: string | null;
-    birthday: string | null;
-    functions: string[];
-    ministryIds: string[];
+    phone?: string | null;
+    birthday?: string | null;
+    entries: { ministryId: string; functions: string[] }[];
   },
 ): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
-  const profileUpdate = {
-    phone: input.phone,
-    birthday: input.birthday,
-    default_functions: input.functions,
+  // Funções globais (para pré-preencher noutras orgs) = união das escolhidas.
+  const chosenFns = Array.from(new Set(input.entries.flatMap((e) => e.functions)));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profilePayload: Record<string, any> = {
+    default_functions: chosenFns,
     updated_at: new Date().toISOString(),
-  } as never;
-  const { error: profErr } = await supabase.from('profiles').update(profileUpdate).eq('id', user.id);
+  };
+  if (input.phone !== undefined) profilePayload.phone = input.phone;
+  if (input.birthday !== undefined) profilePayload.birthday = input.birthday;
+
+  const { error: profErr } = await supabase.from('profiles').update(profilePayload as never).eq('id', user.id);
   if (profErr) throw new Error(profErr.message);
 
-  // Ministérios da org (com as suas funções) para calcular interseção.
-  const { data: orgMinistries } = await supabase.from('ministries').select('id, functions').eq('org_id', orgId);
-  const list = (orgMinistries ?? []) as { id: string; functions: string[] | null }[];
-  const orgMinistryIds = list.map((m) => m.id);
-
+  // Reset das minhas participações nesta org e re-inserção das selecionadas.
+  const { data: orgMinistries } = await supabase.from('ministries').select('id').eq('org_id', orgId);
+  const orgMinistryIds = (orgMinistries ?? []).map((m: { id: string }) => m.id);
   if (orgMinistryIds.length > 0) {
     await supabase.from('ministry_members').delete().eq('user_id', user.id).in('ministry_id', orgMinistryIds);
   }
-
-  const selected = list.filter((m) => input.ministryIds.includes(m.id));
-  if (selected.length > 0) {
-    const rows = selected.map((m) => {
-      const catalog = m.functions ?? [];
-      const fns = catalog.length > 0 ? input.functions.filter((f) => catalog.includes(f)) : input.functions;
-      return { ministry_id: m.id, user_id: user.id, functions: fns, is_active: true };
-    });
+  const valid = input.entries.filter((e) => orgMinistryIds.includes(e.ministryId));
+  if (valid.length > 0) {
+    const rows = valid.map((e) => ({ ministry_id: e.ministryId, user_id: user.id, functions: e.functions, is_active: true }));
     const { error } = await supabase.from('ministry_members').insert(rows);
     if (error) throw new Error(error.message);
   }

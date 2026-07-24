@@ -442,9 +442,9 @@ export function SettingsClient({ orgId }: Props) {
           </form>
         </Section>
 
-        {/* ── As minhas funções ────────────────────────── */}
+        {/* ── Os meus ministérios e funções ────────────── */}
         {activeOrg && (
-          <Section title="As minhas funções">
+          <Section title="Os meus ministérios e funções">
             <MyFunctionsSection orgId={orgId} />
           </Section>
         )}

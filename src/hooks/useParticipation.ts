@@ -20,12 +20,11 @@ export function useSaveMyParticipation() {
   return useMutation({
     mutationFn: (vars: {
       orgId: string;
-      phone: string | null;
-      birthday: string | null;
-      functions: string[];
-      ministryIds: string[];
+      phone?: string | null;
+      birthday?: string | null;
+      entries: { ministryId: string; functions: string[] }[];
     }) => saveMyParticipationAction(vars.orgId, {
-      phone: vars.phone, birthday: vars.birthday, functions: vars.functions, ministryIds: vars.ministryIds,
+      phone: vars.phone, birthday: vars.birthday, entries: vars.entries,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-participation'] });
