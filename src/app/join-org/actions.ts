@@ -42,5 +42,5 @@ export async function joinOrganization(inviteCode: string): Promise<{ error?: st
 
   if (memberError) return { error: memberError.message };
 
-  redirect(`/${org.id}/dashboard`);
+  redirect(`/${org.id}/dashboard?setup=1`);
 }

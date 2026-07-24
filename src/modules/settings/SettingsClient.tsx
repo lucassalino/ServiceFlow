@@ -28,7 +28,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
-import { PlanSection } from './PlanSection';
+// import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Nome obrigatório'),
@@ -543,12 +543,12 @@ export function SettingsClient({ orgId }: Props) {
           </Section>
         )}
 
-        {/* ── Plano + concessão dev + cupões (cartão próprio) ── */}
-        {isAdmin && activeOrg && (
+        {/* ── Plano + concessão dev + cupões (cartão próprio) — temporariamente oculto ── */}
+        {/* {isAdmin && activeOrg && (
           <Section title="Plano e cupões">
             <PlanSection orgId={orgId} isAdmin={isAdmin} />
           </Section>
-        )}
+        )} */}
 
         {/* ── Sessão ──────────────────────────────────── */}
         <Section title="Sessão">

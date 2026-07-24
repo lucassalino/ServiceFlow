@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { OrgInitializer } from '@/modules/organizations/OrgInitializer';
+import { OnboardingTrigger } from '@/modules/organizations/OnboardingTrigger';
 import type { Organization, OrganizationMember, UserProfile } from '@/types/models';
 
 interface Props {
@@ -34,6 +36,9 @@ export default async function OrgLayout({ children, params }: Props) {
       <AppShell orgId={orgId}>
         {children}
       </AppShell>
+      <Suspense fallback={null}>
+        <OnboardingTrigger orgId={orgId} />
+      </Suspense>
     </OrgInitializer>
   );
 }
