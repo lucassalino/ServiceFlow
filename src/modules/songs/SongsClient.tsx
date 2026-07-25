@@ -10,7 +10,6 @@ import { formatDate } from '@/lib/utils';
 import type { Song } from '@/types/models';
 import type { SongRankingEntry } from '@/actions/songs';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { SongFormPanel } from './SongFormPanel';
 import { SongDetailPanel } from './SongDetailPanel';
@@ -44,7 +43,6 @@ export function SongsClient() {
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
   const [detailSong, setDetailSong] = useState<Song | null>(null);
   const [search, setSearch] = useState('');
-  const [ministryFilter, setMinistryFilter] = useState<string>('all');
   const [view, setView] = useState<'list' | 'ranking'>('list');
 
   const ministryMap = useMemo(() => {
@@ -56,11 +54,10 @@ export function SongsClient() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return songs.filter((s) => {
-      if (ministryFilter !== 'all' && s.ministry_id !== ministryFilter) return false;
       if (!q) return true;
       return s.name.toLowerCase().includes(q) || (s.artist?.toLowerCase().includes(q) ?? false);
     });
-  }, [songs, search, ministryFilter]);
+  }, [songs, search]);
 
   function handleNew() { setFormSong('new'); }
   function handleEdit(song: Song) { setFormSong(song); }
@@ -192,8 +189,8 @@ export function SongsClient() {
         {view === 'list' ? (
           <>
             {/* ── Filters ───────────────────────────────────── */}
-            <div className="dark-inputs flex flex-col gap-2.5 sm:flex-row">
-              <div className="relative flex-1">
+            <div className="dark-inputs">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none"
                   style={{ color: 'rgba(255,255,255,0.3)' }} />
                 <Input
@@ -203,19 +200,6 @@ export function SongsClient() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              {ministries.length > 0 && (
-                <Select value={ministryFilter} onValueChange={setMinistryFilter}>
-                  <SelectTrigger className="w-full sm:w-52">
-                    <SelectValue placeholder="Ministério" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os ministérios</SelectItem>
-                    {ministries.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
 
             {/* ── List ──────────────────────────────────────── */}
@@ -230,11 +214,9 @@ export function SongsClient() {
               <div className="events-dark-empty">
                 <Music className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
                 <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  {search || ministryFilter !== 'all'
-                    ? 'Nenhuma música encontrada.'
-                    : 'Nenhuma música adicionada.'}
+                  {search ? 'Nenhuma música encontrada.' : 'Nenhuma música adicionada.'}
                 </p>
-                {canManage && !search && ministryFilter === 'all' && (
+                {canManage && !search && (
                   <button onClick={handleNew} className="dark-primary-btn mt-4">
                     <Plus className="h-4 w-4" /> Adicionar primeira música
                   </button>
