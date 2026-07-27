@@ -23,13 +23,25 @@ export async function updateSession(request: NextRequest) {
       },
     },
   );
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
   const isPublicPage = request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/offline');
+
+  // A verificação de sessão faz uma chamada de rede ao Supabase. Se essa chamada
+  // falhar por rede/transitório (cold-start do Worker, blip de rede), NÃO deitamos
+  // a app abaixo: deixamos o pedido passar e a própria página revalida a auth.
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null;
+  let authError: Awaited<ReturnType<typeof supabase.auth.getUser>>['error'] = null;
+  try {
+    const res = await supabase.auth.getUser();
+    user = res.data.user;
+    authError = res.error;
+  } catch {
+    // Erro transitório a contactar o Supabase — serve o pedido sem redirecionar.
+    return supabaseResponse;
+  }
 
   // Stale session: clear sb- cookies. If on public page serve it; otherwise redirect to login.
   if (authError && (authError.status === 400 || authError.code === 'refresh_token_not_found')) {
