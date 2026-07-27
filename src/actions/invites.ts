@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { APP_URL } from '@/lib/app-url';
+import { assertCanAddPeople } from '@/actions/subscriptions';
 
 function getAdmin() {
   return createAdminClient<Database>(
@@ -29,8 +30,10 @@ async function requireOrgAdmin(orgId: string) {
   const { data: membership } = await admin
     .from('organization_members').select('role')
     .eq('org_id', orgId).eq('user_id', user.id).single();
-  if ((membership as { role?: string } | null)?.role !== 'admin') {
-    throw new Error('Apenas administradores podem gerir convites');
+  const role = (membership as { role?: string } | null)?.role;
+  // Admins e líderes podem gerir convites (criar/cancelar).
+  if (role !== 'admin' && role !== 'leader') {
+    throw new Error('Apenas administradores ou líderes podem gerir convites');
   }
   return { admin, user };
 }
@@ -48,6 +51,9 @@ export async function createInviteAction(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Email inválido');
 
   const { admin } = await requireOrgAdmin(orgId);
+
+  // Limite de pessoas do plano (conta membros ativos + convites pendentes).
+  await assertCanAddPeople(orgId);
 
   // Já é membro?
   const { data: existingProfile } = await admin

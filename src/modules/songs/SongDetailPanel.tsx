@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Youtube, Music, Guitar, FileText, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import type { Song } from '@/types/models';
+import { youtubeThumbnail } from '@/lib/utils';
 
 interface Props {
   song: Song;
@@ -9,11 +10,12 @@ interface Props {
   ministryIcon?: string;
   onBack: () => void;
   isAdmin: boolean;
+  canManage?: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAdmin, onEdit, onDelete }: Props) {
+export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAdmin, canManage = isAdmin, onEdit, onDelete }: Props) {
   const links = [
     { label: 'YouTube', url: song.youtube_url, icon: <Youtube style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#f87171' },
     { label: 'Spotify',  url: song.spotify_url, icon: <Music   style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#1db954' },
@@ -22,6 +24,8 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
   ];
 
   const activeLinks = links.filter((l) => !!l.url);
+  // Capa própria tem prioridade; caso contrário usa a thumbnail do YouTube.
+  const coverUrl = song.cover_image_url || youtubeThumbnail(song.youtube_url);
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
@@ -44,7 +48,7 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
             Repertório
           </button>
 
-          {isAdmin && (
+          {canManage && (
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={onEdit}
@@ -64,24 +68,26 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
                 <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
                 Editar
               </button>
-              <button
-                onClick={onDelete}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  padding: '0.375rem 0.875rem',
-                  fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: '0.5rem',
-                  color: '#f87171', cursor: 'pointer',
-                  transition: 'background 0.12s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
-              >
-                <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
-                Remover
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={onDelete}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.375rem 0.875rem',
+                    fontSize: '0.775rem', fontWeight: 500,
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.2)',
+                    borderRadius: '0.5rem',
+                    color: '#f87171', cursor: 'pointer',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                >
+                  <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
+                  Remover
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -95,13 +101,25 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
           marginBottom: '1.75rem',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
-            <div style={{
-              width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(255,255,255,0.08)',
-            }}>
-              <Music style={{ width: '1.5rem', height: '1.5rem', color: 'rgba(255,255,255,0.5)' }} />
-            </div>
+            {coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={coverUrl}
+                alt={song.name}
+                style={{
+                  width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
+                  objectFit: 'cover', background: 'rgba(255,255,255,0.08)',
+                }}
+              />
+            ) : (
+              <div style={{
+                width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(255,255,255,0.08)',
+              }}>
+                <Music style={{ width: '1.5rem', height: '1.5rem', color: 'rgba(255,255,255,0.5)' }} />
+              </div>
+            )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{
                 fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em',
@@ -117,6 +135,8 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {song.musical_key && <Chip>{song.musical_key}</Chip>}
                 {song.bpm && <Chip>{song.bpm} BPM</Chip>}
+                {song.duration && <Chip>{song.duration}</Chip>}
+                {song.bible_reference && <Chip>{song.bible_reference}</Chip>}
                 {ministryName && (
                   <Chip>{ministryIcon ? `${ministryIcon} ` : ''}{ministryName}</Chip>
                 )}
@@ -166,7 +186,7 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
             <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
               Nenhum link adicionado.
             </p>
-            {isAdmin && (
+            {canManage && (
               <button
                 onClick={onEdit}
                 style={{

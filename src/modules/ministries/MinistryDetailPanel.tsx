@@ -10,6 +10,7 @@ import { getInitials } from '@/lib/utils';
 interface Props {
   ministry: Ministry;
   isAdmin: boolean;
+  canManage?: boolean;
   onBack: () => void;
   onEdit: () => void;
   onEditProperties: () => void;
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export function MinistryDetailPanel({
-  ministry, isAdmin, onBack, onEdit, onEditProperties, onToggle, onDelete, togglePending,
+  ministry, isAdmin, canManage = isAdmin, onBack, onEdit, onEditProperties, onToggle, onDelete, togglePending,
 }: Props) {
   const color = ministry.color ?? '#a5b4fc';
   const initial = ministry.name.charAt(0).toUpperCase();
@@ -57,7 +58,7 @@ export function MinistryDetailPanel({
             Ministérios
           </button>
 
-          {isAdmin && (
+          {canManage && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button
                 onClick={onEditProperties}
@@ -109,21 +110,23 @@ export function MinistryDetailPanel({
                   : <Power style={{ width: '0.8rem', height: '0.8rem' }} />}
                 {ministry.is_active ? 'Desactivar' : 'Activar'}
               </button>
-              <button
-                onClick={onDelete}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: '0.5rem', color: '#f87171', cursor: 'pointer',
-                  transition: 'background 0.12s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
-              >
-                <Trash2 style={{ width: '0.8rem', height: '0.8rem' }} />
-                Remover
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={onDelete}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
+                    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                    borderRadius: '0.5rem', color: '#f87171', cursor: 'pointer',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                >
+                  <Trash2 style={{ width: '0.8rem', height: '0.8rem' }} />
+                  Remover
+                </button>
+              )}
             </div>
           )}
         </div>

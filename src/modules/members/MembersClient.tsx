@@ -63,6 +63,7 @@ export function MembersClient() {
   const currentRole = activeMembership?.role ?? 'member';
   const currentUserId = activeMembership?.user_id;
   const isAdmin = currentRole === 'admin';
+  const canInvite = currentRole === 'admin' || currentRole === 'leader'; // convidar pessoas
 
   function canManage(_targetRole: OrgRole, targetUserId: string): boolean {
     if (!isAdmin) return false;
@@ -74,7 +75,7 @@ export function MembersClient() {
   const [copied, setCopied] = useState(false);
 
   // Convites por nome + email
-  const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, isAdmin || inviteOpen);
+  const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, canInvite || inviteOpen);
   const createInvite = useCreateInvite();
   const deleteInvite = useDeleteInvite();
   const [inviteName, setInviteName] = useState('');
@@ -215,7 +216,7 @@ export function MembersClient() {
                 : 'Membros da organização'}
             </p>
           </div>
-          {isAdmin && (
+          {canInvite && (
             <button onClick={() => setInviteOpen(true)} className="dark-primary-btn">
               <Plus className="h-4 w-4" />
               Convidar
@@ -299,7 +300,6 @@ export function MembersClient() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Administrador</SelectItem>
                           <SelectItem value="leader">Líder</SelectItem>
                           <SelectItem value="member">Membro</SelectItem>
                         </SelectContent>
@@ -328,7 +328,7 @@ export function MembersClient() {
         )}
 
         {/* ── Convites pendentes ─────────────────────── */}
-        {isAdmin && pendingInvites.length > 0 && (
+        {canInvite && pendingInvites.length > 0 && (
           <div className="space-y-2.5">
             <div className="flex items-center gap-2 pt-2">
               <Mail className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />

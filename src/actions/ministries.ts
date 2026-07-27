@@ -1,17 +1,9 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { PRESET_MINISTRIES } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
-import type { Database } from '@/types/database';
-
-function getAdmin() {
-  return createAdminClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
+import { assertCanAddMinistry } from '@/actions/subscriptions';
 
 export async function fetchMinistriesAction(orgId: string): Promise<Ministry[]> {
   const supabase = await createClient();
@@ -28,8 +20,9 @@ export async function createMinistryAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { data, error } = await admin.from('ministries')
+  // Limite de ministérios do plano.
+  await assertCanAddMinistry(orgId);
+  const { data, error } = await supabase.from('ministries')
     .insert({ ...payload, functions: payload.functions ?? [], org_id: orgId }).select().single();
   if (error) throw new Error(error.message);
   return data as Ministry;
@@ -42,8 +35,7 @@ export async function updateMinistryAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('ministries')
+  const { error } = await supabase.from('ministries')
     .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -52,8 +44,7 @@ export async function toggleMinistryActiveAction(id: string, isActive: boolean):
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('ministries')
+  const { error } = await supabase.from('ministries')
     .update({ is_active: isActive, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -62,9 +53,8 @@ export async function importPresetMinistriesAction(orgId: string): Promise<numbe
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
 
-  const { data: existing } = await admin.from('ministries').select('name').eq('org_id', orgId);
+  const { data: existing } = await supabase.from('ministries').select('name').eq('org_id', orgId);
   const existingNames = new Set((existing ?? []).map((m) => m.name.toLowerCase()));
 
   const toCreate = (PRESET_MINISTRIES as unknown as { name: string; icon: string; color: string; functions: string[] }[])
@@ -75,7 +65,7 @@ export async function importPresetMinistriesAction(orgId: string): Promise<numbe
     org_id: orgId, name: p.name, icon: p.icon, color: p.color,
     functions: p.functions, is_active: true,
   }));
-  const { error } = await admin.from('ministries').insert(rows);
+  const { error } = await supabase.from('ministries').insert(rows);
   if (error) throw new Error(error.message);
   return toCreate.length;
 }
@@ -84,7 +74,6 @@ export async function deleteMinistryAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('ministries').delete().eq('id', id);
+  const { error } = await supabase.from('ministries').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }

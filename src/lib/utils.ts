@@ -53,6 +53,39 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
+ * Extrai o ID do vídeo de um URL do YouTube (youtube.com/watch?v=…, youtu.be/…,
+ * /embed/…, /shorts/…). Devolve null se não for reconhecido.
+ */
+export function youtubeVideoId(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const patterns = [
+    /[?&]v=([A-Za-z0-9_-]{11})/,
+    /youtu\.be\/([A-Za-z0-9_-]{11})/,
+    /\/embed\/([A-Za-z0-9_-]{11})/,
+    /\/shorts\/([A-Za-z0-9_-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+/**
+ * Thumbnail (capa) de um vídeo do YouTube a partir do seu URL.
+ * `hqdefault` existe sempre; `maxresdefault` só em vídeos de alta resolução.
+ */
+export function youtubeThumbnail(
+  url: string | null | undefined,
+  quality: 'hq' | 'maxres' | 'mq' = 'hq',
+): string | null {
+  const id = youtubeVideoId(url);
+  if (!id) return null;
+  const file = quality === 'maxres' ? 'maxresdefault' : quality === 'mq' ? 'mqdefault' : 'hqdefault';
+  return `https://img.youtube.com/vi/${id}/${file}.jpg`;
+}
+
+/**
  * Período do dia de um evento, derivado da hora ("HH:MM" ou "HH:MM:SS").
  * Manhã 05:00–11:59 · Tarde 12:00–17:59 · Noite 18:00–04:59.
  */

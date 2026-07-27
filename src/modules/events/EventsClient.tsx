@@ -50,14 +50,16 @@ export function EventsClient({ orgId: _orgId }: Props) {
   const { data: events = [], isLoading } = useEvents();
   const deleteEvent = useDeleteEvent();
   const { activeMembership } = useOrgStore();
-  const isAdmin = activeMembership?.role === 'admin';
+  const role = activeMembership?.role;
+  const isAdmin = role === 'admin';
+  const canManage = role === 'admin' || role === 'leader'; // criar/editar
 
   const [createMode, setCreateMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('upcoming');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Abre automaticamente o evento vindo da Dashboard ou de uma notificação (?event=<id>).
@@ -125,6 +127,7 @@ export function EventsClient({ orgId: _orgId }: Props) {
           event={detailEvent}
           onBack={() => setDetailEvent(null)}
           isAdmin={isAdmin}
+          canManage={canManage}
           onEdit={() => handleEdit(detailEvent)}
         />
     );
@@ -148,7 +151,7 @@ export function EventsClient({ orgId: _orgId }: Props) {
               Gere os eventos da organização
             </p>
           </div>
-          {isAdmin && (
+          {canManage && (
             <button onClick={handleNew} className="dark-primary-btn">
               <Plus className="h-4 w-4" />
               Novo Evento
@@ -192,11 +195,15 @@ export function EventsClient({ orgId: _orgId }: Props) {
           <div className="events-dark-empty">
             <CalendarDays className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              {search || statusFilter !== 'all'
+              {search
                 ? 'Nenhum evento encontrado.'
+                : statusFilter === 'upcoming'
+                ? 'Não há eventos próximos.'
+                : statusFilter === 'past'
+                ? 'Não há eventos passados.'
                 : 'Nenhum evento criado ainda.'}
             </p>
-            {isAdmin && !search && statusFilter === 'all' && (
+            {canManage && !search && (
               <button onClick={handleNew} className="dark-primary-btn mt-4">
                 <Plus className="h-4 w-4" /> Criar primeiro evento
               </button>
@@ -263,7 +270,7 @@ export function EventsClient({ orgId: _orgId }: Props) {
                 </div>
 
                 {/* Actions */}
-                {isAdmin && (
+                {canManage && (
                   <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button
                       className="dark-icon-btn"
@@ -272,13 +279,15 @@ export function EventsClient({ orgId: _orgId }: Props) {
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
-                    <button
-                      className="dark-icon-btn danger"
-                      onClick={() => setDeleteTarget(event)}
-                      aria-label="Remover"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        className="dark-icon-btn danger"
+                        onClick={() => setDeleteTarget(event)}
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

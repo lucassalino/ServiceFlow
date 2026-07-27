@@ -100,6 +100,22 @@ export async function leaveOrganizationAction(orgId: string): Promise<{ error?: 
 }
 
 /**
+ * Passa a administração da organização para outra pessoa. Só o admin atual
+ * pode chamar isto — a checagem e a troca (despromover-se, promover o alvo)
+ * acontecem atomicamente dentro da função `transfer_org_admin` na base de
+ * dados, garantindo que nunca há zero nem dois admins ao mesmo tempo.
+ */
+export async function transferOrgAdminAction(orgId: string, newAdminUserId: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('transfer_org_admin', {
+    p_org_id: orgId,
+    p_new_admin_user_id: newAdminUserId,
+  });
+  if (error) return { error: error.message };
+  return {};
+}
+
+/**
  * Elimina permanentemente a organização e todos os dados associados
  * (eventos, escalas, ministérios, músicas, convites, membros). Só admin.
  */

@@ -15,7 +15,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
-import { useLeaveOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
+import { useLeaveOrganization, useDeleteOrganization, useTransferOrgAdmin } from '@/hooks/useOrganizations';
+import { useOrgMembers } from '@/hooks/useMembers';
 import { uploadOrgLogoAction } from '@/actions/organizations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +25,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
+// import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Nome obrigatório'),
@@ -81,6 +85,8 @@ export function SettingsClient({ orgId }: Props) {
   const leaveOrg = useLeaveOrganization();
   const deleteOrg = useDeleteOrganization();
   const deleteAccount = useDeleteAccount();
+  const transferAdmin = useTransferOrgAdmin();
+  const { data: orgMembers = [] } = useOrgMembers();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -90,6 +96,8 @@ export function SettingsClient({ orgId }: Props) {
   const [deleteOrgOpen, setDeleteOrgOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferTargetId, setTransferTargetId] = useState<string>('');
 
   // Logótipo da organização
   const orgLogoInputRef = useRef<HTMLInputElement>(null);
@@ -248,6 +256,23 @@ export function SettingsClient({ orgId }: Props) {
     }
   }
 
+  async function handleTransferAdmin() {
+    if (!transferTargetId) return;
+    try {
+      const res = await transferAdmin.mutateAsync({ orgId, newAdminUserId: transferTargetId });
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success('Administração transferida — agora és líder');
+      if (activeOrg && activeMembership) setActiveOrg(activeOrg, { ...activeMembership, role: 'leader' });
+      setTransferOpen(false);
+      setTransferTargetId('');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao transferir administração');
+    }
+  }
+
   async function handleDeleteOrg() {
     try {
       const res = await deleteOrg.mutateAsync(orgId);
@@ -335,6 +360,10 @@ export function SettingsClient({ orgId }: Props) {
             Perfil e preferências da conta
           </p>
         </div>
+
+        {/* ── Plano + concessão dev + cupões ──────────── */}
+        {/* Temporariamente oculto (planos e cupões ainda em desenvolvimento). */}
+        {/* <PlanSection orgId={orgId} isAdmin={isAdmin} /> */}
 
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">
@@ -542,6 +571,33 @@ export function SettingsClient({ orgId }: Props) {
 
         {/* ── Leave org ───────────────────────────────── */}
         <Section title="Esta organização">
+          {isAdmin && (
+            <>
+              <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+                Só pode existir um administrador por organização. Passa o cargo a outra pessoa —
+                tu passas a líder e ela passa a administradora.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTransferOpen(true)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
+                  background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.85)',
+                  border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+                  marginBottom: '1.25rem',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+              >
+                Transferir administração
+              </button>
+
+              <Divider />
+            </>
+          )}
+
           <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
             Deixa de pertencer a <span style={{ color: 'rgba(255,255,255,0.65)' }}>{activeOrg?.name ?? 'esta organização'}</span>.
             Podes voltar a entrar mais tarde com o código de convite.
@@ -630,6 +686,53 @@ export function SettingsClient({ orgId }: Props) {
           onCancel={handleOrgLogoCropCancel}
         />
       )}
+
+      <Dialog open={transferOpen} onOpenChange={(open) => { setTransferOpen(open); if (!open) setTransferTargetId(''); }}>
+        <DialogContent className="dark-inputs">
+          <DialogHeader>
+            <DialogTitle>Transferir administração</DialogTitle>
+          </DialogHeader>
+          <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '0.75rem', lineHeight: 1.6 }}>
+            Escolhe quem passa a administrador(a) de {activeOrg?.name}. Tu passas a líder.
+          </p>
+          <Select value={transferTargetId} onValueChange={setTransferTargetId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Escolhe uma pessoa" />
+            </SelectTrigger>
+            <SelectContent>
+              {orgMembers
+                .filter((m) => m.user_id !== activeMembership?.user_id && m.is_active)
+                .map((m) => (
+                  <SelectItem key={m.id} value={m.user_id}>
+                    {m.profile?.full_name ?? m.profile?.email ?? 'Sem nome'}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setTransferOpen(false)}
+              style={{
+                padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
+                background: 'transparent', color: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleTransferAdmin}
+              disabled={!transferTargetId || transferAdmin.isPending}
+              className="dark-primary-btn"
+              style={{ opacity: !transferTargetId || transferAdmin.isPending ? 0.6 : 1 }}
+            >
+              {transferAdmin.isPending ? 'A transferir…' : 'Transferir'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={leaveOrgOpen} onOpenChange={setLeaveOrgOpen}>
         <AlertDialogContent>

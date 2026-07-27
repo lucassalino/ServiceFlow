@@ -511,7 +511,8 @@ function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
 export function ScheduleClient({ orgId: _orgId }: Props) {
   const { data: events = [], isLoading: eventsLoading } = useEvents();
   const { activeMembership, activeOrg } = useOrgStore();
-  const isAdmin = activeMembership?.role === 'admin';
+  // Admins e líderes gerem escalas (criar/editar). RLS permite ambos.
+  const isAdmin = activeMembership?.role === 'admin' || activeMembership?.role === 'leader';
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [addMinistryOpen, setAddMinistryOpen] = useState(false);
   const [mobileShowDetail, setMobileShowDetail] = useState(false);
@@ -615,7 +616,11 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
     setSentTo((prev) => new Set(prev).add(next.userId));
   }
 
-  const sortedEvents = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Nas escalas só aparecem os próximos eventos — nunca os já passados.
+  const today = new Date().toISOString().split('T')[0];
+  const sortedEvents = [...events]
+    .filter((e) => e.date >= today)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const existingMinistryIds = eventMinistries.map((em) => em.ministry_id);
 
   return (

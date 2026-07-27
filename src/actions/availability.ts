@@ -1,15 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database';
-
-function getAdmin() {
-  return createAdminClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 export type UnavailabilityPeriod = 'manha' | 'tarde' | 'noite';
 export type UnavailabilityKind = 'date_range' | 'weekly';
@@ -98,8 +89,7 @@ export async function addUnavailabilityAction(orgId: string, entry: AddUnavailab
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-  const { error } = await admin.from('member_unavailability').insert({
+  const { error } = await supabase.from('member_unavailability').insert({
     org_id: orgId,
     user_id: user.id,
     kind: entry.kind,
@@ -116,14 +106,13 @@ export async function removeUnavailabilityAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
 
   // Só o próprio ou um admin podem remover (RLS reforça o mesmo, isto dá uma mensagem melhor).
-  const { data: row, error: fetchError } = await admin
+  const { data: row, error: fetchError } = await supabase
     .from('member_unavailability').select('user_id, org_id').eq('id', id).single();
   if (fetchError || !row) throw new Error('Registo não encontrado');
   if (row.user_id !== user.id) {
-    const { data: membership } = await admin
+    const { data: membership } = await supabase
       .from('organization_members').select('role')
       .eq('org_id', row.org_id).eq('user_id', user.id).maybeSingle();
     if ((membership as { role?: string } | null)?.role !== 'admin') {
@@ -131,6 +120,6 @@ export async function removeUnavailabilityAction(id: string): Promise<void> {
     }
   }
 
-  const { error } = await admin.from('member_unavailability').delete().eq('id', id);
+  const { error } = await supabase.from('member_unavailability').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }

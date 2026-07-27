@@ -5,6 +5,7 @@ import {
   fetchOrgMembershipsAction,
   leaveOrganizationAction,
   deleteOrganizationAction,
+  transferOrgAdminAction,
 } from '@/actions/organizations';
 
 export function useOrgMemberships() {
@@ -26,6 +27,15 @@ export function useDeleteOrganization() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (orgId: string) => deleteOrganizationAction(orgId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org-memberships'] }),
+  });
+}
+
+export function useTransferOrgAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orgId, newAdminUserId }: { orgId: string; newAdminUserId: string }) =>
+      transferOrgAdminAction(orgId, newAdminUserId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['org-memberships'] }),
   });
 }

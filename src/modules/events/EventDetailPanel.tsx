@@ -27,10 +27,11 @@ interface Props {
   event: Event;
   onBack: () => void;
   isAdmin: boolean;
+  canManage?: boolean;
   onEdit: () => void;
 }
 
-export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
+export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, onEdit }: Props) {
   const { activeMembership, activeOrg } = useOrgStore();
   const currentUserId = activeMembership?.user_id;
   const [tab, setTab] = useState<'team' | 'setlist' | 'roteiro'>('team');
@@ -75,7 +76,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
             Eventos
           </button>
 
-          {isAdmin && (
+          {canManage && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {activeOrg?.id && (
                 <Link href={`/${activeOrg.id}/events/${event.id}/print`} target="_blank" rel="noopener noreferrer"
@@ -249,7 +250,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
                 <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
                   Nenhuma música no setlist.
                 </p>
-                {isAdmin && (
+                {canManage && (
                   <button onClick={onEdit} style={{
                     marginTop: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.4rem 0.875rem', fontSize: '0.8rem', fontWeight: 500,
@@ -286,7 +287,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
                 <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
                   Nenhum momento definido para este evento.
                 </p>
-                {isAdmin && (
+                {canManage && (
                   <button onClick={onEdit} style={{
                     marginTop: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.4rem 0.875rem', fontSize: '0.8rem', fontWeight: 500,
