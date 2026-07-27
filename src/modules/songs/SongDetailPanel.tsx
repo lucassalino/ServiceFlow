@@ -98,13 +98,25 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
           marginBottom: '1.75rem',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
-            <div style={{
-              width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(255,255,255,0.08)',
-            }}>
-              <Music style={{ width: '1.5rem', height: '1.5rem', color: 'rgba(255,255,255,0.5)' }} />
-            </div>
+            {song.cover_image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={song.cover_image_url}
+                alt={song.name}
+                style={{
+                  width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
+                  objectFit: 'cover', background: 'rgba(255,255,255,0.08)',
+                }}
+              />
+            ) : (
+              <div style={{
+                width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(255,255,255,0.08)',
+              }}>
+                <Music style={{ width: '1.5rem', height: '1.5rem', color: 'rgba(255,255,255,0.5)' }} />
+              </div>
+            )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{
                 fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em',
@@ -120,6 +132,8 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {song.musical_key && <Chip>{song.musical_key}</Chip>}
                 {song.bpm && <Chip>{song.bpm} BPM</Chip>}
+                {song.duration && <Chip>{song.duration}</Chip>}
+                {song.bible_reference && <Chip>{song.bible_reference}</Chip>}
                 {ministryName && (
                   <Chip>{ministryIcon ? `${ministryIcon} ` : ''}{ministryName}</Chip>
                 )}
