@@ -110,7 +110,7 @@ export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, tit
                 {parsing ? 'A ler…' : 'Clica para escolher um ficheiro CSV'}
               </span>
               <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>
-                Nome, Artista, Tom, BPM, Duração, Referência bíblica, YouTube, Spotify, Cifra, Letra, Capa
+                Nome, Artista, Tom, BPM, Duração, Referência bíblica, YouTube, Spotify, Cifra, Letra
               </span>
             </button>
             <input

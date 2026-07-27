@@ -5,7 +5,7 @@ import { SONG_KEYS } from '@/lib/constants';
 export type TargetKey =
   | 'name' | 'artist' | 'musical_key' | 'bpm'
   | 'duration' | 'bible_reference'
-  | 'youtube_url' | 'spotify_url' | 'chords' | 'lyrics' | 'cover_image_url';
+  | 'youtube_url' | 'spotify_url' | 'chords' | 'lyrics';
 
 /** Campo-alvo para onde uma coluna do CSV pode ser mapeada. */
 export interface TargetField {
@@ -37,8 +37,6 @@ export const TARGET_FIELDS: TargetField[] = [
     aliases: ['cifra', 'cifras', 'chords', 'acordes', 'cifraclub'] },
   { key: 'lyrics', label: 'Letra', required: false,
     aliases: ['letra', 'letras', 'lyrics', 'letramusica'] },
-  { key: 'cover_image_url', label: 'Capa', required: false,
-    aliases: ['capa', 'cover', 'coverimage', 'capaurl', 'imagem', 'arte', 'thumbnail'] },
 ];
 
 /** Linha crua vinda do CSV: cabeçalho -> valor. */
@@ -50,7 +48,7 @@ export type ColumnMapping = Record<TargetKey, string | null>;
 const EMPTY_MAPPING: ColumnMapping = {
   name: null, artist: null, musical_key: null, bpm: null,
   duration: null, bible_reference: null, youtube_url: null,
-  spotify_url: null, chords: null, lyrics: null, cover_image_url: null,
+  spotify_url: null, chords: null, lyrics: null,
 };
 
 export function emptyMapping(): ColumnMapping {
@@ -69,7 +67,6 @@ export interface SongDraft {
   spotify_url: string | null;
   chords: string | null;
   lyrics: string | null;
-  cover_image_url: string | null;
 }
 
 /** Normaliza um texto para comparação (sem acentos, minúsculas, sem espaços/pontuação). */
@@ -156,7 +153,6 @@ export function rowToDraft(row: RawRow, mapping: ColumnMapping): SongDraft | nul
     spotify_url: get('spotify_url') || null,
     chords: get('chords') || null,
     lyrics: get('lyrics') || null,
-    cover_image_url: get('cover_image_url') || null,
   };
 }
 

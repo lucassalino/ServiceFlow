@@ -425,7 +425,7 @@ function SongRow({
     song.lyrics     && <FileText key="ly" style={{ width: '0.8rem', height: '0.8rem', color: '#a5b4fc' }} />,
   ].filter(Boolean);
 
-  const coverUrl = song.cover_image_url || youtubeThumbnail(song.youtube_url);
+  const coverUrl = youtubeThumbnail(song.youtube_url);
 
   return (
     <div

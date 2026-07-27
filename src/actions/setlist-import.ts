@@ -86,7 +86,7 @@ export async function importSetlistSongsAction(
       name, artist: d.artist, musical_key: d.musical_key, bpm: d.bpm,
       duration: d.duration, bible_reference: d.bible_reference,
       youtube_url: d.youtube_url, spotify_url: d.spotify_url,
-      chords: d.chords, lyrics: d.lyrics, cover_image_url: d.cover_image_url,
+      chords: d.chords, lyrics: d.lyrics,
       org_id: orgId, catalog_song_id: catalogId,
     } as never).select('id').single();
     if (insErr) throw new Error(insErr.message);

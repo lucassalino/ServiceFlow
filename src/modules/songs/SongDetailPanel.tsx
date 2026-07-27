@@ -24,8 +24,8 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
   ];
 
   const activeLinks = links.filter((l) => !!l.url);
-  // Capa própria tem prioridade; caso contrário usa a thumbnail do YouTube.
-  const coverUrl = song.cover_image_url || youtubeThumbnail(song.youtube_url);
+  // A capa vem sempre da thumbnail do vídeo do YouTube.
+  const coverUrl = youtubeThumbnail(song.youtube_url);
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>

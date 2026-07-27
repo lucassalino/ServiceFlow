@@ -8,7 +8,7 @@ export interface SongPayload {
   name: string; artist: string | null; musical_key: string | null;
   bpm: number | null; lyrics: string | null; chords: string | null;
   youtube_url: string | null; spotify_url: string | null; ministry_id: string | null;
-  duration: string | null; bible_reference: string | null; cover_image_url: string | null;
+  duration: string | null; bible_reference: string | null;
 }
 
 export async function fetchSongsAction(orgId: string): Promise<Song[]> {
