@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useSongs, useSongsRanking, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useOrgStore } from '@/stores/orgStore';
-import { formatDate } from '@/lib/utils';
+import { formatDate, youtubeThumbnail } from '@/lib/utils';
 import type { Song } from '@/types/models';
 import type { SongRankingEntry } from '@/actions/songs';
 import { Input } from '@/components/ui/input';
@@ -400,6 +400,8 @@ function SongRow({
     song.lyrics     && <FileText key="ly" style={{ width: '0.8rem', height: '0.8rem', color: '#a5b4fc' }} />,
   ].filter(Boolean);
 
+  const coverUrl = song.cover_image_url || youtubeThumbnail(song.youtube_url);
+
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -417,14 +419,26 @@ function SongRow({
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
       }}
     >
-      {/* Icon */}
-      <div style={{
-        width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        background: 'rgba(255,255,255,0.06)',
-      }}>
-        <Music style={{ width: '1.1rem', height: '1.1rem', color: 'rgba(255,255,255,0.35)' }} />
-      </div>
+      {/* Icon / capa */}
+      {coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={coverUrl}
+          alt={song.name}
+          style={{
+            width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem', flexShrink: 0,
+            objectFit: 'cover', background: 'rgba(255,255,255,0.06)',
+          }}
+        />
+      ) : (
+        <div style={{
+          width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          background: 'rgba(255,255,255,0.06)',
+        }}>
+          <Music style={{ width: '1.1rem', height: '1.1rem', color: 'rgba(255,255,255,0.35)' }} />
+        </div>
+      )}
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>

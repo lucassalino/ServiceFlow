@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Youtube, Music, Guitar, FileText, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import type { Song } from '@/types/models';
+import { youtubeThumbnail } from '@/lib/utils';
 
 interface Props {
   song: Song;
@@ -23,6 +24,8 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
   ];
 
   const activeLinks = links.filter((l) => !!l.url);
+  // Capa própria tem prioridade; caso contrário usa a thumbnail do YouTube.
+  const coverUrl = song.cover_image_url || youtubeThumbnail(song.youtube_url);
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
@@ -98,10 +101,10 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
           marginBottom: '1.75rem',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
-            {song.cover_image_url ? (
+            {coverUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={song.cover_image_url}
+                src={coverUrl}
                 alt={song.name}
                 style={{
                   width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
