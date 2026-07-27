@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
-  CalendarDays, Music2, Clock, Plus, CalendarOff,
+  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateEvent } from '@/hooks/useEvents';
@@ -28,6 +28,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { getInitials } from '@/lib/utils';
+import { SetlistImportDialog } from './SetlistImportDialog';
+import type { ImportedSong } from '@/actions/setlist-import';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -231,6 +233,21 @@ export function EventEditPanel({ event, onBack }: Props) {
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   const [songKeys, setSongKeys] = useState<Record<string, string>>({});
   const [songSearch, setSongSearch] = useState('');
+  const [importOpen, setImportOpen] = useState(false);
+
+  // Junta as músicas importadas do CSV à setlist (mantém ordem, sem duplicar).
+  function handleImported(imported: ImportedSong[]) {
+    setSelectedSongIds((prev) => {
+      const next = [...prev];
+      for (const s of imported) if (!next.includes(s.songId)) next.push(s.songId);
+      return next;
+    });
+    setSongKeys((prev) => {
+      const next = { ...prev };
+      for (const s of imported) if (s.musical_key && !next[s.songId]) next[s.songId] = s.musical_key;
+      return next;
+    });
+  }
 
   // step 5
   const [timelineItems, setTimelineItems] = useState<{ time: string; title: string }[]>([]);
@@ -718,9 +735,24 @@ export function EventEditPanel({ event, onBack }: Props) {
               <div className="ep-setlist-grid">
                 {/* Search + list */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                  <div style={{ position: 'relative' }} className="dark-inputs">
-                    <Search style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
-                    <Input placeholder="Pesquisar músicas…" className="pl-9" value={songSearch} onChange={(e) => setSongSearch(e.target.value)} />
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }} className="dark-inputs">
+                      <Search style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                      <Input placeholder="Pesquisar músicas…" className="pl-9" value={songSearch} onChange={(e) => setSongSearch(e.target.value)} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setImportOpen(true)}
+                      title="Importar setlist de um ficheiro CSV"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+                        padding: '0.5rem 0.85rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600,
+                        background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)',
+                        color: '#a5b4fc', cursor: 'pointer',
+                      }}
+                    >
+                      <FileUp style={{ width: '0.9rem', height: '0.9rem' }} /> Importar CSV
+                    </button>
                   </div>
                   <div style={{ ...card, maxHeight: '22rem', overflowY: 'auto' }}>
                     {filteredSongs.length === 0 ? (
@@ -876,6 +908,13 @@ export function EventEditPanel({ event, onBack }: Props) {
           {imagePreview && <img src={imagePreview} alt="Imagem de capa" className="w-full h-auto max-h-[85vh] object-contain" />}
         </DialogContent>
       </Dialog>
+
+      <SetlistImportDialog
+        orgId={event.org_id}
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={handleImported}
+      />
     </>
   );
 }
