@@ -75,12 +75,19 @@ export async function importSetlistSongsAction(
     // Cria a música no repertório (com dedup no catálogo global).
     const catalogId = await resolveCatalog(
       supabase,
-      { name, artist: d.artist, youtube_url: d.youtube_url, bpm: d.bpm },
+      {
+        name, artist: d.artist, bpm: d.bpm,
+        youtube_url: d.youtube_url, spotify_url: d.spotify_url,
+        chords: d.chords, lyrics: d.lyrics,
+      },
       orgId, user.id,
     );
     const { data: inserted, error: insErr } = await supabase.from('songs').insert({
       name, artist: d.artist, musical_key: d.musical_key, bpm: d.bpm,
-      youtube_url: d.youtube_url, org_id: orgId, catalog_song_id: catalogId,
+      duration: d.duration, bible_reference: d.bible_reference,
+      youtube_url: d.youtube_url, spotify_url: d.spotify_url,
+      chords: d.chords, lyrics: d.lyrics, cover_image_url: d.cover_image_url,
+      org_id: orgId, catalog_song_id: catalogId,
     } as never).select('id').single();
     if (insErr) throw new Error(insErr.message);
 

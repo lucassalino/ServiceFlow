@@ -2,9 +2,14 @@
 // Reconcilia os cabeçalhos do CSV com as colunas reais da tabela `songs`.
 import { SONG_KEYS } from '@/lib/constants';
 
+export type TargetKey =
+  | 'name' | 'artist' | 'musical_key' | 'bpm'
+  | 'duration' | 'bible_reference'
+  | 'youtube_url' | 'spotify_url' | 'chords' | 'lyrics' | 'cover_image_url';
+
 /** Campo-alvo para onde uma coluna do CSV pode ser mapeada. */
 export interface TargetField {
-  key: 'name' | 'artist' | 'musical_key' | 'bpm' | 'youtube_url';
+  key: TargetKey;
   label: string;
   required: boolean;
   /** Aliases de cabeçalho (normalizados) para auto-mapeamento. */
@@ -15,20 +20,42 @@ export const TARGET_FIELDS: TargetField[] = [
   { key: 'name', label: 'Nome da música', required: true,
     aliases: ['nome', 'musica', 'música', 'song', 'title', 'titulo', 'título', 'name', 'cancao', 'canção'] },
   { key: 'artist', label: 'Artista', required: false,
-    aliases: ['artista', 'artist', 'autor', 'interprete', 'intérprete', 'banda', 'cantor'] },
+    aliases: ['artista', 'artist', 'autor', 'interprete', 'intérprete', 'banda', 'cantor', 'ministerio', 'ministério'] },
   { key: 'musical_key', label: 'Tom', required: false,
     aliases: ['tom', 'key', 'tonalidade', 'nota'] },
   { key: 'bpm', label: 'BPM', required: false,
-    aliases: ['bpm', 'andamento', 'tempo'] },
+    aliases: ['bpm', 'andamento'] },
+  { key: 'duration', label: 'Duração', required: false,
+    aliases: ['duracao', 'duração', 'duration', 'tempo', 'tempomusica', 'length'] },
+  { key: 'bible_reference', label: 'Referência bíblica', required: false,
+    aliases: ['referencia', 'referência', 'referenciabiblica', 'referênciabíblica', 'versiculo', 'versículo', 'biblia', 'bíblia', 'passagem', 'texto'] },
   { key: 'youtube_url', label: 'YouTube', required: false,
-    aliases: ['youtube', 'yt', 'link', 'video', 'vídeo', 'url'] },
+    aliases: ['youtube', 'yt', 'ytlink', 'videoyoutube', 'video', 'vídeo'] },
+  { key: 'spotify_url', label: 'Spotify', required: false,
+    aliases: ['spotify', 'spotifyurl', 'linkspotify'] },
+  { key: 'chords', label: 'Cifra', required: false,
+    aliases: ['cifra', 'cifras', 'chords', 'acordes', 'cifraclub'] },
+  { key: 'lyrics', label: 'Letra', required: false,
+    aliases: ['letra', 'letras', 'lyrics', 'letramusica'] },
+  { key: 'cover_image_url', label: 'Capa', required: false,
+    aliases: ['capa', 'cover', 'coverimage', 'capaurl', 'imagem', 'arte', 'thumbnail'] },
 ];
 
 /** Linha crua vinda do CSV: cabeçalho -> valor. */
 export type RawRow = Record<string, string>;
 
 /** Mapeamento coluna-alvo -> cabeçalho do CSV (ou null se não mapeado). */
-export type ColumnMapping = Record<TargetField['key'], string | null>;
+export type ColumnMapping = Record<TargetKey, string | null>;
+
+const EMPTY_MAPPING: ColumnMapping = {
+  name: null, artist: null, musical_key: null, bpm: null,
+  duration: null, bible_reference: null, youtube_url: null,
+  spotify_url: null, chords: null, lyrics: null, cover_image_url: null,
+};
+
+export function emptyMapping(): ColumnMapping {
+  return { ...EMPTY_MAPPING };
+}
 
 /** Música derivada de uma linha do CSV, pronta para procurar/criar. */
 export interface SongDraft {
@@ -36,7 +63,13 @@ export interface SongDraft {
   artist: string | null;
   musical_key: string | null;
   bpm: number | null;
+  duration: string | null;
+  bible_reference: string | null;
   youtube_url: string | null;
+  spotify_url: string | null;
+  chords: string | null;
+  lyrics: string | null;
+  cover_image_url: string | null;
 }
 
 /** Normaliza um texto para comparação (sem acentos, minúsculas, sem espaços/pontuação). */
@@ -51,9 +84,7 @@ export function normalizeHeader(s: string): string {
 
 /** Auto-mapeia os cabeçalhos do CSV para os campos-alvo pelos aliases. */
 export function autoMap(headers: string[]): ColumnMapping {
-  const mapping: ColumnMapping = {
-    name: null, artist: null, musical_key: null, bpm: null, youtube_url: null,
-  };
+  const mapping: ColumnMapping = emptyMapping();
   const normalizedHeaders = headers.map((h) => ({ raw: h, norm: normalizeHeader(h) }));
   for (const field of TARGET_FIELDS) {
     const aliasSet = new Set(field.aliases.map(normalizeHeader));
@@ -104,7 +135,7 @@ export function normalizeMusicalKey(value: string | null | undefined): string | 
 
 /** Converte uma linha crua num rascunho de música, aplicando o mapeamento. */
 export function rowToDraft(row: RawRow, mapping: ColumnMapping): SongDraft | null {
-  const get = (key: TargetField['key']): string => {
+  const get = (key: TargetKey): string => {
     const header = mapping[key];
     return header ? (row[header] ?? '').trim() : '';
   };
@@ -119,7 +150,13 @@ export function rowToDraft(row: RawRow, mapping: ColumnMapping): SongDraft | nul
     artist: get('artist') || null,
     musical_key: normalizeMusicalKey(get('musical_key')),
     bpm: Number.isFinite(bpm) && bpm ? bpm : null,
+    duration: get('duration') || null,
+    bible_reference: get('bible_reference') || null,
     youtube_url: get('youtube_url') || null,
+    spotify_url: get('spotify_url') || null,
+    chords: get('chords') || null,
+    lyrics: get('lyrics') || null,
+    cover_image_url: get('cover_image_url') || null,
   };
 }
 

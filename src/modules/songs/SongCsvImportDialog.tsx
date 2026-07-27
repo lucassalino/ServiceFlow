@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { UploadCloud, FileSpreadsheet, Download, ArrowLeft, Check, Loader2, AlertCircle } from 'lucide-react';
 import { parseCsvFile } from '@/lib/import/parse-setlist';
 import {
-  TARGET_FIELDS, autoMap, rowToDraft, isMappingValid,
+  TARGET_FIELDS, autoMap, rowToDraft, isMappingValid, emptyMapping,
   type ColumnMapping, type RawRow, type SongDraft,
 } from '@/lib/import/setlist-schema';
 import { importSetlistSongsAction, type ImportedSong } from '@/actions/setlist-import';
@@ -17,28 +17,27 @@ interface Props {
   orgId: string;
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onImported: (songs: ImportedSong[]) => void;
+  /** Chamado com as músicas resolvidas (ex.: para juntar a uma setlist). Opcional. */
+  onImported?: (songs: ImportedSong[]) => void;
+  title?: string;
 }
 
 type Step = 'upload' | 'map';
 
-export function SetlistImportDialog({ orgId, open, onOpenChange, onImported }: Props) {
+export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, title = 'Importar músicas de CSV' }: Props) {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>('upload');
   const [fileName, setFileName] = useState('');
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<RawRow[]>([]);
-  const [mapping, setMapping] = useState<ColumnMapping>({
-    name: null, artist: null, musical_key: null, bpm: null, youtube_url: null,
-  });
+  const [mapping, setMapping] = useState<ColumnMapping>(emptyMapping());
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
 
   function reset() {
     setStep('upload'); setFileName(''); setHeaders([]); setRows([]);
-    setMapping({ name: null, artist: null, musical_key: null, bpm: null, youtube_url: null });
-    setParsing(false); setImporting(false);
+    setMapping(emptyMapping()); setParsing(false); setImporting(false);
   }
 
   function handleClose(v: boolean) {
@@ -72,7 +71,7 @@ export function SetlistImportDialog({ orgId, open, onOpenChange, onImported }: P
     try {
       const result = await importSetlistSongsAction(orgId, drafts);
       await qc.invalidateQueries({ queryKey: ['songs'] });
-      onImported(result.songs);
+      onImported?.(result.songs);
       const parts = [];
       if (result.createdCount) parts.push(`${result.createdCount} criada(s)`);
       if (result.matchedCount) parts.push(`${result.matchedCount} já existente(s)`);
@@ -89,7 +88,7 @@ export function SetlistImportDialog({ orgId, open, onOpenChange, onImported }: P
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto dark-inputs">
         <DialogHeader>
-          <DialogTitle>Importar setlist de CSV</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         {step === 'upload' && (
@@ -111,7 +110,7 @@ export function SetlistImportDialog({ orgId, open, onOpenChange, onImported }: P
                 {parsing ? 'A ler…' : 'Clica para escolher um ficheiro CSV'}
               </span>
               <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>
-                Colunas: Nome, Artista, Tom, BPM, YouTube
+                Nome, Artista, Tom, BPM, Duração, Referência bíblica, YouTube, Spotify, Cifra, Letra, Capa
               </span>
             </button>
             <input
@@ -185,6 +184,7 @@ export function SetlistImportDialog({ orgId, open, onOpenChange, onImported }: P
                       </div>
                       {d.musical_key && <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'rgba(165,180,252,0.15)', color: '#a5b4fc' }}>{d.musical_key}</span>}
                       {d.bpm && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>{d.bpm} BPM</span>}
+                      {d.duration && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>{d.duration}</span>}
                     </div>
                   ))}
                   {drafts.length > 50 && (

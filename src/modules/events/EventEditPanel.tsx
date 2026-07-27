@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { getInitials } from '@/lib/utils';
-import { SetlistImportDialog } from './SetlistImportDialog';
+import { SongCsvImportDialog } from '@/modules/songs/SongCsvImportDialog';
 import type { ImportedSong } from '@/actions/setlist-import';
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -909,11 +909,12 @@ export function EventEditPanel({ event, onBack }: Props) {
         </DialogContent>
       </Dialog>
 
-      <SetlistImportDialog
+      <SongCsvImportDialog
         orgId={event.org_id}
         open={importOpen}
         onOpenChange={setImportOpen}
         onImported={handleImported}
+        title="Importar setlist de CSV"
       />
     </>
   );

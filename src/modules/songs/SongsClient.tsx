@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic, FileUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSongs, useSongsRanking, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { SongFormPanel } from './SongFormPanel';
 import { SongDetailPanel } from './SongDetailPanel';
+import { SongCsvImportDialog } from './SongCsvImportDialog';
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
@@ -34,7 +35,7 @@ export function SongsClient() {
   const { data: ranking = [], isLoading: rankingLoading } = useSongsRanking();
   const { data: ministries = [] } = useMinistries();
   const deleteSong = useDeleteSong();
-  const { activeMembership } = useOrgStore();
+  const { activeOrg, activeMembership } = useOrgStore();
   const role = activeMembership?.role;
   const isAdmin = role === 'admin';
   const canManage = role === 'admin' || role === 'leader'; // criar/editar
@@ -44,6 +45,7 @@ export function SongsClient() {
   const [detailSong, setDetailSong] = useState<Song | null>(null);
   const [search, setSearch] = useState('');
   const [view, setView] = useState<'list' | 'ranking'>('list');
+  const [importOpen, setImportOpen] = useState(false);
 
   const ministryMap = useMemo(() => {
     const map = new Map<string, { name: string; icon: string }>();
@@ -155,10 +157,25 @@ export function SongsClient() {
             </p>
           </div>
           {canManage && (
-            <button onClick={handleNew} className="dark-primary-btn">
-              <Plus className="h-4 w-4" />
-              Nova Música
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+              <button
+                onClick={() => { if (!activeOrg?.id) { toast.error('Organização não encontrada'); return; } setImportOpen(true); }}
+                title="Importar músicas de um ficheiro CSV"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  padding: '0.55rem 0.95rem', borderRadius: '0.6rem', fontSize: '0.85rem', fontWeight: 600,
+                  background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)',
+                  color: '#a5b4fc', cursor: 'pointer',
+                }}
+              >
+                <FileUp className="h-4 w-4" />
+                Importar CSV
+              </button>
+              <button onClick={handleNew} className="dark-primary-btn">
+                <Plus className="h-4 w-4" />
+                Nova Música
+              </button>
+            </div>
           )}
         </div>
 
@@ -299,6 +316,14 @@ export function SongsClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {activeOrg?.id && (
+        <SongCsvImportDialog
+          orgId={activeOrg.id}
+          open={importOpen}
+          onOpenChange={setImportOpen}
+        />
+      )}
     </div>
   );
 }
