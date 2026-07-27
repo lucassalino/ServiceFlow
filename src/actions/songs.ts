@@ -7,6 +7,7 @@ export interface SongPayload {
   name: string; artist: string | null; musical_key: string | null;
   bpm: number | null; lyrics: string | null; chords: string | null;
   youtube_url: string | null; spotify_url: string | null; ministry_id: string | null;
+  duration: string | null; bible_reference: string | null; cover_image_url: string | null;
 }
 
 export async function fetchSongsAction(orgId: string): Promise<Song[]> {
@@ -146,7 +147,7 @@ export async function createSongAction(orgId: string, payload: SongPayload): Pro
   if (authError || !user) throw new Error('Sessão expirada');
   const catalogId = await resolveCatalog(supabase, payload, orgId, user.id);
   const { data, error } = await supabase.from('songs')
-    .insert({ ...payload, org_id: orgId, catalog_song_id: catalogId }).select().single();
+    .insert({ ...payload, org_id: orgId, catalog_song_id: catalogId } as never).select().single();
   if (error) throw new Error(error.message);
   return data as Song;
 }
@@ -157,7 +158,7 @@ export async function updateSongAction(id: string, payload: SongPayload): Promis
   if (authError || !user) throw new Error('Sessão expirada');
   // Atualiza a cópia da igreja (cada igreja tem a sua versão).
   const { data: updated, error } = await supabase.from('songs')
-    .update({ ...payload, updated_at: new Date().toISOString() })
+    .update({ ...payload, updated_at: new Date().toISOString() } as never)
     .eq('id', id).select('org_id').single();
   if (error) throw new Error(error.message);
   // Contribui campos vazios de volta ao catálogo e mantém a ligação certa.

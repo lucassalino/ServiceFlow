@@ -26,6 +26,9 @@ const songSchema = z.object({
   spotify_url: urlOrEmpty,
   chords: urlOrEmpty,
   lyrics: urlOrEmpty,
+  duration: z.string().nullable().optional(),
+  bible_reference: z.string().nullable().optional(),
+  cover_image_url: urlOrEmpty,
 });
 
 type SongFormValues = z.infer<typeof songSchema>;
@@ -54,6 +57,9 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
         spotify_url: song?.spotify_url ?? '',
         chords: song?.chords ?? '',
         lyrics: song?.lyrics ?? '',
+        duration: song?.duration ?? '',
+        bible_reference: song?.bible_reference ?? '',
+        cover_image_url: song?.cover_image_url ?? '',
       },
     });
 
@@ -68,6 +74,9 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
       spotify_url: song?.spotify_url ?? '',
       chords: song?.chords ?? '',
       lyrics: song?.lyrics ?? '',
+      duration: song?.duration ?? '',
+      bible_reference: song?.bible_reference ?? '',
+      cover_image_url: song?.cover_image_url ?? '',
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [song?.id]);
@@ -128,6 +137,9 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
       spotify_url: values.spotify_url || null,
       chords: values.chords || null,
       lyrics: values.lyrics || null,
+      duration: values.duration || null,
+      bible_reference: values.bible_reference || null,
+      cover_image_url: values.cover_image_url || null,
     };
 
     if (isEditing && song) {
@@ -279,6 +291,18 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   {errors.bpm && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.bpm.message}</p>}
                 </div>
               </div>
+
+              {/* Duração + Referência bíblica */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <Label htmlFor="sf-duration" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Duração</Label>
+                  <Input id="sf-duration" placeholder="4:32" {...register('duration')} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <Label htmlFor="sf-bible" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Referência bíblica</Label>
+                  <Input id="sf-bible" placeholder="Salmos 34:1" {...register('bible_reference')} />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -300,6 +324,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                 { id: 'sf-sp', key: 'spotify_url' as const, label: 'Spotify',  icon: <Music   style={{ width: '0.9rem', height: '0.9rem', color: '#1db954' }} />, placeholder: 'https://open.spotify.com/track/…' },
                 { id: 'sf-ch', key: 'chords'      as const, label: 'Cifra',   icon: <Guitar  style={{ width: '0.9rem', height: '0.9rem', color: '#fcd34d' }} />, placeholder: 'https://cifraclub.com.br/…' },
                 { id: 'sf-ly', key: 'lyrics'      as const, label: 'Letra',   icon: <FileText style={{ width: '0.9rem', height: '0.9rem', color: '#a5b4fc' }} />, placeholder: 'https://letras.mus.br/…' },
+                { id: 'sf-cover', key: 'cover_image_url' as const, label: 'Capa', icon: <Music style={{ width: '0.9rem', height: '0.9rem', color: '#c4b5fd' }} />, placeholder: 'https://…/capa.jpg' },
               ].map(({ id, key, label, icon, placeholder }) => (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                   <Label htmlFor={id} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
