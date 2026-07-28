@@ -141,7 +141,7 @@ export function SongsClient() {
       <div className="p-5 md:p-8 space-y-6">
 
         {/* ── Header ──────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 pt-2">
           <div>
             <p className="text-xs font-semibold tracking-[0.16em] uppercase"
               style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -157,22 +157,23 @@ export function SongsClient() {
             </p>
           </div>
           {canManage && (
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+            <div className="flex gap-2 items-center w-full sm:w-auto flex-shrink-0">
               <button
                 onClick={() => { if (!activeOrg?.id) { toast.error('Organização não encontrada'); return; } setImportOpen(true); }}
                 title="Importar músicas de um ficheiro CSV"
+                className="flex-1 sm:flex-none whitespace-nowrap"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                   padding: '0.55rem 0.95rem', borderRadius: '0.6rem', fontSize: '0.85rem', fontWeight: 600,
                   background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)',
                   color: '#a5b4fc', cursor: 'pointer',
                 }}
               >
-                <FileUp className="h-4 w-4" />
+                <FileUp className="h-4 w-4 flex-shrink-0" />
                 Importar CSV
               </button>
-              <button onClick={handleNew} className="dark-primary-btn">
-                <Plus className="h-4 w-4" />
+              <button onClick={handleNew} className="dark-primary-btn flex-1 sm:flex-none justify-center whitespace-nowrap">
+                <Plus className="h-4 w-4 flex-shrink-0" />
                 Nova Música
               </button>
             </div>
