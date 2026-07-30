@@ -111,7 +111,7 @@ export function MemberMinistriesDialog({ userId, memberName, open, onOpenChange 
                       <span className="text-sm flex-1">{ministry.name}</span>
                       {selected && fns.length > 0 && (
                         <span className="text-xs text-muted-foreground shrink-0">
-                          {fns.length} função{fns.length !== 1 ? 'ões' : ''}
+                          {fns.length} {fns.length !== 1 ? 'funções' : 'função'}
                         </span>
                       )}
                     </label>

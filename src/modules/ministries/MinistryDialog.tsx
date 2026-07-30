@@ -117,7 +117,7 @@ export function MinistryDialog({ ministry, open, onOpenChange }: Props) {
                         </Avatar>
                         <span className="text-sm flex-1 truncate">{name}</span>
                         {selected && fns.length > 0 && (
-                          <span className="text-xs text-muted-foreground shrink-0">{fns.length} função{fns.length !== 1 ? 'ões' : ''}</span>
+                          <span className="text-xs text-muted-foreground shrink-0">{fns.length} {fns.length !== 1 ? 'funções' : 'função'}</span>
                         )}
                       </label>
 

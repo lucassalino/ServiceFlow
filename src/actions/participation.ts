@@ -84,8 +84,19 @@ export async function saveMyParticipationAction(
   }
   const valid = input.entries.filter((e) => orgMinistryIds.includes(e.ministryId));
   if (valid.length > 0) {
-    const rows = valid.map((e) => ({ ministry_id: e.ministryId, user_id: user.id, functions: e.functions, is_active: true }));
-    const { error } = await supabase.from('ministry_members').insert(rows);
+    // Dedup por ministério (une funções) + upsert para nunca violar a constraint
+    // única (ministry_id, user_id).
+    const byMinistry = new Map<string, Set<string>>();
+    for (const e of valid) {
+      const set = byMinistry.get(e.ministryId) ?? new Set<string>();
+      for (const f of e.functions) set.add(f);
+      byMinistry.set(e.ministryId, set);
+    }
+    const rows = [...byMinistry.entries()].map(([ministry_id, fns]) => ({
+      ministry_id, user_id: user.id, functions: [...fns], is_active: true,
+    }));
+    const { error } = await supabase.from('ministry_members')
+      .upsert(rows, { onConflict: 'ministry_id,user_id' });
     if (error) throw new Error(error.message);
   }
 }

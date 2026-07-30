@@ -563,7 +563,7 @@ export function EventDialog({ event, open, onOpenChange }: Props) {
                                       <span className="flex-1 truncate">{name}</span>
                                       {checked && fns.length > 0 && (
                                         <span className="text-xs text-muted-foreground flex-shrink-0">
-                                          {fns.length} função{fns.length !== 1 ? 'ões' : ''}
+                                          {fns.length} {fns.length !== 1 ? 'funções' : 'função'}
                                         </span>
                                       )}
                                     </label>
