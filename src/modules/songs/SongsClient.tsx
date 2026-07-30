@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic, FileUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSongs, useSongsRanking, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -10,10 +10,10 @@ import { formatDate, youtubeThumbnail } from '@/lib/utils';
 import type { Song } from '@/types/models';
 import type { SongRankingEntry } from '@/actions/songs';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { SongFormPanel } from './SongFormPanel';
 import { SongDetailPanel } from './SongDetailPanel';
+import { SongCsvImportDialog } from './SongCsvImportDialog';
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
@@ -35,7 +35,7 @@ export function SongsClient() {
   const { data: ranking = [], isLoading: rankingLoading } = useSongsRanking();
   const { data: ministries = [] } = useMinistries();
   const deleteSong = useDeleteSong();
-  const { activeMembership } = useOrgStore();
+  const { activeOrg, activeMembership } = useOrgStore();
   const role = activeMembership?.role;
   const isAdmin = role === 'admin';
   const canManage = role === 'admin' || role === 'leader'; // criar/editar
@@ -44,8 +44,8 @@ export function SongsClient() {
   const [deleteTarget, setDeleteTarget] = useState<Song | null>(null);
   const [detailSong, setDetailSong] = useState<Song | null>(null);
   const [search, setSearch] = useState('');
-  const [ministryFilter, setMinistryFilter] = useState<string>('all');
   const [view, setView] = useState<'list' | 'ranking'>('list');
+  const [importOpen, setImportOpen] = useState(false);
 
   const ministryMap = useMemo(() => {
     const map = new Map<string, { name: string; icon: string }>();
@@ -56,11 +56,10 @@ export function SongsClient() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return songs.filter((s) => {
-      if (ministryFilter !== 'all' && s.ministry_id !== ministryFilter) return false;
       if (!q) return true;
       return s.name.toLowerCase().includes(q) || (s.artist?.toLowerCase().includes(q) ?? false);
     });
-  }, [songs, search, ministryFilter]);
+  }, [songs, search]);
 
   function handleNew() { setFormSong('new'); }
   function handleEdit(song: Song) { setFormSong(song); }
@@ -142,7 +141,7 @@ export function SongsClient() {
       <div className="p-5 md:p-8 space-y-6">
 
         {/* ── Header ──────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 pt-2">
           <div>
             <p className="text-xs font-semibold tracking-[0.16em] uppercase"
               style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -158,10 +157,26 @@ export function SongsClient() {
             </p>
           </div>
           {canManage && (
-            <button onClick={handleNew} className="dark-primary-btn">
-              <Plus className="h-4 w-4" />
-              Nova Música
-            </button>
+            <div className="flex gap-2 items-center w-full sm:w-auto flex-shrink-0">
+              <button
+                onClick={() => { if (!activeOrg?.id) { toast.error('Organização não encontrada'); return; } setImportOpen(true); }}
+                title="Importar músicas de um ficheiro CSV"
+                className="flex-1 sm:flex-none whitespace-nowrap"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                  padding: '0.55rem 0.95rem', borderRadius: '0.6rem', fontSize: '0.85rem', fontWeight: 600,
+                  background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)',
+                  color: '#a5b4fc', cursor: 'pointer',
+                }}
+              >
+                <FileUp className="h-4 w-4 flex-shrink-0" />
+                Importar CSV
+              </button>
+              <button onClick={handleNew} className="dark-primary-btn flex-1 sm:flex-none justify-center whitespace-nowrap">
+                <Plus className="h-4 w-4 flex-shrink-0" />
+                Nova Música
+              </button>
+            </div>
           )}
         </div>
 
@@ -192,8 +207,8 @@ export function SongsClient() {
         {view === 'list' ? (
           <>
             {/* ── Filters ───────────────────────────────────── */}
-            <div className="dark-inputs flex flex-col gap-2.5 sm:flex-row">
-              <div className="relative flex-1">
+            <div className="dark-inputs">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none"
                   style={{ color: 'rgba(255,255,255,0.3)' }} />
                 <Input
@@ -203,19 +218,6 @@ export function SongsClient() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              {ministries.length > 0 && (
-                <Select value={ministryFilter} onValueChange={setMinistryFilter}>
-                  <SelectTrigger className="w-full sm:w-52">
-                    <SelectValue placeholder="Ministério" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os ministérios</SelectItem>
-                    {ministries.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.icon} {m.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
 
             {/* ── List ──────────────────────────────────────── */}
@@ -230,11 +232,9 @@ export function SongsClient() {
               <div className="events-dark-empty">
                 <Music className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
                 <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  {search || ministryFilter !== 'all'
-                    ? 'Nenhuma música encontrada.'
-                    : 'Nenhuma música adicionada.'}
+                  {search ? 'Nenhuma música encontrada.' : 'Nenhuma música adicionada.'}
                 </p>
-                {canManage && !search && ministryFilter === 'all' && (
+                {canManage && !search && (
                   <button onClick={handleNew} className="dark-primary-btn mt-4">
                     <Plus className="h-4 w-4" /> Adicionar primeira música
                   </button>
@@ -317,6 +317,14 @@ export function SongsClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {activeOrg?.id && (
+        <SongCsvImportDialog
+          orgId={activeOrg.id}
+          open={importOpen}
+          onOpenChange={setImportOpen}
+        />
+      )}
     </div>
   );
 }
@@ -418,7 +426,7 @@ function SongRow({
     song.lyrics     && <FileText key="ly" style={{ width: '0.8rem', height: '0.8rem', color: '#a5b4fc' }} />,
   ].filter(Boolean);
 
-  const coverUrl = song.cover_image_url || youtubeThumbnail(song.youtube_url);
+  const coverUrl = youtubeThumbnail(song.youtube_url);
 
   return (
     <div

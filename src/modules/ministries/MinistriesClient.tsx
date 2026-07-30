@@ -248,6 +248,7 @@ export function MinistriesClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
     </div>
   );
 }

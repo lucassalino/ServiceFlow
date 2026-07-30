@@ -126,7 +126,6 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
       lyrics: values.lyrics || null,
       duration: song?.duration ?? null,
       bible_reference: song?.bible_reference ?? null,
-      cover_image_url: song?.cover_image_url ?? null,
     };
 
     if (isEditing && song) {

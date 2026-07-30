@@ -28,6 +28,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
+import { MyFunctionsSection } from './MyFunctionsSection';
 // import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
@@ -361,10 +362,6 @@ export function SettingsClient({ orgId }: Props) {
           </p>
         </div>
 
-        {/* ── Plano + concessão dev + cupões ──────────── */}
-        {/* Temporariamente oculto (planos e cupões ainda em desenvolvimento). */}
-        {/* <PlanSection orgId={orgId} isAdmin={isAdmin} /> */}
-
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">
           {/* Avatar row */}
@@ -444,6 +441,13 @@ export function SettingsClient({ orgId }: Props) {
             </button>
           </form>
         </Section>
+
+        {/* ── Os meus ministérios e funções ────────────── */}
+        {activeOrg && (
+          <Section title="Os meus ministérios e funções">
+            <MyFunctionsSection orgId={orgId} />
+          </Section>
+        )}
 
         {/* ── Organisation (admin only) ────────────────── */}
         {isAdmin && activeOrg && (
@@ -543,8 +547,16 @@ export function SettingsClient({ orgId }: Props) {
                 {orgForm.formState.isSubmitting ? 'A guardar…' : 'Guardar organização'}
               </button>
             </form>
+
           </Section>
         )}
+
+        {/* ── Plano + concessão dev + cupões (cartão próprio) — temporariamente oculto ── */}
+        {/* {isAdmin && activeOrg && (
+          <Section title="Plano e cupões">
+            <PlanSection orgId={orgId} isAdmin={isAdmin} />
+          </Section>
+        )} */}
 
         {/* ── Sessão ──────────────────────────────────── */}
         <Section title="Sessão">
