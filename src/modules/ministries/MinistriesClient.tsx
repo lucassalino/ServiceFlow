@@ -344,7 +344,7 @@ function MinistryCard({
           fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)',
           fontWeight: 500,
         }}>
-          {ministry.functions.length} função{ministry.functions.length !== 1 ? 'ões' : ''}
+          {ministry.functions.length} {ministry.functions.length !== 1 ? 'funções' : 'função'}
         </span>
       )}
 

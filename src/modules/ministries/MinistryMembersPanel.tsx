@@ -184,7 +184,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
                   <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', flex: 1 }}>{name}</span>
                   {selected && fns.length > 0 && (
                     <span style={{ fontSize: '0.7rem', color: color, fontWeight: 500 }}>
-                      {fns.length} função{fns.length !== 1 ? 'ões' : ''}
+                      {fns.length} {fns.length !== 1 ? 'funções' : 'função'}
                     </span>
                   )}
                 </label>

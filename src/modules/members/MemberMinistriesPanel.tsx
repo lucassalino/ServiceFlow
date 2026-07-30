@@ -181,7 +181,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
                     </span>
                     {selected && fns.length > 0 && (
                       <span style={{ fontSize: '0.72rem', color, fontWeight: 600 }}>
-                        {fns.length} função{fns.length !== 1 ? 'ões' : ''}
+                        {fns.length} {fns.length !== 1 ? 'funções' : 'função'}
                       </span>
                     )}
                   </label>

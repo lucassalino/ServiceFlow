@@ -203,7 +203,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
 
           {functions.length > 0 && (
             <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.75rem' }}>
-              {functions.length} função{functions.length !== 1 ? 'ões' : ''} selecionada{functions.length !== 1 ? 's' : ''}
+              {functions.length} {functions.length !== 1 ? 'funções' : 'função'} selecionada{functions.length !== 1 ? 's' : ''}
             </p>
           )}
         </Section>

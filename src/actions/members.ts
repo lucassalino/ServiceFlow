@@ -136,10 +136,19 @@ export async function upsertMemberMinistriesAction(
       .delete().eq('user_id', userId).in('ministry_id', orgMinistryIds);
   }
   if (assignments.length === 0) return;
-  const rows = assignments.map(({ ministryId, functions }) => ({
-    ministry_id: ministryId, user_id: userId, functions, is_active: true,
+  // Dedup por ministério (une as funções) para nunca gerar (ministry_id,user_id)
+  // repetido, e upsert para ser idempotente mesmo se o delete não limpar tudo.
+  const byMinistry = new Map<string, Set<string>>();
+  for (const { ministryId, functions } of assignments) {
+    const set = byMinistry.get(ministryId) ?? new Set<string>();
+    for (const f of functions) set.add(f);
+    byMinistry.set(ministryId, set);
+  }
+  const rows = [...byMinistry.entries()].map(([ministry_id, fns]) => ({
+    ministry_id, user_id: userId, functions: [...fns], is_active: true,
   }));
-  const { error } = await supabase.from('ministry_members').insert(rows);
+  const { error } = await supabase.from('ministry_members')
+    .upsert(rows, { onConflict: 'ministry_id,user_id' });
   if (error) throw new Error(error.message);
 }
 
@@ -152,12 +161,17 @@ export async function upsertMinistryMembersAction(
   if (authError || !user) throw new Error('Sessão expirada');
   await supabase.from('ministry_members').delete().eq('ministry_id', ministryId);
   if (members.length === 0) return;
-  const rows = members.map(({ userId, functions }) => ({
-    ministry_id: ministryId,
-    user_id: userId,
-    functions,
-    is_active: true,
+  // Dedup por utilizador (une funções) para evitar (ministry_id,user_id) repetido.
+  const byUser = new Map<string, Set<string>>();
+  for (const { userId, functions } of members) {
+    const set = byUser.get(userId) ?? new Set<string>();
+    for (const f of functions) set.add(f);
+    byUser.set(userId, set);
+  }
+  const rows = [...byUser.entries()].map(([user_id, fns]) => ({
+    ministry_id: ministryId, user_id, functions: [...fns], is_active: true,
   }));
-  const { error } = await supabase.from('ministry_members').insert(rows);
+  const { error } = await supabase.from('ministry_members')
+    .upsert(rows, { onConflict: 'ministry_id,user_id' });
   if (error) throw new Error(error.message);
 }
