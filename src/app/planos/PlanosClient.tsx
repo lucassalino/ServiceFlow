@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  CalendarCheck, Music2, Users, Bell, Smartphone,
-  CalendarSync, ListChecks, Plus, ExternalLink, Check, Sparkles,
+  CalendarCheck, Music2, Users, Bell,
+  CalendarSync, ListChecks, Plus, ExternalLink, Sparkles,
   ListMusic, UserCheck, Clock, Layers, LayoutGrid, Building2, Globe,
 } from 'lucide-react';
 import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
@@ -264,9 +264,12 @@ export function PlanosClient({ plans }: Props) {
 
       {/* ── Planos ─────────────────────────────────────── */}
       <section id="planos" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
-        <SectionTitle kicker="Planos" title="Escolha o plano da sua equipe" />
-
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '1.75rem 0' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem',
+        }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3.2vw, 2.1rem)', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
+            Cresça no ritmo da sua equipe
+          </h2>
           <div style={{
             display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem',
             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
@@ -304,59 +307,75 @@ export function PlanosClient({ plans }: Props) {
       {/* ── App / Entrar na PWA ────────────────────────── */}
       <section id="app" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
         <div style={{
-          ...card, padding: '2.5rem 1.75rem', textAlign: 'center', overflow: 'hidden', position: 'relative',
+          borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.10)',
+          background: 'rgba(255,255,255,0.02)', overflow: 'hidden', position: 'relative',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))', alignItems: 'center',
         }}>
           <div aria-hidden style={{
-            position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)',
-            width: 320, height: 320, borderRadius: '9999px', pointerEvents: 'none',
-            background: 'radial-gradient(circle, rgba(44,127,168,0.22) 0%, transparent 70%)',
+            position: 'absolute', top: -80, left: -80, width: 320, height: 320, borderRadius: '9999px', pointerEvents: 'none',
+            background: 'radial-gradient(circle, rgba(44,127,168,0.2) 0%, transparent 70%)',
           }} />
-          <Smartphone style={{ width: '2rem', height: '2rem', color: '#8fd0ea', margin: '0 auto 1rem', position: 'relative' }} />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 0.5rem', position: 'relative' }}>
-            Leve o WIS com você
-          </h2>
-          <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', maxWidth: '28rem', margin: '0 auto 1.75rem', lineHeight: 1.6, position: 'relative' }}>
-            {platform === 'ios' && 'No iPhone, abra no Safari e toque em "Adicionar à Tela de Início" — fica igual a um app nativo.'}
-            {platform === 'android' && 'No Android, abra no Chrome e toque em "Instalar aplicativo" — fica na sua tela inicial em segundos.'}
-            {platform === 'desktop' && 'Use já pelo navegador — o PWA instala na tela inicial do celular sem passar por loja nenhuma.'}
-            {' '}O app nativo pra iOS e Android está a caminho.
-          </p>
+          <div style={{ padding: '2.5rem 2rem', position: 'relative' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 1rem' }}>
+              No bolso de quem serve
+            </h2>
+            <p style={{ fontSize: '0.92rem', color: 'rgba(255,255,255,0.55)', maxWidth: '26rem', marginBottom: '1.75rem', lineHeight: 1.65 }}>
+              {platform === 'ios' && 'No iPhone, abra no Safari e toque em "Adicionar à Tela de Início" — fica igual a um app nativo.'}
+              {platform === 'android' && 'No Android, abra no Chrome e toque em "Instalar aplicativo" — fica na sua tela inicial em segundos.'}
+              {platform === 'desktop' && 'Baixe pra iOS ou Android — ou use já pelo navegador.'}
+              {' '}O WIS instala na tela inicial sem passar por loja nenhuma e continua abrindo mesmo com rede fraca.
+            </p>
 
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.25rem', position: 'relative' }}>
-            <span style={{ ...storeBadge, opacity: platform === 'ios' ? 1 : 0.6 }}>App Store <em style={soonTag}>Em breve</em></span>
-            <span style={{ ...storeBadge, opacity: platform === 'android' ? 1 : 0.6 }}>Google Play <em style={soonTag}>Em breve</em></span>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+              <span style={{ ...storeBadge, opacity: platform === 'ios' ? 1 : 0.6 }}>App Store <em style={soonTag}>Em breve</em></span>
+              <span style={{ ...storeBadge, opacity: platform === 'android' ? 1 : 0.6 }}>Google Play <em style={soonTag}>Em breve</em></span>
+              <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={primaryBtn}>
+                Entrar no PWA <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
+              </a>
+            </div>
           </div>
 
-          <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem', position: 'relative' }}>
-            Entrar no PWA <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
-          </a>
+          <div style={{
+            position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+            gap: '1rem', padding: '2.5rem 2rem 0', minHeight: '20rem',
+          }}>
+            <div style={{ width: '10rem', marginBottom: '-1.5rem' }}>
+              <IPhoneFrame src="/screenshots/mobile-eventos-equipa.webp" alt="Ministérios & Equipa de um evento, no celular" />
+            </div>
+            <div style={{ width: '9rem' }} className="hidden sm:block">
+              <IPhoneFrame src="/screenshots/mobile-repertorio.webp" alt="Repertório da organização, no celular" />
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────── */}
-      <section id="faq" style={{ maxWidth: '42rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
-        <SectionTitle kicker="FAQ" title="Perguntas frequentes" />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginTop: '2rem' }}>
-          {FAQ.map((item) => <FaqItem key={item.q} {...item} />)}
+      <section id="faq" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15rem, 1fr))', gap: '2.5rem',
+        }}>
+          <div>
+            <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8fd0ea', margin: '0 0 0.75rem' }}>
+              FAQ
+            </p>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 3.6vw, 2.4rem)', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.1 }}>
+              Perguntas frequentes
+            </h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid rgba(255,255,255,0.10)' }}>
+            {FAQ.map((item) => <FaqItem key={item.q} {...item} />)}
+          </div>
         </div>
       </section>
 
       {/* ── CTA final ──────────────────────────────────── */}
-      <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
-        <div style={{
-          ...card, padding: '3rem 1.75rem', textAlign: 'center',
-          background: 'linear-gradient(135deg, rgba(44,127,168,0.14), rgba(20,83,111,0.1))',
-        }}>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 0.75rem' }}>
-            Domingo já tá aí. <span style={{ color: 'rgba(255,255,255,0.5)' }}>Organize sua equipe hoje.</span>
-          </h2>
-          <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '1.75rem' }}>
-            Comece grátis. Sem cartão, sem compromisso.
-          </p>
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="#planos" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Começar grátis</a>
-            <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...ghostBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Entrar na PWA</a>
-          </div>
+      <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '2rem 1.25rem 3rem', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 'clamp(1.7rem, 4vw, 2.5rem)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 1.75rem', lineHeight: 1.2 }}>
+          Domingo já vem aí. <span style={{ color: 'rgba(255,255,255,0.4)' }}>Organize sua equipe hoje.</span>
+        </h2>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href="#planos" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Começar grátis</a>
+          <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...ghostBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Entrar no PWA</a>
         </div>
       </section>
 
@@ -404,47 +423,52 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
   const savings = annualSavingsPercent(plan);
   const popular = plan.key === 'colheita';
 
+  const limitsLine = [
+    plan.maxPeople === null ? 'Pessoas ilimitadas' : `${plan.maxPeople} pessoas`,
+    plan.maxMinistries === null ? 'ministérios ilimitados' : `${plan.maxMinistries} ministério${plan.maxMinistries === 1 ? '' : 's'}`,
+    plan.maxAdmins === null ? 'admins ilimitados' : `${plan.maxAdmins} admin${plan.maxAdmins === 1 ? '' : 's'}`,
+  ].join(' · ');
+
   return (
     <div style={{
-      ...card, position: 'relative',
-      border: popular ? '1px solid rgba(143,208,234,0.4)' : card.border,
-      background: popular ? 'rgba(143,208,234,0.05)' : card.background,
+      position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column',
+      borderRadius: '1rem', padding: '1.5rem',
+      border: popular ? '1px solid rgba(143,208,234,0.45)' : '1px solid rgba(255,255,255,0.10)',
+      background: popular ? 'linear-gradient(180deg, rgba(143,208,234,0.08) 0%, rgba(255,255,255,0.02) 100%)' : 'rgba(255,255,255,0.025)',
     }}>
-      {popular && (
-        <span style={{
-          position: 'absolute', top: '-0.7rem', left: '50%', transform: 'translateX(-50%)',
-          fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '9999px',
-          background: '#8fd0ea', color: '#000', whiteSpace: 'nowrap',
-        }}>
-          Mais popular
-        </span>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+        <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          {plan.label}
+        </p>
+        {popular && (
+          <span style={{
+            fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+            padding: '0.15rem 0.5rem', borderRadius: '9999px', background: '#8fd0ea', color: '#000',
+          }}>
+            Popular
+          </span>
+        )}
+      </div>
 
-      <p style={{ fontSize: '0.95rem', fontWeight: 800, margin: '0 0 0.5rem' }}>{plan.label}</p>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginBottom: '0.25rem' }}>
-        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: price === 0 ? '#8fd0ea' : '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
+        <span style={{ fontSize: '1.8rem', fontWeight: 800, color: price === 0 ? '#8fd0ea' : '#fff' }}>
           {fmtPrice(price)}
         </span>
         {price > 0 && <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>/ {annual ? 'ano' : 'mês'}</span>}
       </div>
-      {annual && savings > 0 && (
-        <p style={{ fontSize: '0.72rem', color: '#8fd0ea', margin: '0 0 1rem', fontWeight: 700 }}>Economize {savings}%</p>
-      )}
-      {!(annual && savings > 0) && <div style={{ marginBottom: '1rem' }} />}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1.25rem' }}>
-        <Limit label={plan.maxPeople === null ? 'Pessoas ilimitadas' : `${plan.maxPeople} pessoas`} />
-        <Limit label={plan.maxMinistries === null ? 'Ministérios ilimitados' : `${plan.maxMinistries} ministério${plan.maxMinistries === 1 ? '' : 's'}`} />
-        <Limit label={plan.maxAdmins === null ? 'Admins ilimitados' : `${plan.maxAdmins} admin${plan.maxAdmins === 1 ? '' : 's'}`} />
-      </div>
+      <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', margin: '0.35rem 0 0' }}>{limitsLine}</p>
+      {annual && savings > 0 ? (
+        <p style={{ fontSize: '0.72rem', color: '#8fd0ea', margin: '0.35rem 0 0', fontWeight: 700 }}>Economize {savings}%</p>
+      ) : null}
 
-      <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '1.25rem 0' }} />
+
+      <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', flex: 1 }}>
         {plan.features.length === 0 ? (
-          <li style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>Funcionalidades essenciais</li>
+          <li style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)' }}>Escala simples · acesso do voluntário ao app</li>
         ) : plan.features.map((f) => (
-          <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>
-            <Check style={{ width: '0.85rem', height: '0.85rem', color: '#8fd0ea', flexShrink: 0, marginTop: '0.15rem' }} />
+          <li key={f} style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
             {f}
           </li>
         ))}
@@ -453,7 +477,7 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
       <Link
         href="/register"
         style={{
-          display: 'block', textAlign: 'center', padding: '0.6rem 1rem', borderRadius: '0.5rem',
+          display: 'block', textAlign: 'center', padding: '0.65rem 1rem', borderRadius: '0.5rem',
           textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700,
           background: popular ? '#fff' : 'rgba(255,255,255,0.08)',
           color: popular ? '#000' : '#fff',
@@ -466,37 +490,26 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
   );
 }
 
-function Limit({ label }: { label: string }) {
-  return (
-    <span style={{
-      fontSize: '0.68rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '9999px',
-      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)',
-    }}>
-      {label}
-    </span>
-  );
-}
-
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: '1rem', padding: '1rem 1.25rem', background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left', color: '#fff', fontSize: '0.88rem', fontWeight: 600,
+          gap: '1rem', padding: '1.15rem 0', background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left', color: '#fff', fontSize: '0.95rem', fontWeight: 600,
         }}
       >
         {q}
         <Plus style={{
-          width: '1rem', height: '1rem', flexShrink: 0, color: 'rgba(255,255,255,0.4)',
+          width: '1.1rem', height: '1.1rem', flexShrink: 0, color: '#8fd0ea',
           transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.15s',
         }} />
       </button>
       {open && (
-        <p style={{ padding: '0 1.25rem 1.1rem', margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65 }}>
+        <p style={{ padding: '0 0 1.15rem', margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, maxWidth: '38rem' }}>
           {a}
         </p>
       )}
