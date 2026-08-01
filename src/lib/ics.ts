@@ -59,6 +59,66 @@ export function buildEventICS(event: Event): string {
   return lines.map(foldLine).join('\r\n') + '\r\n';
 }
 
+/** Um evento do feed, já com o contexto em que a pessoa serve. */
+export interface FeedEvent {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  location: string | null;
+  description: string | null;
+  /** Ministério(s) e funções — vão para a descrição do evento no calendário. */
+  roles: { ministry: string; functions: string[] }[];
+}
+
+/**
+ * Gera um calendário .ics com VÁRIOS eventos, para ser SUBSCRITO
+ * (o Google/Apple relê o URL periodicamente e mantém tudo sincronizado).
+ *
+ * Só usa strings — é seguro correr no servidor, ao contrário do
+ * downloadEventICS(), que depende de APIs do browser.
+ */
+export function buildFeedICS(events: FeedEvent[], calendarName: string): string {
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//WIS Services//Calendario//PT',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeICS(calendarName)}`,
+    // Sugere ao cliente de calendário reler de 12 em 12 horas.
+    'X-PUBLISHED-TTL:PT12H',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT12H',
+  ];
+
+  for (const e of events) {
+    const desc = [
+      e.roles.length > 0
+        ? e.roles.map((r) =>
+            r.functions.length > 0
+              ? `${r.ministry}: ${r.functions.join(', ')}`
+              : r.ministry).join('\n')
+        : null,
+      e.description,
+    ].filter(Boolean).join('\n\n');
+
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${e.id}@wis-services.com`,
+      `DTSTAMP:${nowStamp()}`,
+      `DTSTART:${toICSDateTime(e.date, e.time)}`,
+      `DTEND:${addHours(e.date, e.time, EVENT_DURATION_HOURS)}`,
+      `SUMMARY:${escapeICS(e.name)}`,
+    );
+    if (e.location) lines.push(`LOCATION:${escapeICS(e.location)}`);
+    if (desc) lines.push(`DESCRIPTION:${escapeICS(desc)}`);
+    lines.push('END:VEVENT');
+  }
+
+  lines.push('END:VCALENDAR');
+  return lines.map(foldLine).join('\r\n') + '\r\n';
+}
+
 function isIOS(): boolean {
   if (typeof navigator === 'undefined') return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent)

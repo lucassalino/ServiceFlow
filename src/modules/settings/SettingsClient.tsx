@@ -31,6 +31,7 @@ import { getInitials } from '@/lib/utils';
 import { MyFunctionsSection } from './MyFunctionsSection';
 import { MyHistorySection } from './MyHistorySection';
 import { EmailPreferencesSection } from './EmailPreferencesSection';
+import { CalendarSyncSection } from './CalendarSyncSection';
 // import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
@@ -448,6 +449,13 @@ export function SettingsClient({ orgId }: Props) {
         {activeOrg && (
           <Section title="Os meus ministérios e funções">
             <MyFunctionsSection orgId={orgId} />
+          </Section>
+        )}
+
+        {/* ── Sincronizar calendário ───────────────────── */}
+        {activeOrg && (
+          <Section title="Sincronizar calendário">
+            <CalendarSyncSection orgId={orgId} />
           </Section>
         )}
 

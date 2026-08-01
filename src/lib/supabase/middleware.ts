@@ -23,11 +23,22 @@ export async function updateSession(request: NextRequest) {
       },
     },
   );
-  const isPublicPage = request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register') ||
-    request.nextUrl.pathname.startsWith('/forgot-password') ||
-    request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname.startsWith('/offline');
+  const path = request.nextUrl.pathname;
+
+  // O feed de calendário é lido pelos servidores da Google/Apple, SEM sessão —
+  // se o middleware o redirecionasse para /login, a subscrição nunca funcionaria.
+  // O segredo é o token no próprio URL.
+  if (path.startsWith('/api/calendar/')) {
+    return supabaseResponse;
+  }
+
+  const isPublicPage = path.startsWith('/login') ||
+    path.startsWith('/register') ||
+    path.startsWith('/forgot-password') ||
+    path.startsWith('/auth') ||
+    path.startsWith('/privacidade') ||
+    path.startsWith('/suporte') ||
+    path.startsWith('/offline');
 
   // A verificação de sessão faz uma chamada de rede ao Supabase. Se essa chamada
   // falhar por rede/transitório (cold-start do Worker, blip de rede), NÃO deitamos
