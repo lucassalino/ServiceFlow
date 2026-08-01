@@ -21,8 +21,21 @@ Projeto Supabase: `ikhxbczktmwkeglomgrv`
 
 ## Deploy — LEIA ISTO ANTES DE MEXER
 
-- O Worker de **produção** é `serviceflow` (wis-services.com).
-- Existe também `serviceflow-dev` (ver `wrangler.jsonc`, secção `env`).
+São **dois Workers**, cada um ligado ao repositório com a sua própria config:
+
+| Worker | Domínio | Branch de produção |
+|---|---|---|
+| `serviceflow` | **wis-services.com** | `prd` |
+| `serviceflow-dev` | `serviceflow-dev…workers.dev` | `dev` |
+
+- Não existe `serviceflow-prd`. O `--env prd` no Deploy command **não** muda o
+  Worker de destino — o Workers Builds publica sempre no Worker a que está
+  ligado. Não "corrijas" esse comando a pensar que está errado.
+- **Armadilha que já nos mordeu:** no Worker de produção, "Builds for
+  non-production branches" estava **Enabled** com o Version command
+  `npx wrangler deploy`. Como `deploy` assume 100% do tráfego, **pushes para
+  `dev` iam ao ar em wis-services.com**. Se voltar a acontecer: desliga essa
+  opção, ou troca o Version command por `npx wrangler versions upload`.
 - **As duas branches `dev` e `prd` devem estar alinhadas** salvo quando há
   trabalho por validar. Confirma antes de assumir separação real:
   `git log origin/prd..origin/dev`
