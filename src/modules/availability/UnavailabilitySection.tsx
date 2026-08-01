@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker, DateRangePicker } from '@/components/ui/date-picker';
+import { useHasFeature } from '@/components/FeatureGate';
 
 const PERIOD_OPTIONS: { value: UnavailabilityPeriod | 'all'; label: string }[] = [
   { value: 'all', label: 'O dia todo' },
@@ -34,6 +35,8 @@ export function UnavailabilitySection() {
   const [reason, setReason] = useState('');
   /** null = seguir a ocorrência da data escolhida; caso contrário, escolha manual. */
   const [nth, setNth] = useState<number | null>(null);
+  // O padrão mensal é uma funcionalidade do plano; semanal e pontual são livres.
+  const monthly = useHasFeature('recurring_unavailability');
 
   /** "YYYY-MM-DD" -> day of week (0=domingo…6=sábado), parsed as local date. */
   function weekdayFromDateStr(value: string): number {
@@ -101,7 +104,8 @@ export function UnavailabilitySection() {
           { key: 'date_range', label: 'Pontual' },
           { key: 'weekly', label: 'Semanal' },
           { key: 'monthly_nth', label: 'Mensal' },
-        ] as const).map(({ key, label }) => (
+        ] as const).filter(({ key }) => key !== 'monthly_nth' || monthly.allowed || monthly.isLoading)
+          .map(({ key, label }) => (
           <button
             key={key}
             type="button"

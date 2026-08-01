@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { TrendingUp, X, ExternalLink } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { usePlanUsage } from '@/hooks/usePlanLimit';
+import { usePlanState, PlanBadge } from '@/components/FeatureGate';
 import {
   isNearLimit, isAtLimit, usagePercent, RESOURCE_LABEL,
   type PlanResource, type PlanLimitState,
@@ -27,6 +28,30 @@ export function PlanUsageBanner() {
   });
 
   const { data } = usePlanUsage(canAct && !dismissed);
+  const { data: plan } = usePlanState();
+
+  // Cortesia: mostramos o selo mesmo quando não há aviso de limite, para o
+  // admin perceber que tem plano pago sem pagar (e não achar que é um bug).
+  if (canAct && plan?.courtesy && !dismissed) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.625rem',
+        padding: '0.7rem 1rem', borderRadius: '0.75rem',
+        background: 'rgba(110,231,183,0.06)', border: '1px solid rgba(110,231,183,0.18)',
+      }}>
+        <PlanBadge state={plan} />
+        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', margin: 0, flex: 1 }}>
+          Tens o plano <strong style={{ color: '#fff' }}>{plan.name}</strong> ativo como cortesia — sem qualquer custo.
+        </p>
+        <button onClick={dismiss} aria-label="Dispensar" style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem',
+          color: 'rgba(255,255,255,0.3)', display: 'flex',
+        }}>
+          <X style={{ width: '0.85rem', height: '0.85rem' }} />
+        </button>
+      </div>
+    );
+  }
 
   if (!canAct || dismissed || !data) return null;
 

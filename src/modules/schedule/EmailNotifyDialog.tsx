@@ -12,6 +12,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FeatureGate } from '@/components/FeatureGate';
 
 interface Props {
   eventId: string | null;
@@ -76,6 +77,7 @@ export function EmailNotifyDialog({ eventId, open, onOpenChange }: Props) {
           <DialogTitle>Notificar por email</DialogTitle>
         </DialogHeader>
 
+        <FeatureGate feature="email_notifications">
         {!configured ? (
           <div style={{
             display: 'flex', gap: '0.625rem', padding: '0.875rem 1rem', borderRadius: '0.75rem',
@@ -156,6 +158,7 @@ export function EmailNotifyDialog({ eventId, open, onOpenChange }: Props) {
             </div>
           </div>
         )}
+        </FeatureGate>
       </DialogContent>
     </Dialog>
   );

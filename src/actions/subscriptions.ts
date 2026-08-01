@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { DEFAULT_PLAN, type OrgSubscription, type PlanKey } from '@/lib/plans';
 import type { PlanLimitState, PlanResource } from '@/lib/plan-limits';
+import { FREE_PLAN_STATE, type PlanFeature, type PlanState } from '@/lib/plan-features';
 
 // Cliente admin (service role) — sem tipos gerados para as tabelas novas, por isso `any`.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,4 +128,29 @@ export async function canAddResource(
   orgId: string, resource: PlanResource,
 ): Promise<PlanLimitState> {
   return fetchPlanLimitAction(orgId, resource);
+}
+
+// ── Funcionalidades do plano (gating booleano) ───────────────────────────────
+
+/** Estado do plano da organização: nome, features incluídas e se é cortesia. */
+export async function fetchPlanStateAction(orgId: string): Promise<PlanState> {
+  const supabase = await createClient();
+  // Os tipos gerados ainda não incluem esta RPC (ver migração 028).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rpc = supabase.rpc.bind(supabase) as any;
+
+  const { data, error } = await rpc('org_plan_state', { p_org_id: orgId });
+  if (error || !data) return FREE_PLAN_STATE;
+
+  const d = data as Record<string, unknown>;
+  return {
+    slug: (d.slug as string) ?? FREE_PLAN_STATE.slug,
+    name: (d.name as string) ?? FREE_PLAN_STATE.name,
+    features: ((d.features as PlanFeature[]) ?? []),
+    courtesy: !!d.courtesy,
+    source: (d.source as string) ?? 'free',
+    status: (d.status as string) ?? 'free',
+    expiresAt: (d.expires_at as string | null) ?? null,
+    billingCycle: (d.billing_cycle as string) ?? 'monthly',
+  };
 }

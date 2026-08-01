@@ -10,6 +10,7 @@ import { formatDate, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-picker';
+import { FeatureGate } from '@/components/FeatureGate';
 
 const card: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
@@ -81,6 +82,7 @@ export function ReportsClient({ orgId }: { orgId: string }) {
           </p>
         </div>
 
+        <FeatureGate feature="engagement_reports">
         {/* ── Filtros ───────────────────────────────── */}
         <div className="dark-inputs" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 16rem', minWidth: 0 }}>
@@ -223,6 +225,7 @@ export function ReportsClient({ orgId }: { orgId: string }) {
             )}
           </>
         )}
+        </FeatureGate>
       </div>
     </div>
   );

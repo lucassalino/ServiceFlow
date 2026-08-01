@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import type { MemberHistoryEntry } from '@/actions/member-history';
+import { FeatureGate } from '@/components/FeatureGate';
 
 interface Props {
   userId: string;
@@ -87,6 +88,7 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
           </div>
         )}
 
+        <FeatureGate feature="member_history">
         {/* ── Resumo ─────────────────────────────────── */}
         {!isLoading && s && s.total > 0 && (
           <div style={{
@@ -137,6 +139,7 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
           </div>
         )}
 
+        </FeatureGate>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useAuthStore } from '@/stores/authStore';
 import { MemberHistoryPanel } from '@/modules/members/MemberHistoryPanel';
+import { FeatureGate } from '@/components/FeatureGate';
 
 /**
  * "As minhas escalas" — o próprio utilizador a ver o seu histórico.
@@ -17,10 +18,12 @@ export function MyHistorySection() {
       <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
         As tuas participações em eventos que já aconteceram.
       </p>
-      <MemberHistoryPanel
-        userId={user.id}
-        memberName={profile?.full_name ?? user.email ?? '?'}
-      />
+      <FeatureGate feature="member_history">
+        <MemberHistoryPanel
+          userId={user.id}
+          memberName={profile?.full_name ?? user.email ?? '?'}
+        />
+      </FeatureGate>
     </div>
   );
 }

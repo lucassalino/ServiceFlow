@@ -10,6 +10,7 @@ import {
 } from '@/actions/calendar-feed';
 import { copyToClipboard, formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { FeatureGate } from '@/components/FeatureGate';
 
 /**
  * Subscrição do calendário pessoal.
@@ -63,6 +64,7 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
   }
 
   return (
+    <FeatureGate feature="calendar_sync">
     <div className="space-y-4">
       <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
         Subscreve as tuas escalas no Google Calendar ou no Calendário da Apple.
@@ -172,5 +174,6 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
         </>
       )}
     </div>
+    </FeatureGate>
   );
 }
