@@ -39,7 +39,7 @@ export async function fetchOrgSubscriptionAction(orgId: string): Promise<OrgSubs
   return {
     id: 'default', org_id: orgId, plan: DEFAULT_PLAN, source: 'free',
     status: 'active', started_at: new Date(0).toISOString(),
-    expires_at: null, granted_by: null, note: null,
+    expires_at: null, granted_by: null, note: null, has_stripe_customer: false,
   };
 }
 
@@ -52,6 +52,7 @@ function normalize(row: any): OrgSubscription {
     source: row.source, status: expired ? 'expired' : row.status,
     started_at: row.started_at, expires_at: row.expires_at,
     granted_by: row.granted_by, note: row.note,
+    has_stripe_customer: !!row.stripe_customer_id,
   };
 }
 

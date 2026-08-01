@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, ShieldCheck, ArrowUpRight } from 'lucide-react';
+import { Sparkles, ShieldCheck, ArrowUpRight, Settings2, Loader2 } from 'lucide-react';
 import { useOrgSubscription, useIsPlatformAdmin, useGrantPlan } from '@/hooks/useSubscription';
 import { PLAN_LIST, getPlan, type PlanKey } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
 import { CouponsSection } from './CouponsSection';
+import { createBillingPortalSessionAction } from '@/actions/stripe-checkout';
 
 // Sub-secção "plana" (sem moldura própria) para integrar no cartão Organização.
 function Card({ title, icon, accent, children }: {
@@ -36,6 +37,23 @@ export function PlanSection({ orgId, isAdmin }: Props) {
   const [selected, setSelected] = useState<PlanKey>('semente');
   const [note, setNote] = useState('');
   const [plansOpen, setPlansOpen] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  async function handlePortal() {
+    setPortalLoading(true);
+    try {
+      const result = await createBillingPortalSessionAction(orgId);
+      if (result.ok) {
+        window.location.href = result.url;
+        return;
+      }
+      toast.error(result.message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao abrir o portal de faturação');
+    } finally {
+      setPortalLoading(false);
+    }
+  }
 
   useEffect(() => { if (sub) setSelected(sub.plan); }, [sub]);
 
@@ -135,6 +153,26 @@ export function PlanSection({ orgId, isAdmin }: Props) {
               Ver planos e fazer upgrade
               <ArrowUpRight style={{ width: '0.9rem', height: '0.9rem' }} />
             </button>
+
+            {sub?.has_stripe_customer && (
+              <button
+                onClick={handlePortal}
+                disabled={portalLoading}
+                style={{
+                  width: '100%', marginTop: '0.5rem',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                  padding: '0.6rem 1rem', borderRadius: '0.625rem',
+                  background: 'transparent', color: 'rgba(255,255,255,0.75)',
+                  border: '1px solid rgba(255,255,255,0.15)', cursor: portalLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.82rem', fontWeight: 700, opacity: portalLoading ? 0.6 : 1,
+                }}
+              >
+                {portalLoading
+                  ? <Loader2 style={{ width: '0.9rem', height: '0.9rem' }} className="animate-spin" />
+                  : <Settings2 style={{ width: '0.9rem', height: '0.9rem' }} />}
+                Gerir assinatura
+              </button>
+            )}
           </div>
         )}
       </Card>

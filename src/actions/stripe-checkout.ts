@@ -28,6 +28,45 @@ async function requireOrgAdmin(orgId: string) {
   return { user, admin };
 }
 
+export type PortalResult =
+  | { ok: true; url: string }
+  | { ok: false; reason: 'NO_SUBSCRIPTION' | 'FORBIDDEN' | 'UNKNOWN'; message: string };
+
+/**
+ * Cria uma Billing Portal Session para a organização gerir a assinatura
+ * (mudar de plano, cartão, cancelar). Só faz sentido se a org já tiver um
+ * customer no Stripe (i.e. já passou por um checkout).
+ */
+export async function createBillingPortalSessionAction(orgId: string): Promise<PortalResult> {
+  if (!isStripeConfigured()) {
+    return { ok: false, reason: 'NO_SUBSCRIPTION', message: 'Pagamentos ainda não estão configurados.' };
+  }
+
+  let admin;
+  try {
+    ({ admin } = await requireOrgAdmin(orgId));
+  } catch (e) {
+    return { ok: false, reason: 'FORBIDDEN', message: e instanceof Error ? e.message : 'Sem permissão.' };
+  }
+
+  const { data: sub } = await admin.from('org_subscriptions')
+    .select('stripe_customer_id').eq('org_id', orgId).single();
+  if (!sub?.stripe_customer_id) {
+    return { ok: false, reason: 'NO_SUBSCRIPTION', message: 'Esta organização ainda não tem uma assinatura paga.' };
+  }
+
+  const stripe = getStripe();
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: sub.stripe_customer_id,
+      return_url: `${APP_URL}/definicoes`,
+    });
+    return { ok: true, url: session.url };
+  } catch (e) {
+    return { ok: false, reason: 'UNKNOWN', message: e instanceof Error ? e.message : 'Falha ao abrir o portal de faturação.' };
+  }
+}
+
 export type CheckoutResult =
   | { ok: true; url: string }
   | { ok: false; reason: 'STRIPE_NOT_CONFIGURED' | 'PLAN_NOT_PAYABLE' | 'FORBIDDEN' | 'UNKNOWN'; message: string };

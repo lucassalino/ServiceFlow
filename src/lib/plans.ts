@@ -120,4 +120,6 @@ export interface OrgSubscription {
   expires_at: string | null;
   granted_by: string | null;
   note: string | null;
+  /** true se a org já tem um customer no Stripe (já passou por um checkout). */
+  has_stripe_customer: boolean;
 }
