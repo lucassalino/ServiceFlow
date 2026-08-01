@@ -139,7 +139,7 @@ export function PlanosClient({ plans }: Props) {
           </a>
         </div>
         <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>
-          Plano Semente grátis pra sempre · sem cartão
+          Plano Semente grátis · sem cartão
         </p>
       </section>
 
@@ -180,7 +180,7 @@ export function PlanosClient({ plans }: Props) {
       <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '4rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '5rem' }}>
         <ProductBlock
           n="01" title="Eventos" reverse={false}
-          desc="Cada culto em uma só tela: quem está escalado em cada ministério, o roteiro do momento e a ordem das músicas do dia."
+          desc="Monte o culto do começo ao fim: quem está escalado em cada ministério, a setlist na ordem certa e o roteiro minuto a minuto — tudo pronto pra publicar e avisar a equipe."
           chips={[
             { icon: ListChecks, label: 'Rascunho → publicação' },
             { icon: Music2, label: 'Setlist do culto' },
@@ -544,9 +544,11 @@ function ProductComposition() {
         <IPhoneFrame src="/screenshots/mobile-eventos-equipa.webp" alt="Confirmações de presença da equipe de Louvor, no celular" />
       </div>
 
-      <FloatingChip label="Presença confirmada" top="6%" left="-2%" delay="0s" />
-      <FloatingChip label="Escala publicada" top="46%" left="-6%" delay="0.8s" />
-      <FloatingChip label="Setlist pronto · 5 músicas" top="86%" left="4%" delay="1.6s" />
+      <FloatingChip icon={UserCheck} label="Presença confirmada" top="2%" left="-4%" delay="0s" size="md" />
+      <FloatingChip icon={Bell} label="Escala publicada" top="38%" left="-9%" delay="0.9s" size="lg" />
+      <FloatingChip icon={Music2} label="Setlist pronto · 5 músicas" top="80%" left="2%" delay="1.7s" size="md" />
+      <FloatingChip icon={Bell} label="3 canais de aviso" top="16%" right="-6%" delay="0.4s" size="sm" />
+      <FloatingChip icon={Sparkles} label="CSV importado" top="62%" right="8%" delay="1.3s" size="sm" />
     </div>
   );
 }
@@ -605,20 +607,36 @@ function IPhoneFrame({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-function FloatingChip({ label, top, left, delay }: { label: string; top: string; left: string; delay: string }) {
+const CHIP_SIZES = {
+  sm: { padding: '0.35rem 0.7rem', fontSize: '0.66rem', iconBox: '1.1rem', iconSize: '0.62rem' },
+  md: { padding: '0.45rem 0.85rem', fontSize: '0.75rem', iconBox: '1.3rem', iconSize: '0.7rem' },
+  lg: { padding: '0.55rem 1rem', fontSize: '0.85rem', iconBox: '1.5rem', iconSize: '0.8rem' },
+};
+
+function FloatingChip({ icon: Icon, label, top, left, right, delay, size = 'md' }: {
+  icon: typeof Music2; label: string; top: string; left?: string; right?: string; delay: string;
+  size?: 'sm' | 'md' | 'lg';
+}) {
+  const s = CHIP_SIZES[size];
   return (
     <div
       className="hidden md:flex"
       style={{
-        position: 'absolute', top, left, zIndex: 3,
-        alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.8rem', borderRadius: '9999px',
-        background: 'rgba(20,22,26,0.85)', border: '1px solid rgba(255,255,255,0.14)',
-        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: '0.72rem', fontWeight: 600, color: '#fff',
-        boxShadow: '0 8px 24px -8px rgba(0,0,0,0.5)',
+        position: 'absolute', top, left, right, zIndex: 3,
+        alignItems: 'center', gap: '0.45rem', padding: s.padding, borderRadius: '9999px',
+        background: 'rgba(20,22,26,0.9)', border: '1px solid rgba(255,255,255,0.14)',
+        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: s.fontSize, fontWeight: 600, color: '#fff',
+        boxShadow: '0 8px 24px -8px rgba(0,0,0,0.55)', whiteSpace: 'nowrap',
         animation: `wis-float 4s ease-in-out ${delay} infinite`,
       }}
     >
-      <span style={{ width: 6, height: 6, borderRadius: '9999px', background: '#8fd0ea' }} />
+      <span style={{
+        flexShrink: 0, width: s.iconBox, height: s.iconBox, borderRadius: '9999px',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(143,208,234,0.18)',
+      }}>
+        <Icon style={{ width: s.iconSize, height: s.iconSize, color: '#8fd0ea' }} />
+      </span>
       {label}
       <style>{`@keyframes wis-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`}</style>
     </div>
@@ -665,23 +683,23 @@ function ProductBlock({ n, title, desc, chips, reverse, macSrc, macAlt, phoneSrc
 }
 
 function WizardMock() {
-  const steps = ['Detalhes', 'Ministérios', 'Setlist', 'Roteiro', 'Rever'];
+  const steps = ['Informações', 'Ministérios', 'Integrantes', 'Setlist', 'Roteiro'];
   return (
     <div style={{ ...card, padding: '1.5rem' }}>
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         {steps.map((s, i) => (
           <span key={s} style={{
             fontSize: '0.72rem', fontWeight: 600, padding: '0.3rem 0.75rem', borderRadius: '9999px',
-            background: i === 1 ? '#8fd0ea' : 'rgba(255,255,255,0.05)',
-            color: i === 1 ? '#000' : 'rgba(255,255,255,0.45)',
-            border: i === 1 ? 'none' : '1px solid rgba(255,255,255,0.1)',
+            background: i === 4 ? '#8fd0ea' : 'rgba(255,255,255,0.05)',
+            color: i === 4 ? '#000' : 'rgba(255,255,255,0.45)',
+            border: i === 4 ? 'none' : '1px solid rgba(255,255,255,0.1)',
           }}>
             {i + 1}. {s}
           </span>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '0.75rem' }}>
-        {['Louvor', 'Multimédia', 'Sonoplastia'].map((m) => (
+        {['Louvor', 'Mídia', 'Sonoplastia'].map((m) => (
           <div key={m} style={{
             padding: '0.9rem', borderRadius: '0.6rem', background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
