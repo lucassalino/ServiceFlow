@@ -109,5 +109,5 @@ function S({ title, children }: { title: string; children: React.ReactNode }) {
 }
 
 function A({ href, children }: { href: string; children: React.ReactNode }) {
-  return <a href={href} style={{ color: '#5eead4', textDecoration: 'underline' }}>{children}</a>;
+  return <a href={href} style={{ color: '#8fd0ea', textDecoration: 'underline' }}>{children}</a>;
 }

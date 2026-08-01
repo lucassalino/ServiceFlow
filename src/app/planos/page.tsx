@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { fetchPublicPlansAction } from '@/actions/subscriptions';
 import { PlanosClient } from './PlanosClient';
 
 export const metadata: Metadata = {
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PlanosPage() {
-  return <PlanosClient />;
+export default async function PlanosPage() {
+  const plans = await fetchPublicPlansAction();
+  return <PlanosClient plans={plans} />;
 }

@@ -50,7 +50,7 @@ export default function SuportePage() {
           Dúvidas e problemas
         </p>
         <a href={`mailto:${SUPPORT_EMAIL}`}
-          style={{ fontSize: '1.05rem', fontWeight: 600, color: '#5eead4', textDecoration: 'none' }}>
+          style={{ fontSize: '1.05rem', fontWeight: 600, color: '#8fd0ea', textDecoration: 'none' }}>
           {SUPPORT_EMAIL}
         </a>
       </div>
@@ -72,7 +72,7 @@ export default function SuportePage() {
 
       <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
         Para assuntos relacionados com dados pessoais e privacidade, usa{' '}
-        <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#5eead4' }}>{CONTACT_EMAIL}</a>.
+        <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#8fd0ea' }}>{CONTACT_EMAIL}</a>.
       </p>
     </>
   );

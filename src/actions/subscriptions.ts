@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { DEFAULT_PLAN, type OrgSubscription, type PlanKey } from '@/lib/plans';
+import { DEFAULT_PLAN, PLAN_LIST, type OrgSubscription, type PlanDef, type PlanKey } from '@/lib/plans';
 import type { PlanLimitState, PlanResource } from '@/lib/plan-limits';
 import { FREE_PLAN_STATE, type PlanFeature, type PlanState } from '@/lib/plan-features';
 
@@ -129,6 +129,37 @@ export async function canAddResource(
   orgId: string, resource: PlanResource,
 ): Promise<PlanLimitState> {
   return fetchPlanLimitAction(orgId, resource);
+}
+
+// ── Catálogo público de planos (página /planos) ──────────────────────────────
+// Leitura pública (RLS: "plans: leitura pública") — sem sessão. A tabela
+// `plans` é a fonte de verdade; src/lib/plans.ts fica só como fallback caso
+// a leitura falhe (ex.: rede), para a página nunca ficar em branco.
+
+export async function fetchPublicPlansAction(): Promise<PlanDef[]> {
+  const supabase = await createClient();
+  // Os tipos gerados ainda não incluem `plans` (ver migração 022).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const from = supabase.from.bind(supabase) as any;
+  const { data, error } = await from('plans')
+    .select('slug, name, max_people, max_ministries, max_admins, price_monthly, price_annual, features, sort_order')
+    .eq('is_active', true)
+    .order('sort_order');
+
+  if (error || !data || data.length === 0) return PLAN_LIST;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data as any[]).map((row): PlanDef => ({
+    key: row.slug as PlanKey,
+    label: row.name,
+    order: row.sort_order,
+    maxPeople: row.max_people,
+    maxMinistries: row.max_ministries,
+    maxAdmins: row.max_admins,
+    priceMonthly: Number(row.price_monthly),
+    priceAnnual: Number(row.price_annual),
+    features: (row.features as string[] | null) ?? [],
+  }));
 }
 
 // ── Funcionalidades do plano (gating booleano) ───────────────────────────────

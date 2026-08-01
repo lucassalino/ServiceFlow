@@ -50,6 +50,7 @@ export async function updateSession(request: NextRequest) {
   // reencaminhado para o dashboard.
   const isInfoPage = path.startsWith('/privacidade') ||
     path.startsWith('/suporte') ||
+    path.startsWith('/termos') ||
     path.startsWith('/planos') ||
     path.startsWith('/offline');
 
