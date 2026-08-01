@@ -29,6 +29,24 @@ const FEATURES = [
   { icon: Sparkles, label: 'Relatórios de engajamento', desc: 'Frequência de participação e distribuição por ministério, por período.' },
 ];
 
+/**
+ * Rótulos em pt-BR para as chaves de `plans.features` (ver migração 028 /
+ * src/lib/plan-features.ts — esse arquivo é pt-PT, usado dentro do app
+ * autenticado; aqui é só a landing pública, em pt-BR).
+ */
+const FEATURE_LABELS: Record<string, string> = {
+  member_history: 'Histórico de participação',
+  notifications: 'Notificações no app',
+  recurring_unavailability: 'Disponibilidade recorrente',
+  calendar_sync: 'Sincronização de calendário',
+  event_timeline: 'Roteiro do evento',
+  song_ranking: 'Ranking de músicas',
+  pdf_export: 'Exportação em PDF',
+  email_notifications: 'Avisos por email',
+  engagement_reports: 'Relatórios de engajamento',
+  priority_support: 'Suporte prioritário',
+};
+
 const METRICS = [
   { icon: LayoutGrid, value: '7', label: 'módulos integrados' },
   { icon: Layers, value: 'PWA', label: 'instala sem loja' },
@@ -469,7 +487,7 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
           <li style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)' }}>Escala simples · acesso do voluntário ao app</li>
         ) : plan.features.map((f) => (
           <li key={f} style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
-            {f}
+            {FEATURE_LABELS[f] ?? f}
           </li>
         ))}
       </ul>
@@ -559,7 +577,7 @@ function ProductComposition() {
 
       <FloatingChip icon={UserCheck} label="Presença confirmada" top="2%" left="-4%" delay="0s" size="md" />
       <FloatingChip icon={Bell} label="Escala publicada" top="38%" left="-9%" delay="0.9s" size="lg" />
-      <FloatingChip icon={Music2} label="Setlist pronto · 5 músicas" top="80%" left="2%" delay="1.7s" size="md" />
+      <FloatingChip icon={Clock} label="Gestão de indisponibilidade" top="80%" left="2%" delay="1.7s" size="md" />
       <FloatingChip icon={Bell} label="3 canais de aviso" top="16%" right="-6%" delay="0.4s" size="sm" />
       <FloatingChip icon={Sparkles} label="CSV importado" top="62%" right="8%" delay="1.3s" size="sm" />
     </div>
