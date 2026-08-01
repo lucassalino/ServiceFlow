@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { ArrowLeft, Pencil, History } from 'lucide-react';
 import type { OrganizationMember, OrgRole } from '@/types/models';
 import { useMemberMinistries } from '@/hooks/useMembers';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -9,6 +9,7 @@ import { getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { MemberMinistriesPanel } from './MemberMinistriesPanel';
+import { MemberHistoryPanel } from './MemberHistoryPanel';
 
 type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
@@ -29,16 +30,30 @@ interface Props {
 
 export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
   const [showMinistriesPanel, setShowMinistriesPanel] = useState(false);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const { data: assignments = [], isLoading } = useMemberMinistries(member.user_id);
   const { data: allMinistries = [] } = useMinistries();
+
+  const memberLabel = member.profile?.full_name ?? member.profile?.email ?? '?';
 
   if (showMinistriesPanel) {
     return (
       <MemberMinistriesPanel
         userId={member.user_id}
-        memberName={member.profile?.full_name ?? member.profile?.email ?? '?'}
+        memberName={memberLabel}
         memberAvatar={member.profile?.avatar_url}
         onBack={() => setShowMinistriesPanel(false)}
+      />
+    );
+  }
+
+  if (showHistoryPanel) {
+    return (
+      <MemberHistoryPanel
+        userId={member.user_id}
+        memberName={memberLabel}
+        memberAvatar={member.profile?.avatar_url}
+        onBack={() => setShowHistoryPanel(false)}
       />
     );
   }
@@ -80,23 +95,41 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
             Pessoas
           </button>
 
-          {isAdmin && (
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button
-              onClick={() => setShowMinistriesPanel(true)}
+              onClick={() => setShowHistoryPanel(true)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                 padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
                 background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-                transition: 'background 0.12s',
+                transition: 'background 0.12s', whiteSpace: 'nowrap',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
             >
-              <Pencil style={{ width: '0.8rem', height: '0.8rem' }} />
-              Gerir ministérios
+              <History style={{ width: '0.8rem', height: '0.8rem' }} />
+              Histórico
             </button>
-          )}
+
+            {isAdmin && (
+              <button
+                onClick={() => setShowMinistriesPanel(true)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                  padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
+                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  transition: 'background 0.12s', whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+              >
+                <Pencil style={{ width: '0.8rem', height: '0.8rem' }} />
+                Gerir ministérios
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ── Two-column main layout ───────────────────────── */}

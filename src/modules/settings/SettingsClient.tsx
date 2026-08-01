@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
 import { MyFunctionsSection } from './MyFunctionsSection';
+import { MyHistorySection } from './MyHistorySection';
 // import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
@@ -446,6 +447,13 @@ export function SettingsClient({ orgId }: Props) {
         {activeOrg && (
           <Section title="Os meus ministérios e funções">
             <MyFunctionsSection orgId={orgId} />
+          </Section>
+        )}
+
+        {/* ── Histórico de participações do próprio ────── */}
+        {activeOrg && (
+          <Section title="As minhas escalas">
+            <MyHistorySection />
           </Section>
         )}
 
