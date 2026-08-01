@@ -42,7 +42,7 @@ export function CouponsSection({ orgId, isAdmin, isPlatformAdmin }: Props) {
   const deleteCoupon = useDeleteCoupon();
 
   const [newCode, setNewCode] = useState('');
-  const [newPlan, setNewPlan] = useState<PlanKey>('comunhao');
+  const [newPlan, setNewPlan] = useState<PlanKey>('colheita');
   const [newDuration, setNewDuration] = useState<string>('');   // dias (vazio = vitalício)
   const [newMaxUses, setNewMaxUses] = useState<string>('');      // vazio = ilimitado
 

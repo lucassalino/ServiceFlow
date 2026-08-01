@@ -61,10 +61,10 @@ export function PlansDialog({ open, onOpenChange, currentPlan }: Props) {
                 <div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>{plan.label}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
-                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: plan.priceMonthly.pt === 0 ? '#6ee7b7' : '#fff' }}>
-                      {fmtPrice(plan.priceMonthly.pt)}
+                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: plan.priceMonthly === 0 ? '#6ee7b7' : '#fff' }}>
+                      {fmtPrice(plan.priceMonthly)}
                     </span>
-                    {plan.priceMonthly.pt > 0 && (
+                    {plan.priceMonthly > 0 && (
                       <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>/ mês</span>
                     )}
                   </div>

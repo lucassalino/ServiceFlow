@@ -134,8 +134,9 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
               </p>
               <p style={{ margin: 0 }}>
                 <strong style={{ color: 'rgba(255,255,255,0.65)' }}>iPhone / Apple:</strong>{' '}
-                Definições → Aplicações → Calendário → Contas → Adicionar conta →
-                Outra → Adicionar calendário subscrito → cola o link.
+                Definições → Aplicações → Calendário → Contas → Adicionar Conta →
+                Outra → toca em <strong>&quot;Calendário Assinado&quot;</strong> (não
+                &quot;Conta CalDAV&quot;) → cola o link → Seguinte → Guardar.
               </p>
             </div>
           </details>

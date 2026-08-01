@@ -87,9 +87,9 @@ export function PlanSection({ orgId, isAdmin }: Props) {
             </div>
 
             {/* Preço (se pago) */}
-            {current.priceMonthly.pt > 0 ? (
+            {current.priceMonthly > 0 ? (
               <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', marginTop: '0.15rem' }}>
-                {current.priceMonthly.pt.toFixed(2).replace('.', ',')} € / mês
+                {current.priceMonthly.toFixed(2).replace('.', ',')} € / mês
               </p>
             ) : (
               <p style={{ fontSize: '0.8rem', color: '#6ee7b7', marginTop: '0.15rem', fontWeight: 600 }}>Grátis</p>

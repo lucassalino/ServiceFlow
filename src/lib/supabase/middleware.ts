@@ -32,13 +32,22 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const isPublicPage = path.startsWith('/login') ||
+  // Ecrãs de autenticação: um utilizador já autenticado não deve vê-los —
+  // é reencaminhado para o dashboard (ver mais abaixo).
+  const isAuthPage = path.startsWith('/login') ||
     path.startsWith('/register') ||
     path.startsWith('/forgot-password') ||
-    path.startsWith('/auth') ||
-    path.startsWith('/privacidade') ||
+    path.startsWith('/auth');
+
+  // Páginas informativas: acessíveis a todos, COM ou SEM sessão. Um admin a
+  // ver os planos ou alguém a rever a política de privacidade não deve ser
+  // reencaminhado para o dashboard.
+  const isInfoPage = path.startsWith('/privacidade') ||
     path.startsWith('/suporte') ||
+    path.startsWith('/planos') ||
     path.startsWith('/offline');
+
+  const isPublicPage = isAuthPage || isInfoPage;
 
   // A verificação de sessão faz uma chamada de rede ao Supabase. Se essa chamada
   // falhar por rede/transitório (cold-start do Worker, blip de rede), NÃO deitamos
@@ -72,7 +81,7 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
-  if (user && isPublicPage && !request.nextUrl.pathname.startsWith('/offline')) {
+  if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);

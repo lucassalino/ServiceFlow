@@ -1,13 +1,18 @@
 /**
  * Catálogo de planos da plataforma WIS.
  *
- * Os limites são aplicados no código (server actions). `null` = ilimitado.
- * Preços a validar; o pagamento ainda NÃO está implementado — os planos são
- * atribuídos gratuitamente (source 'free') ou manualmente por um super-admin
+ * A TABELA `plans` no Supabase é a fonte de verdade (migração 022 + 028).
+ * Este ficheiro é só o fallback de UI — os valores têm de bater certo com
+ * a base de dados. Se mudares um preço/limite, muda os dois sítios (ou,
+ * melhor ainda, lê sempre via fetchPlanStateAction/RPC em vez deste catálogo
+ * estático quando precisares do valor exato de uma organização real).
+ *
+ * O pagamento ainda NÃO está implementado — os planos são atribuídos
+ * gratuitamente (source 'free') ou manualmente por um super-admin
  * ("permissão dev", source 'manual').
  */
 
-export type PlanKey = 'semente' | 'crescimento' | 'comunhao' | 'expansao' | 'ilimitado';
+export type PlanKey = 'semente' | 'broto' | 'colheita' | 'celeiro';
 
 export interface PlanDef {
   key: PlanKey;
@@ -17,7 +22,9 @@ export interface PlanDef {
   maxPeople: number | null;
   maxMinistries: number | null;
   maxAdmins: number | null;
-  priceMonthly: { br: number; pt: number };
+  /** Preços em euros. */
+  priceMonthly: number;
+  priceAnnual: number;
   features: string[];
 }
 
@@ -29,64 +36,57 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxPeople: 10,
     maxMinistries: 1,
     maxAdmins: 1,
-    priceMonthly: { br: 0, pt: 0 },
+    priceMonthly: 0,
+    priceAnnual: 0,
     features: ['Escala simples', 'Acesso do voluntário à app'],
   },
-  crescimento: {
-    key: 'crescimento',
-    label: 'Crescimento',
+  broto: {
+    key: 'broto',
+    label: 'Broto',
     order: 1,
-    maxPeople: 20,
-    maxMinistries: 3,
+    maxPeople: 25,
+    maxMinistries: 5,
     maxAdmins: 1,
-    priceMonthly: { br: 34.9, pt: 6.99 },
+    priceMonthly: 9.99,
+    priceAnnual: 99.90,
     features: [
-      'Aviso de indisponibilidade',
-      'Notificações',
-      'Calendário geral',
-      'Histórico pessoal do voluntário',
+      'Histórico de participações do voluntário',
+      'Notificações na app',
     ],
   },
-  comunhao: {
-    key: 'comunhao',
-    label: 'Comunhão',
+  colheita: {
+    key: 'colheita',
+    label: 'Colheita',
     order: 2,
-    maxPeople: 50,
+    maxPeople: 60,
     maxMinistries: null,
-    maxAdmins: 1,
-    priceMonthly: { br: 69.9, pt: 12.99 },
+    maxAdmins: 3,
+    priceMonthly: 19.99,
+    priceAnnual: 199.90,
     features: [
       'Ministérios ilimitados',
+      'Disponibilidade recorrente (ex.: "2ª terça do mês")',
+      'Sincronização com o Google/Apple Calendar',
       'Roteiro do evento',
       'Ranking de músicas',
       'Exportar em PDF',
-      'Disponibilidade recorrente',
-      'Sincronização com calendário',
     ],
   },
-  expansao: {
-    key: 'expansao',
-    label: 'Expansão',
+  celeiro: {
+    key: 'celeiro',
+    label: 'Celeiro',
     order: 3,
-    maxPeople: 100,
-    maxMinistries: null,
-    maxAdmins: null,
-    priceMonthly: { br: 119.9, pt: 22.99 },
-    features: [
-      'Múltiplos administradores',
-      'Lembretes automáticos por email',
-      'Relatórios de engajamento',
-    ],
-  },
-  ilimitado: {
-    key: 'ilimitado',
-    label: 'Ilimitado',
-    order: 4,
     maxPeople: null,
     maxMinistries: null,
     maxAdmins: null,
-    priceMonthly: { br: 199.9, pt: 39.99 },
-    features: ['Sem limites', 'Multi-campus', 'Suporte prioritário'],
+    priceMonthly: 39.99,
+    priceAnnual: 399.90,
+    features: [
+      'Pessoas e administradores ilimitados',
+      'Avisos por email quando a escala é publicada',
+      'Relatórios de engajamento',
+      'Suporte prioritário',
+    ],
   },
 };
 
@@ -101,6 +101,13 @@ export function getPlan(key: string | null | undefined): PlanDef {
 /** true se `n` está dentro do limite (`limit` null = ilimitado). */
 export function withinLimit(n: number, limit: number | null): boolean {
   return limit === null || n < limit;
+}
+
+/** Poupança (%) de escolher o preço anual em vez de 12x o mensal. */
+export function annualSavingsPercent(plan: PlanDef): number {
+  if (plan.priceMonthly === 0) return 0;
+  const fullYear = plan.priceMonthly * 12;
+  return Math.round((1 - plan.priceAnnual / fullYear) * 100);
 }
 
 export interface OrgSubscription {
