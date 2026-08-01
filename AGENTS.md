@@ -50,6 +50,8 @@ segundo padrão. O OpenNext popula `process.env` a partir dos Secrets do Worker.
 | `NEXT_PUBLIC_SUPABASE_URL` / `ANON_KEY` | `wrangler.jsonc` (são públicas) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Secret** no painel — NUNCA no `wrangler.jsonc` |
 | `RESEND_API_KEY` | **Secret** no painel (opcional; sem ela os emails são ignorados) |
+| `STRIPE_SECRET_KEY` | **Secret** no painel — modo teste (`sk_test_`) em dev, live (`sk_live_`) só em `prd` |
+| `STRIPE_WEBHOOK_SECRET` | **Secret** no painel — `whsec_...` do endpoint de webhook; teste e live têm segredos diferentes |
 
 ### Armadilhas de build já sofridas (não repetir)
 1. **Nunca regeneres o `package-lock.json` sem necessidade.** Já partiu o build
@@ -156,5 +158,6 @@ RLS**. É dívida técnica conhecida.
 
 - Chave do Resend (Secret `RESEND_API_KEY`) — sem ela os emails não saem
 - Job agendado de lembretes (decidir: Cloudflare Cron Triggers)
-- Pagamento real (Stripe) — `plans.stripe_price_id_*` já existem, a null
+- Pagamento real (Stripe) — Setup e Checkout feitos (dev); faltam Billing Portal,
+  webhooks e lógica de downgrade (ver Fase 2 em curso)
 - Validar em produção: feed de calendário (colar no Google Calendar)

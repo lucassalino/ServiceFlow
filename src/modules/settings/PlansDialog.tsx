@@ -1,13 +1,17 @@
 'use client';
 
-import { Check, X as XIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PLAN_LIST, type PlanKey } from '@/lib/plans';
+import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   currentPlan: PlanKey;
+  orgId: string;
 }
 
 function fmtPrice(pt: number): string {
@@ -20,7 +24,26 @@ function fmtLimit(n: number | null, singular: string, plural: string): string {
   return `Até ${n} ${n === 1 ? singular : plural}`;
 }
 
-export function PlansDialog({ open, onOpenChange, currentPlan }: Props) {
+export function PlansDialog({ open, onOpenChange, currentPlan, orgId }: Props) {
+  const [annual, setAnnual] = useState(false);
+  const [loadingKey, setLoadingKey] = useState<PlanKey | null>(null);
+
+  async function handleAssinar(plan: PlanKey) {
+    setLoadingKey(plan);
+    try {
+      const result = await createCheckoutSessionAction(orgId, plan, annual ? 'annual' : 'monthly');
+      if (result.ok) {
+        window.location.href = result.url;
+        return;
+      }
+      toast.error(result.message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao iniciar o checkout');
+    } finally {
+      setLoadingKey(null);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[88vh] overflow-y-auto">
@@ -31,9 +54,32 @@ export function PlansDialog({ open, onOpenChange, currentPlan }: Props) {
           Escolhe o plano que melhor serve a tua igreja. Cada plano inclui tudo o que vem no anterior.
         </p>
 
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+          <div style={{
+            display: 'inline-flex', borderRadius: '9999px', padding: '0.2rem',
+            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+          }}>
+            {[false, true].map((v) => (
+              <button
+                key={String(v)}
+                onClick={() => setAnnual(v)}
+                style={{
+                  padding: '0.3rem 0.8rem', borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                  fontSize: '0.72rem', fontWeight: 700,
+                  background: annual === v ? '#fff' : 'transparent',
+                  color: annual === v ? '#000' : 'rgba(255,255,255,0.55)',
+                }}
+              >
+                {v ? 'Anual' : 'Mensal'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-2">
           {PLAN_LIST.map((plan) => {
             const isCurrent = plan.key === currentPlan;
+            const price = annual ? plan.priceAnnual : plan.priceMonthly;
             return (
               <div
                 key={plan.key}
@@ -61,11 +107,11 @@ export function PlansDialog({ open, onOpenChange, currentPlan }: Props) {
                 <div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>{plan.label}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.15rem' }}>
-                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: plan.priceMonthly === 0 ? '#6ee7b7' : '#fff' }}>
-                      {fmtPrice(plan.priceMonthly)}
+                    <span style={{ fontSize: '1.35rem', fontWeight: 800, color: price === 0 ? '#6ee7b7' : '#fff' }}>
+                      {fmtPrice(price)}
                     </span>
-                    {plan.priceMonthly > 0 && (
-                      <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>/ mês</span>
+                    {price > 0 && (
+                      <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>/ {annual ? 'ano' : 'mês'}</span>
                     )}
                   </div>
                 </div>
@@ -106,14 +152,26 @@ export function PlansDialog({ open, onOpenChange, currentPlan }: Props) {
                     }}>
                       O teu plano
                     </button>
-                  ) : (
+                  ) : plan.priceMonthly === 0 ? (
                     <button disabled style={{
-                      width: '100%', padding: '0.55rem', borderRadius: '0.5rem', border: 'none',
-                      background: 'rgba(165,180,252,0.9)', color: '#0a0a0f', fontWeight: 700, fontSize: '0.8rem',
-                      cursor: 'not-allowed', opacity: 0.85,
-                    }}
-                    title="Pagamento em breve">
-                      Em breve
+                      width: '100%', padding: '0.55rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'transparent', color: 'rgba(255,255,255,0.5)', fontWeight: 600, fontSize: '0.8rem', cursor: 'default',
+                    }}>
+                      Plano grátis
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleAssinar(plan.key)}
+                      disabled={loadingKey !== null}
+                      style={{
+                        width: '100%', padding: '0.55rem', borderRadius: '0.5rem', border: 'none',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        background: 'rgba(165,180,252,0.9)', color: '#0a0a0f', fontWeight: 700, fontSize: '0.8rem',
+                        cursor: loadingKey !== null ? 'not-allowed' : 'pointer', opacity: loadingKey !== null && loadingKey !== plan.key ? 0.5 : 1,
+                      }}
+                    >
+                      {loadingKey === plan.key && <Loader2 style={{ width: '0.85rem', height: '0.85rem' }} className="animate-spin" />}
+                      Assinar
                     </button>
                   )}
                 </div>
@@ -122,10 +180,6 @@ export function PlansDialog({ open, onOpenChange, currentPlan }: Props) {
           })}
         </div>
 
-        <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-          <XIcon className="h-3 w-3" />
-          Os pagamentos ainda não estão disponíveis. Para mudar de plano, contacta-nos.
-        </p>
       </DialogContent>
     </Dialog>
   );

@@ -139,7 +139,7 @@ export function PlanSection({ orgId, isAdmin }: Props) {
         )}
       </Card>
 
-      <PlansDialog open={plansOpen} onOpenChange={setPlansOpen} currentPlan={current.key} />
+      <PlansDialog open={plansOpen} onOpenChange={setPlansOpen} currentPlan={current.key} orgId={orgId} />
 
       {/* Concessão manual — só super-admin da plataforma */}
       {isPlatformAdmin && (
