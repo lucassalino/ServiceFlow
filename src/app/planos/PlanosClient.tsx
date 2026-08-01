@@ -114,7 +114,7 @@ export function PlanosClient({ plans }: Props) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/brand/wis-symbol-white.svg" alt="" style={{ width: '1.05rem', height: '1.05rem' }} />
             </span>
-            WIS <span style={{ color: '#8fd0ea' }}>· Worship in Sync</span>
+            WIS <span style={{ color: '#8fd0ea' }}>· Services</span>
           </Link>
 
           <nav className="hidden md:flex" style={{ gap: '1.5rem' }}>
@@ -312,8 +312,8 @@ export function PlanosClient({ plans }: Props) {
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15.5rem, 1fr))', gap: '1rem',
         }}>
-          {plans.map((plan) => (
-            <PlanCard key={plan.key} plan={plan} annual={annual} />
+          {plans.map((plan, i) => (
+            <PlanCard key={plan.key} plan={plan} annual={annual} previousFeatures={i > 0 ? plans[i - 1].features : []} />
           ))}
         </div>
 
@@ -404,7 +404,7 @@ export function PlanosClient({ plans }: Props) {
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))', gap: '2rem',
         }}>
           <div>
-            <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>WIS <span style={{ color: '#8fd0ea' }}>· Worship in Sync</span></span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>WIS <span style={{ color: '#8fd0ea' }}>· Services</span></span>
             <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.6rem', lineHeight: 1.6 }}>
               Gestão de ministérios de igreja — escalas, eventos e repertório.
             </p>
@@ -436,10 +436,14 @@ function FooterCol({ title, links }: { title: string; links: { href: string; lab
   );
 }
 
-function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
+function PlanCard({ plan, annual, previousFeatures }: { plan: PlanDef; annual: boolean; previousFeatures: string[] }) {
   const price = annual ? plan.priceAnnual : plan.priceMonthly;
   const savings = annualSavingsPercent(plan);
   const popular = plan.key === 'colheita';
+
+  // Só mostra o que o plano acrescenta ao anterior — os planos são
+  // cumulativos, então repetir tudo de novo em cada cartão é ruído.
+  const newFeatures = plan.features.filter((f) => !previousFeatures.includes(f));
 
   const limitsLine = [
     plan.maxPeople === null ? 'Pessoas ilimitadas' : `${plan.maxPeople} pessoas`,
@@ -450,11 +454,11 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
   return (
     <div style={{
       position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column',
-      borderRadius: '1rem', padding: '1.5rem',
+      borderRadius: '1rem', padding: '1.35rem 1.5rem',
       border: popular ? '1px solid rgba(143,208,234,0.45)' : '1px solid rgba(255,255,255,0.10)',
       background: popular ? 'linear-gradient(180deg, rgba(143,208,234,0.08) 0%, rgba(255,255,255,0.02) 100%)' : 'rgba(255,255,255,0.025)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
         <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
           {plan.label}
         </p>
@@ -469,23 +473,24 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
-        <span style={{ fontSize: '1.8rem', fontWeight: 800, color: price === 0 ? '#8fd0ea' : '#fff' }}>
+        <span style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>
           {fmtPrice(price)}
         </span>
-        {price > 0 && <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>/ {annual ? 'ano' : 'mês'}</span>}
+        {price > 0 && <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>/{annual ? 'ano' : 'mês'}</span>}
       </div>
 
-      <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', margin: '0.35rem 0 0' }}>{limitsLine}</p>
+      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', margin: '0.3rem 0 0' }}>{limitsLine}</p>
       {annual && savings > 0 ? (
-        <p style={{ fontSize: '0.72rem', color: '#8fd0ea', margin: '0.35rem 0 0', fontWeight: 700 }}>Economize {savings}%</p>
+        <p style={{ fontSize: '0.72rem', color: '#8fd0ea', margin: '0.3rem 0 0', fontWeight: 700 }}>Economize {savings}%</p>
       ) : null}
 
-      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '1.25rem 0' }} />
-
-      <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', flex: 1 }}>
+      <ul style={{ listStyle: 'none', padding: 0, margin: '1.1rem 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.55rem', flex: 1 }}>
         {plan.features.length === 0 ? (
-          <li style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)' }}>Escala simples · acesso do voluntário ao app</li>
-        ) : plan.features.map((f) => (
+          <>
+            <li style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)' }}>Escala simples</li>
+            <li style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)' }}>Acesso do voluntário ao app</li>
+          </>
+        ) : newFeatures.map((f) => (
           <li key={f} style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
             {FEATURE_LABELS[f] ?? f}
           </li>
