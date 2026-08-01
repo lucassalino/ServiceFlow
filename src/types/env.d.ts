@@ -18,5 +18,17 @@ declare namespace NodeJS {
      * Opcional: sem ela o envio de emails é ignorado sem partir a app.
      */
     RESEND_API_KEY?: string;
+    /**
+     * Chave secreta do Stripe (modo teste: sk_test_..., produção: sk_live_...).
+     * Só no servidor. Nunca no wrangler.jsonc.
+     * Opcional em dev: sem ela, checkout/portal ficam desativados na UI.
+     */
+    STRIPE_SECRET_KEY?: string;
+    /**
+     * Segredo do endpoint de webhook do Stripe (whsec_...), para verificar a
+     * assinatura de cada evento recebido. Um por ambiente (dev/prod têm
+     * endpoints diferentes no Stripe, logo segredos diferentes).
+     */
+    STRIPE_WEBHOOK_SECRET?: string;
   }
 }

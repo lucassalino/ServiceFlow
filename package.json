@@ -12,7 +12,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy:dev": "opennextjs-cloudflare build && wrangler deploy --env dev",
-    "cf:deploy:prd": "opennextjs-cloudflare build && wrangler deploy --env prd"
+    "cf:deploy:prd": "opennextjs-cloudflare build && wrangler deploy --env prd",
+    "stripe:seed": "node --env-file=.env.local scripts/stripe-seed.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -46,6 +47,7 @@
     "react-easy-crop": "^6.0.2",
     "react-hook-form": "^7.58.1",
     "sonner": "^2.0.3",
+    "stripe": "^22.4.0",
     "tailwind-merge": "^3.3.0",
     "zod": "^3.25.64",
     "zustand": "^5.0.14"
