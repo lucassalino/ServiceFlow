@@ -38,6 +38,8 @@ export async function markAllNotificationsReadAction(): Promise<void> {
 export async function notifyEventSchedulesAction(
   eventId: string,
   eventName: string,
+  /** Se indicado, notifica só estas pessoas; caso contrário, todas as escaladas. */
+  userIdsFilter?: string[],
 ): Promise<{ notified: number }> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -56,7 +58,11 @@ export async function notifyEventSchedulesAction(
     .from('event_schedules').select('user_id').in('event_ministry_id', eventMinistryIds);
   if (schedulesError) throw new Error(schedulesError.message);
 
-  const userIds = Array.from(new Set((schedules ?? []).map((s) => s.user_id)));
+  let userIds = Array.from(new Set((schedules ?? []).map((s) => s.user_id)));
+  if (userIdsFilter && userIdsFilter.length > 0) {
+    const allowed = new Set(userIdsFilter);
+    userIds = userIds.filter((id) => allowed.has(id));
+  }
   if (userIds.length === 0) return { notified: 0 };
 
   const message = `Foste escalado(a) para "${eventName}". Confirma a tua presença.`;

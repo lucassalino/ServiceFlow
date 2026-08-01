@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Plus, X, Check, Users, ChevronDown, ChevronRight,
-  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin, Bell, Minus, CalendarOff,
+  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin, Bell, Minus, CalendarOff, Mail,
 } from 'lucide-react';
 import { useEvents, usePublishEvent } from '@/hooks/useEvents';
 import { useOrgStore } from '@/stores/orgStore';
@@ -41,6 +41,7 @@ import type { Ministry, EventMinistry, EventSchedule, MinistryMember } from '@/t
 interface Props { orgId: string }
 
 import { APP_URL } from '@/lib/app-url';
+import { EmailNotifyDialog } from './EmailNotifyDialog';
 
 // ── Shared dark badge ────────────────────────────────────────────────────────
 
@@ -522,6 +523,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [appNotified, setAppNotified] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   // Abre automaticamente o evento vindo de uma notificação (?event=<id>).
   useEffect(() => {
@@ -884,17 +886,30 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             a conversa com a próxima pessoa selecionada. Envia dentro do WhatsApp e volta para continuar.
           </p>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleNotifyApp}
-            disabled={notifySchedules.isPending || appNotified}
-            className="gap-1.5 self-start"
-          >
-            <Bell className="h-3.5 w-3.5" />
-            {appNotified ? 'Notificado na app' : notifySchedules.isPending ? 'A notificar…' : 'Notificar na app'}
-          </Button>
+          <div className="flex flex-wrap gap-2 self-start">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleNotifyApp}
+              disabled={notifySchedules.isPending || appNotified}
+              className="gap-1.5"
+            >
+              <Bell className="h-3.5 w-3.5" />
+              {appNotified ? 'Notificado na app' : notifySchedules.isPending ? 'A notificar…' : 'Notificar na app'}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setEmailDialogOpen(true)}
+              className="gap-1.5"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              Notificar por email
+            </Button>
+          </div>
 
           {(whatsappContacts?.length ?? 0) > 0 && (
             <button type="button" onClick={toggleAllContacts}
@@ -966,6 +981,12 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EmailNotifyDialog
+        eventId={selectedEventId}
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+      />
     </div>
   );
 }

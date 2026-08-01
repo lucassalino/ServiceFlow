@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getInitials } from '@/lib/utils';
 import { MyFunctionsSection } from './MyFunctionsSection';
 import { MyHistorySection } from './MyHistorySection';
+import { EmailPreferencesSection } from './EmailPreferencesSection';
 // import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
 
 const profileSchema = z.object({
@@ -449,6 +450,11 @@ export function SettingsClient({ orgId }: Props) {
             <MyFunctionsSection orgId={orgId} />
           </Section>
         )}
+
+        {/* ── Preferências de email ────────────────────── */}
+        <Section title="Notificações por email">
+          <EmailPreferencesSection />
+        </Section>
 
         {/* ── Histórico de participações do próprio ────── */}
         {activeOrg && (
