@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { PRESET_MINISTRIES } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
-import { assertCanAddMinistry } from '@/actions/subscriptions';
+import { canAddResource } from '@/actions/subscriptions';
+import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
 
 export async function fetchMinistriesAction(orgId: string): Promise<Ministry[]> {
   const supabase = await createClient();
@@ -16,16 +17,25 @@ export async function fetchMinistriesAction(orgId: string): Promise<Ministry[]> 
 export async function createMinistryAction(
   orgId: string,
   payload: { name: string; icon: string; color: string; functions?: string[] },
-): Promise<Ministry> {
+): Promise<PlanGuarded<Ministry>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  // Limite de ministérios do plano.
-  await assertCanAddMinistry(orgId);
+
+  // Limite de ministérios do plano. Devolvemos (não lançamos) para o payload
+  // sobreviver até ao cliente e abrir o modal certo.
+  const limit = await canAddResource(orgId, 'ministry');
+  if (!limit.allowed) {
+    return {
+      ok: false, code: PLAN_LIMIT_CODE, resource: 'ministry',
+      used: limit.used, limit: limit.limit, planName: limit.planName,
+    };
+  }
+
   const { data, error } = await supabase.from('ministries')
     .insert({ ...payload, functions: payload.functions ?? [], org_id: orgId }).select().single();
   if (error) throw new Error(error.message);
-  return data as Ministry;
+  return { ok: true, data: data as Ministry };
 }
 
 export async function updateMinistryAction(

@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { usePlanLimitDialog } from '@/hooks/usePlanLimit';
+import { PlanLimitDialog } from '@/components/PlanLimitDialog';
 import { getInitials } from '@/lib/utils';
 import { MemberDetailPanel } from './MemberDetailPanel';
 
@@ -77,6 +79,7 @@ export function MembersClient() {
   // Convites por nome + email
   const { data: pendingInvites = [] } = usePendingInvites(activeOrg?.id, canInvite || inviteOpen);
   const createInvite = useCreateInvite();
+  const planLimit = usePlanLimitDialog();
   const deleteInvite = useDeleteInvite();
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
@@ -116,6 +119,7 @@ export function MembersClient() {
       setInviteName('');
       setInviteEmail('');
     } catch (e: unknown) {
+      if (planLimit.handleError(e)) return;
       toast.error(e instanceof Error ? e.message : 'Erro ao criar convite');
     }
   }
@@ -166,6 +170,7 @@ export function MembersClient() {
       await updateRole.mutateAsync({ memberId: member.id, role });
       toast.success('Papel actualizado');
     } catch (e: unknown) {
+      if (planLimit.handleError(e)) return;
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
   }
@@ -492,6 +497,8 @@ export function MembersClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PlanLimitDialog {...planLimit.dialogProps} />
     </div>
   );
 }

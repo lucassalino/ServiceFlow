@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { APP_URL } from '@/lib/app-url';
-import { assertCanAddPeople } from '@/actions/subscriptions';
+import { canAddResource } from '@/actions/subscriptions';
+import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
 
 function getAdmin() {
   return createAdminClient<Database>(
@@ -44,7 +45,7 @@ export async function createInviteAction(
   name: string,
   email: string,
   role: 'admin' | 'leader' | 'member' = 'member',
-): Promise<PendingInvite & { emailSent: boolean; alreadyRegistered: boolean }> {
+): Promise<PlanGuarded<PendingInvite & { emailSent: boolean; alreadyRegistered: boolean }>> {
   const cleanName = name.trim();
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanName) throw new Error('Escreve o nome da pessoa');
@@ -52,8 +53,25 @@ export async function createInviteAction(
 
   const { admin } = await requireOrgAdmin(orgId);
 
-  // Limite de pessoas do plano (conta membros ativos + convites pendentes).
-  await assertCanAddPeople(orgId);
+  // Limite de pessoas do plano (membros ativos + convites pendentes).
+  const peopleLimit = await canAddResource(orgId, 'people');
+  if (!peopleLimit.allowed) {
+    return {
+      ok: false, code: PLAN_LIMIT_CODE, resource: 'people',
+      used: peopleLimit.used, limit: peopleLimit.limit, planName: peopleLimit.planName,
+    };
+  }
+
+  // Convidar alguém já como admin também consome o limite de admins.
+  if (role === 'admin') {
+    const adminLimit = await canAddResource(orgId, 'admin');
+    if (!adminLimit.allowed) {
+      return {
+        ok: false, code: PLAN_LIMIT_CODE, resource: 'admin',
+        used: adminLimit.used, limit: adminLimit.limit, planName: adminLimit.planName,
+      };
+    }
+  }
 
   // Já é membro?
   const { data: existingProfile } = await admin
@@ -103,9 +121,9 @@ export async function createInviteAction(
     emailSent = !magicError;
   }
 
-  return { ...(data as PendingInvite), emailSent, alreadyRegistered } as PendingInvite & {
-    emailSent: boolean;
-    alreadyRegistered: boolean;
+  return {
+    ok: true,
+    data: { ...(data as PendingInvite), emailSent, alreadyRegistered },
   };
 }
 

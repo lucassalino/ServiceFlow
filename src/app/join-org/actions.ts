@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import type { Database } from '@/types/database';
+import { canAddResource } from '@/actions/subscriptions';
 
 function getAdminClient() {
   return createAdminClient<Database>(
@@ -35,6 +36,13 @@ export async function joinOrganization(inviteCode: string): Promise<{ error?: st
     .single();
 
   if (existing) redirect(`/${org.id}/dashboard`);
+
+  // Limite de pessoas do plano. Quem entra por código é um membro comum, por
+  // isso a mensagem não expõe detalhes do plano — pede para falar com o admin.
+  const limit = await canAddResource(org.id, 'people');
+  if (!limit.allowed) {
+    return { error: 'Esta organização atingiu o limite de pessoas. Fala com o administrador.' };
+  }
 
   const { error: memberError } = await admin
     .from('organization_members')

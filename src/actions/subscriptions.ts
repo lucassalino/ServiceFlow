@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { getPlan, DEFAULT_PLAN, withinLimit, type OrgSubscription, type PlanKey } from '@/lib/plans';
+import { DEFAULT_PLAN, type OrgSubscription, type PlanKey } from '@/lib/plans';
+import type { PlanLimitState, PlanResource } from '@/lib/plan-limits';
 
 // Cliente admin (service role) — sem tipos gerados para as tabelas novas, por isso `any`.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,47 +82,49 @@ export async function grantPlanAction(
   if (error) throw new Error(error.message);
 }
 
-// ── Helpers de enforcement (usados por outras server actions) ────────────────
+// ── Limites do plano ─────────────────────────────────────────────────────────
+// A lógica vive na RPC `check_plan_limit` (fonte única de verdade, partilhada
+// com o banner de utilização). Estes helpers são apenas a ponte para o TS.
 
-async function orgPlanLimits(orgId: string) {
+/** Estado do limite de um recurso numa organização. */
+export async function fetchPlanLimitAction(
+  orgId: string, resource: PlanResource,
+): Promise<PlanLimitState> {
   const admin = getAdmin();
-  const { data } = await admin.from('org_subscriptions').select('plan, expires_at, status').eq('org_id', orgId).single();
-  const expired = data?.expires_at && new Date(data.expires_at).getTime() < Date.now();
-  return getPlan(expired || !data ? DEFAULT_PLAN : data.plan);
+  const { data, error } = await admin.rpc('check_plan_limit', {
+    p_org_id: orgId,
+    p_resource_type: resource,
+  });
+  if (error) throw new Error(error.message);
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    allowed: !!row?.allowed,
+    used: row?.used ?? 0,
+    limit: row?.limit ?? null,
+    planSlug: row?.plan_slug ?? DEFAULT_PLAN,
+    planName: row?.plan_name ?? 'Semente',
+  };
 }
 
-/** Lança erro se adicionar mais uma pessoa ultrapassa o limite do plano. */
-export async function assertCanAddPeople(orgId: string, howMany = 1): Promise<void> {
-  const admin = getAdmin();
-  const plan = await orgPlanLimits(orgId);
-  if (plan.maxPeople === null) return;
-
-  const { count: members } = await admin
-    .from('organization_members').select('id', { count: 'exact', head: true })
-    .eq('org_id', orgId).eq('is_active', true);
-  const { count: invites } = await admin
-    .from('organization_invites').select('id', { count: 'exact', head: true })
-    .eq('org_id', orgId).is('accepted_at', null);
-
-  const used = (members ?? 0) + (invites ?? 0);
-  if (used + howMany > plan.maxPeople) {
-    throw new Error(
-      `O plano ${plan.label} permite até ${plan.maxPeople} pessoas (tens ${used}). Faz upgrade para adicionar mais.`,
-    );
-  }
+/** Estado dos três limites de uma vez (para o banner do dashboard). */
+export async function fetchPlanUsageAction(
+  orgId: string,
+): Promise<Record<PlanResource, PlanLimitState>> {
+  const [people, ministry, admin] = await Promise.all([
+    fetchPlanLimitAction(orgId, 'people'),
+    fetchPlanLimitAction(orgId, 'ministry'),
+    fetchPlanLimitAction(orgId, 'admin'),
+  ]);
+  return { people, ministry, admin };
 }
 
-/** Lança erro se criar mais um ministério ultrapassa o limite do plano. */
-export async function assertCanAddMinistry(orgId: string): Promise<void> {
-  const admin = getAdmin();
-  const plan = await orgPlanLimits(orgId);
-  if (plan.maxMinistries === null) return;
-
-  const { count } = await admin
-    .from('ministries').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
-  if (!withinLimit(count ?? 0, plan.maxMinistries)) {
-    throw new Error(
-      `O plano ${plan.label} permite até ${plan.maxMinistries} ministério(s). Faz upgrade para criar mais.`,
-    );
-  }
+/**
+ * Verifica se ainda cabe mais um recurso. Uso interno das server actions —
+ * devolve o estado para que quem chama possa retornar PLAN_LIMIT_REACHED
+ * em vez de lançar (as mensagens de Error não sobrevivem em produção).
+ */
+export async function canAddResource(
+  orgId: string, resource: PlanResource,
+): Promise<PlanLimitState> {
+  return fetchPlanLimitAction(orgId, resource);
 }

@@ -7,6 +7,7 @@ import {
   type PendingInvite,
 } from '@/actions/invites';
 import type { OrgRole } from '@/types/models';
+import { unwrapPlanGuarded } from '@/lib/plan-limits';
 
 export function usePendingInvites(orgId: string | undefined, enabled = true) {
   return useQuery({
@@ -19,8 +20,10 @@ export function usePendingInvites(orgId: string | undefined, enabled = true) {
 export function useCreateInvite() {
   const qc = useQueryClient();
   return useMutation({
+    // Converte o resultado da action em PlanLimitError no cliente, para o
+    // payload do limite chegar intacto ao componente (ver lib/plan-limits).
     mutationFn: ({ orgId, name, email, role }: { orgId: string; name: string; email: string; role?: OrgRole }) =>
-      createInviteAction(orgId, name, email, role),
+      createInviteAction(orgId, name, email, role).then(unwrapPlanGuarded),
     onSuccess: (_data, vars) => qc.invalidateQueries({ queryKey: ['invites', vars.orgId] }),
   });
 }

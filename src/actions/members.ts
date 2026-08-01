@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { OrganizationMember, MinistryMember, OrgRole } from '@/types/models';
+import { canAddResource } from '@/actions/subscriptions';
+import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
 
 export async function fetchOrgMembersAction(orgId: string): Promise<OrganizationMember[]> {
   const supabase = await createClient();
@@ -36,12 +38,34 @@ export async function fetchMinistriesFunctionsAction(
   return result;
 }
 
-export async function updateMemberRoleAction(memberId: string, role: OrgRole): Promise<void> {
+export async function updateMemberRoleAction(
+  memberId: string, role: OrgRole,
+): Promise<PlanGuarded<void>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+
+  // Promover a admin consome o limite de administradores do plano.
+  // (Despromover nunca é bloqueado.)
+  if (role === 'admin') {
+    const { data: member } = await supabase
+      .from('organization_members').select('org_id, role').eq('id', memberId).single();
+    const row = member as { org_id: string; role: string } | null;
+    // Só verifica se ainda não é admin — repor o mesmo papel não consome quota.
+    if (row && row.role !== 'admin') {
+      const limit = await canAddResource(row.org_id, 'admin');
+      if (!limit.allowed) {
+        return {
+          ok: false, code: PLAN_LIMIT_CODE, resource: 'admin',
+          used: limit.used, limit: limit.limit, planName: limit.planName,
+        };
+      }
+    }
+  }
+
   const { error } = await supabase.from('organization_members').update({ role }).eq('id', memberId);
   if (error) throw new Error(error.message);
+  return { ok: true, data: undefined };
 }
 
 export async function toggleMemberActiveAction(memberId: string, isActive: boolean): Promise<void> {

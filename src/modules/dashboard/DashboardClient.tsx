@@ -10,6 +10,7 @@ import { useOrgStore } from '@/stores/orgStore';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
+import { PlanUsageBanner } from './PlanUsageBanner';
 import type { Event } from '@/types/models';
 
 export interface BirthdayPerson {
@@ -78,6 +79,9 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
               : 'tudo tranquilo por aqui'}
           </p>
         </div>
+
+        {/* Aviso de proximidade do limite do plano (≥80%) */}
+        <PlanUsageBanner />
 
         {/* Upcoming events */}
         <div className="dash-glass-card overflow-hidden">

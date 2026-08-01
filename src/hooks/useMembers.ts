@@ -11,6 +11,7 @@ import {
   deleteMemberAction,
   upsertMemberMinistriesAction,
 } from '@/actions/members';
+import { unwrapPlanGuarded } from '@/lib/plan-limits';
 
 export function useOrgMembers() {
   const { activeOrg } = useOrgStore();
@@ -34,7 +35,7 @@ export function useUpdateMemberRole() {
   const { activeOrg } = useOrgStore();
   return useMutation({
     mutationFn: ({ memberId, role }: { memberId: string; role: OrgRole }) =>
-      updateMemberRoleAction(memberId, role),
+      updateMemberRoleAction(memberId, role).then(unwrapPlanGuarded),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['members', activeOrg?.id] }),
   });
 }

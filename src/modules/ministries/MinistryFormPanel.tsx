@@ -9,6 +9,8 @@ import {
   FUNCTION_ICON_CHOICES, encodeCustomFunction, isCustomFunction, getFunctionLabel, getFunctionEmoji,
 } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
+import { usePlanLimitDialog } from '@/hooks/usePlanLimit';
+import { PlanLimitDialog } from '@/components/PlanLimitDialog';
 
 interface Props {
   ministry?: Ministry | null;
@@ -18,6 +20,7 @@ interface Props {
 export function MinistryFormPanel({ ministry, onBack }: Props) {
   const isEdit = !!ministry;
   const createMinistry = useCreateMinistry();
+  const planLimit = usePlanLimitDialog();
   const updateMinistry = useUpdateMinistry();
 
   // O ícone do ministério deixou de ser escolhido — os cartões usam a inicial do nome.
@@ -66,6 +69,8 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
       }
       onBack();
     } catch (e: unknown) {
+      // Se for limite de plano, o modal explica — não mostramos toast genérico.
+      if (planLimit.handleError(e)) return;
       toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
     }
   }
@@ -209,6 +214,8 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
         </Section>
 
       </div>
+
+      <PlanLimitDialog {...planLimit.dialogProps} />
     </div>
   );
 }
