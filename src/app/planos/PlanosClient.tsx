@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   CalendarCheck, Music2, Users, Bell, Smartphone,
   CalendarSync, ListChecks, Plus, ExternalLink, Check, Sparkles,
-  ListMusic, UserCheck, Clock, Layers,
+  ListMusic, UserCheck, Clock, Layers, LayoutGrid, Building2, Globe,
 } from 'lucide-react';
 import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
@@ -19,29 +19,36 @@ const NAV = [
 ];
 
 const FEATURES = [
-  { icon: CalendarCheck, label: 'Escalas inteligentes', desc: 'Escala a equipa respeitando as indisponibilidades de cada pessoa, com aviso automático de conflitos.' },
-  { icon: ListChecks, label: 'Eventos com roteiro', desc: 'Ministérios, setlist e a ordem do culto, tudo num só sítio.' },
-  { icon: Music2, label: 'Repertório partilhado', desc: 'Tom, BPM, letras e cifras — com catálogo global entre igrejas e importação por CSV.' },
-  { icon: CalendarSync, label: 'Sincronização de calendário', desc: 'Subscreve as tuas escalas no Google ou Apple Calendar. Mudou a escala? O teu calendário acompanha.' },
-  { icon: Bell, label: 'Avisos por 3 canais', desc: 'Notificação na app, WhatsApp e email — a equipa escolhe a quem avisar.' },
-  { icon: Users, label: 'Multi-ministério', desc: 'Ministérios e funções à tua medida, com histórico de participação de cada voluntário.' },
-  { icon: Layers, label: 'Instala-se sem loja', desc: 'É uma PWA — instala-se no ecrã inicial diretamente do navegador, sem passar pela App Store ou Google Play.' },
+  { icon: CalendarCheck, label: 'Escalas inteligentes', desc: 'Escala a equipe respeitando as indisponibilidades de cada pessoa, com aviso automático de conflitos.' },
+  { icon: ListChecks, label: 'Eventos com roteiro', desc: 'Ministérios, setlist e a ordem do culto, tudo em um só lugar.' },
+  { icon: Music2, label: 'Repertório compartilhado', desc: 'Tom, BPM, letras e cifras — com catálogo global entre igrejas e importação por CSV.' },
+  { icon: CalendarSync, label: 'Sincronização de calendário', desc: 'Assine suas escalas no Google ou Apple Calendar. Mudou a escala? Seu calendário acompanha.' },
+  { icon: Bell, label: 'Avisos por 3 canais', desc: 'Notificação no app, WhatsApp e email — a equipe escolhe quem avisar.' },
+  { icon: Users, label: 'Multiministério', desc: 'Ministérios e funções do seu jeito, com histórico de participação de cada voluntário.' },
+  { icon: Layers, label: 'Instala sem loja', desc: 'É um PWA — instala na tela inicial direto pelo navegador, sem passar pela App Store ou Google Play.' },
   { icon: Sparkles, label: 'Relatórios de engajamento', desc: 'Frequência de participação e distribuição por ministério, por período.' },
 ];
 
+const METRICS = [
+  { icon: LayoutGrid, value: '7', label: 'módulos integrados' },
+  { icon: Layers, value: 'PWA', label: 'instala sem loja' },
+  { icon: Building2, value: '1 conta', label: 'várias organizações' },
+  { icon: Globe, value: '€ / R$', label: 'Portugal e Brasil' },
+];
+
 const STEPS = [
-  { n: '1', title: 'Cria a organização', desc: 'Em menos de um minuto, sem cartão de crédito.' },
-  { n: '2', title: 'Define os ministérios', desc: 'Louvor, multimédia, sonoplastia — com as funções que fizerem sentido para a tua igreja.' },
-  { n: '3', title: 'Convida a equipa', desc: 'Por código de convite ou email — cada pessoa entra com a sua conta.' },
-  { n: '4', title: 'Publica o culto', desc: 'Monta a escala, publica, e avisa por app, WhatsApp ou email.' },
+  { n: '1', title: 'Crie a organização', desc: 'Em menos de um minuto, sem cartão de crédito.' },
+  { n: '2', title: 'Defina os ministérios', desc: 'Louvor, mídia, sonoplastia — com as funções que fizerem sentido pra sua igreja.' },
+  { n: '3', title: 'Convide a equipe', desc: 'Por código de convite ou email — cada pessoa entra com a própria conta.' },
+  { n: '4', title: 'Publique o culto', desc: 'Monte a escala, publique, e avise por app, WhatsApp ou email.' },
 ];
 
 const FAQ: { q: string; a: string }[] = [
-  { q: 'Preciso de instalar alguma coisa?', a: 'Não. O WIS é uma PWA — abre no navegador e podes "instalá-la" no ecrã inicial do telemóvel diretamente a partir daí, sem passar pela App Store ou Google Play.' },
-  { q: 'Posso importar o meu repertório atual?', a: 'Sim — o Repertório tem um importador de CSV com mapeamento de colunas, para trazeres as tuas músicas de uma vez.' },
-  { q: 'Como funcionam os planos?', a: 'Cada plano define quantas pessoas, ministérios e administradores cabem na tua organização, e que funcionalidades extra estão incluídas. Podes começar grátis e mudar de plano depois.' },
-  { q: 'Uma igreja com vários campus, como faz?', a: 'Por agora, cria uma organização (e uma assinatura) por campus. É a forma mais simples de manter os dados de cada campus separados.' },
-  { q: 'Os meus dados estão seguros?', a: 'Sim. Cada organização só vê os seus próprios dados — o isolamento é garantido ao nível da base de dados (Row Level Security) e por papéis (admin, líder, membro), não apenas na aplicação.' },
+  { q: 'Preciso instalar alguma coisa?', a: 'Não. O WIS é um PWA — abre no navegador e você pode "instalá-lo" na tela inicial do celular direto por lá, sem passar pela App Store ou Google Play.' },
+  { q: 'Posso importar meu repertório atual?', a: 'Sim — o Repertório tem um importador de CSV com mapeamento de colunas, pra você trazer suas músicas de uma vez.' },
+  { q: 'Como funcionam os planos?', a: 'Cada plano define quantas pessoas, ministérios e administradores cabem na sua organização, e quais funcionalidades extras estão incluídas. Você pode começar grátis e mudar de plano depois.' },
+  { q: 'Uma igreja com vários campi, como faz?', a: 'Por enquanto, crie uma organização (e uma assinatura) por campus. É a forma mais simples de manter os dados de cada campus separados.' },
+  { q: 'Meus dados estão seguros?', a: 'Sim. Cada organização só vê os próprios dados — o isolamento é garantido no nível do banco de dados (Row Level Security) e por papéis (admin, líder, membro), não só na aplicação.' },
 ];
 
 function fmtPrice(v: number): string {
@@ -80,7 +87,15 @@ export function PlanosClient({ plans }: Props) {
           maxWidth: '72rem', margin: '0 auto', padding: '0.875rem 1.25rem',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
         }}>
-          <Link href="/" style={{ fontSize: '1rem', fontWeight: 800, letterSpacing: '-0.01em', color: '#fff', textDecoration: 'none', flexShrink: 0 }}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.55rem', fontSize: '1rem', fontWeight: 800, letterSpacing: '-0.01em', color: '#fff', textDecoration: 'none', flexShrink: 0 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: '1.7rem', height: '1.7rem', borderRadius: '0.5rem',
+              background: 'linear-gradient(135deg, #2c7fa8 0%, #14536f 100%)',
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/wis-symbol-white.svg" alt="" style={{ width: '1.05rem', height: '1.05rem' }} />
+            </span>
             WIS <span style={{ color: '#8fd0ea' }}>· Worship in Sync</span>
           </Link>
 
@@ -105,30 +120,26 @@ export function PlanosClient({ plans }: Props) {
 
       {/* ── Hero ───────────────────────────────────────── */}
       <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '4.5rem 1.25rem 2rem', textAlign: 'center' }}>
-        <span style={badgeStyle}>
-          <Layers style={{ width: '0.7rem', height: '0.7rem' }} />
-          App para iOS, Android e navegador · instala-se sem loja
-        </span>
         <h1 style={{
           fontSize: 'clamp(2.1rem, 5.2vw, 3.4rem)', fontWeight: 700, letterSpacing: '-0.03em',
-          lineHeight: 1.07, margin: '1.25rem auto 1rem', maxWidth: '38rem',
+          lineHeight: 1.07, margin: '0 auto 1rem', maxWidth: '38rem',
         }}>
           Escalas, cultos e repertório <span style={{ color: 'rgba(255,255,255,0.4)' }}>em sincronia.</span>
         </h1>
         <p style={{ fontSize: '1.05rem', color: 'rgba(255,255,255,0.55)', maxWidth: '32rem', margin: '0 auto 2rem', lineHeight: 1.6 }}>
-          Chega de grupos de WhatsApp e folhas soltas. O WIS organiza a tua equipa de
-          louvor — escalas, repertório e avisos — num só sítio.
+          Chega de grupo de WhatsApp e planilha solta. O WIS organiza sua equipe de
+          louvor — escalas, repertório e avisos — em um só lugar.
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <a href="#planos" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}>
             Começar grátis
           </a>
           <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...ghostBtn, padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}>
-            Ver a app <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
+            Ver o app <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
           </a>
         </div>
         <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)' }}>
-          Plano Semente grátis para sempre · sem cartão
+          Plano Semente grátis pra sempre · sem cartão
         </p>
       </section>
 
@@ -138,18 +149,28 @@ export function PlanosClient({ plans }: Props) {
       </section>
 
       {/* ── Faixa de métricas ──────────────────────────── */}
-      <section style={{ borderTop: '1px solid rgba(255,255,255,0.10)', borderBottom: '1px solid rgba(255,255,255,0.10)' }}>
+      <section style={{ borderTop: '1px solid rgba(255,255,255,0.10)', borderBottom: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.015)' }}>
         <div style={{
-          maxWidth: '72rem', margin: '0 auto', padding: '1.5rem 1.25rem',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '1rem', textAlign: 'center',
+          maxWidth: '72rem', margin: '0 auto', padding: '2rem 1.25rem',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))', gap: '1rem',
         }}>
-          {[
-            { v: '7', l: 'módulos' }, { v: 'PWA', l: 'sem loja para instalar' },
-            { v: '1 conta', l: 'várias organizações' }, { v: '€ / R$', l: 'Portugal e Brasil' },
-          ].map((m) => (
-            <div key={m.l}>
-              <p style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>{m.v}</p>
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>{m.l}</p>
+          {METRICS.map((m) => (
+            <div key={m.label} style={{
+              display: 'flex', alignItems: 'center', gap: '0.85rem',
+              padding: '1rem 1.1rem', borderRadius: '0.875rem',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            }}>
+              <div style={{
+                flexShrink: 0, width: '2.5rem', height: '2.5rem', borderRadius: '0.7rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(143,208,234,0.1)', border: '1px solid rgba(143,208,234,0.25)',
+              }}>
+                <m.icon style={{ width: '1.15rem', height: '1.15rem', color: '#8fd0ea' }} />
+              </div>
+              <div>
+                <p style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#fff' }}>{m.value}</p>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>{m.label}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -159,42 +180,42 @@ export function PlanosClient({ plans }: Props) {
       <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '4rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '5rem' }}>
         <ProductBlock
           n="01" title="Eventos" reverse={false}
-          desc="Cada culto num só ecrã: quem está escalado em cada ministério, o roteiro do momento e a ordem das músicas do dia."
+          desc="Cada culto em uma só tela: quem está escalado em cada ministério, o roteiro do momento e a ordem das músicas do dia."
           chips={[
             { icon: ListChecks, label: 'Rascunho → publicação' },
             { icon: Music2, label: 'Setlist do culto' },
             { icon: UserCheck, label: 'Confirmação de presença' },
           ]}
           macSrc="/screenshots/web-escala-publicar.webp" macAlt="Escala do Culto de Domingo, publicada, com opção de notificar por WhatsApp"
-          phoneSrc="/screenshots/mobile-setlist.webp" phoneAlt="Setlist do Culto de Domingo no telemóvel, com tom e BPM de cada música"
+          phoneSrc="/screenshots/mobile-setlist.webp" phoneAlt="Setlist do Culto de Domingo no celular, com tom e BPM de cada música"
         />
         <ProductBlock
           n="02" title="Repertório" reverse
-          desc="Tom, BPM, letra, cifra e links — com importador de CSV para trazeres o teu catálogo de uma vez, e ranking de músicas mais tocadas."
+          desc="Tom, BPM, letra, cifra e links — com importador de CSV pra trazer seu catálogo de uma vez, e ranking das músicas mais tocadas."
           chips={[
             { icon: Music2, label: 'Tom e BPM' },
             { icon: ListMusic, label: 'Ranking de músicas' },
-            { icon: Sparkles, label: 'Importação CSV' },
+            { icon: Sparkles, label: 'Importação de CSV' },
           ]}
           macSrc="/screenshots/web-repertorio-ranking.webp" macAlt="Repertório em modo Ranking, com as músicas mais tocadas e a data da última vez"
-          phoneSrc="/screenshots/mobile-repertorio.webp" phoneAlt="Lista de repertório no telemóvel, com tom de cada música"
+          phoneSrc="/screenshots/mobile-repertorio.webp" phoneAlt="Lista de repertório no celular, com o tom de cada música"
         />
         <ProductBlock
           n="03" title="Escalas e pessoas" reverse={false}
-          desc="Funções por ministério, indisponibilidades visíveis para quem escala, e cada pessoa escolhe onde serve e as suas funções."
+          desc="Funções por ministério, indisponibilidades visíveis pra quem escala, e cada pessoa escolhe onde serve e quais são suas funções."
           chips={[
-            { icon: Clock, label: 'Indisponibilidades da equipa' },
+            { icon: Clock, label: 'Indisponibilidades da equipe' },
             { icon: Users, label: 'Ministérios e funções' },
-            { icon: Bell, label: 'Papéis da equipa' },
+            { icon: Bell, label: 'Papéis da equipe' },
           ]}
-          macSrc="/screenshots/web-indisponibilidade.webp" macAlt="Indisponibilidade da equipa, com motivo e período visível para quem escala"
-          phoneSrc="/screenshots/mobile-funcoes.webp" phoneAlt="Escolha de ministérios e funções de cada pessoa, no telemóvel"
+          macSrc="/screenshots/web-indisponibilidade.webp" macAlt="Indisponibilidade da equipe, com motivo e período visível pra quem escala"
+          phoneSrc="/screenshots/mobile-funcoes.webp" phoneAlt="Escolha de ministérios e funções de cada pessoa, no celular"
         />
       </section>
 
       {/* ── Funcionalidades ────────────────────────────── */}
       <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
-        <SectionTitle kicker="Funcionalidades" title="Tudo o que a tua equipa precisa" />
+        <SectionTitle kicker="Funcionalidades" title="Tudo o que sua equipe precisa" />
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15.5rem, 1fr))', gap: '1rem', marginTop: '2rem',
         }}>
@@ -216,7 +237,7 @@ export function PlanosClient({ plans }: Props) {
 
       {/* ── Como funciona ──────────────────────────────── */}
       <section id="como-funciona" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
-        <SectionTitle kicker="Como funciona" title="A tua equipa organizada em 4 passos" />
+        <SectionTitle kicker="Como funciona" title="Sua equipe organizada em 4 passos" />
 
         <div style={{ marginTop: '2rem' }}>
           <WizardMock />
@@ -243,7 +264,7 @@ export function PlanosClient({ plans }: Props) {
 
       {/* ── Planos ─────────────────────────────────────── */}
       <section id="planos" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
-        <SectionTitle kicker="Planos" title="Escolhe o plano da tua equipa" />
+        <SectionTitle kicker="Planos" title="Escolha o plano da sua equipe" />
 
         <div style={{ display: 'flex', justifyContent: 'center', margin: '1.75rem 0' }}>
           <div style={{
@@ -276,7 +297,7 @@ export function PlanosClient({ plans }: Props) {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', marginTop: '1.5rem' }}>
-          Sem cartão para começar no Semente. Os planos pagos são cobrados de forma segura via Stripe.
+          Sem cartão pra começar no Semente. Os planos pagos são cobrados de forma segura via Stripe.
         </p>
       </section>
 
@@ -292,13 +313,13 @@ export function PlanosClient({ plans }: Props) {
           }} />
           <Smartphone style={{ width: '2rem', height: '2rem', color: '#8fd0ea', margin: '0 auto 1rem', position: 'relative' }} />
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 0.5rem', position: 'relative' }}>
-            Leva o WIS contigo
+            Leve o WIS com você
           </h2>
           <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', maxWidth: '28rem', margin: '0 auto 1.75rem', lineHeight: 1.6, position: 'relative' }}>
-            {platform === 'ios' && 'No iPhone, abre no Safari e toca em "Adicionar ao ecrã principal" — fica igual a uma app nativa.'}
-            {platform === 'android' && 'No Android, abre no Chrome e toca em "Instalar aplicação" — fica no teu ecrã inicial em segundos.'}
-            {platform === 'desktop' && 'Usa já no navegador — a PWA instala-se no ecrã inicial do telemóvel sem passar por loja nenhuma.'}
-            {' '}A app nativa para iOS e Android está a caminho.
+            {platform === 'ios' && 'No iPhone, abra no Safari e toque em "Adicionar à Tela de Início" — fica igual a um app nativo.'}
+            {platform === 'android' && 'No Android, abra no Chrome e toque em "Instalar aplicativo" — fica na sua tela inicial em segundos.'}
+            {platform === 'desktop' && 'Use já pelo navegador — o PWA instala na tela inicial do celular sem passar por loja nenhuma.'}
+            {' '}O app nativo pra iOS e Android está a caminho.
           </p>
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.25rem', position: 'relative' }}>
@@ -307,7 +328,7 @@ export function PlanosClient({ plans }: Props) {
           </div>
 
           <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem', position: 'relative' }}>
-            Entrar na PWA <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
+            Entrar no PWA <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
           </a>
         </div>
       </section>
@@ -327,10 +348,10 @@ export function PlanosClient({ plans }: Props) {
           background: 'linear-gradient(135deg, rgba(44,127,168,0.14), rgba(20,83,111,0.1))',
         }}>
           <h2 style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 0.75rem' }}>
-            Domingo já vem aí. <span style={{ color: 'rgba(255,255,255,0.5)' }}>Organiza a equipa hoje.</span>
+            Domingo já tá aí. <span style={{ color: 'rgba(255,255,255,0.5)' }}>Organize sua equipe hoje.</span>
           </h2>
           <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '1.75rem' }}>
-            Começa grátis. Sem cartão, sem compromisso.
+            Comece grátis. Sem cartão, sem compromisso.
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="#planos" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Começar grátis</a>
@@ -408,7 +429,7 @@ function PlanCard({ plan, annual }: { plan: PlanDef; annual: boolean }) {
         {price > 0 && <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>/ {annual ? 'ano' : 'mês'}</span>}
       </div>
       {annual && savings > 0 && (
-        <p style={{ fontSize: '0.72rem', color: '#8fd0ea', margin: '0 0 1rem', fontWeight: 700 }}>Economiza {savings}%</p>
+        <p style={{ fontSize: '0.72rem', color: '#8fd0ea', margin: '0 0 1rem', fontWeight: 700 }}>Economize {savings}%</p>
       )}
       {!(annual && savings > 0) && <div style={{ marginBottom: '1rem' }} />}
 
@@ -520,7 +541,7 @@ function ProductComposition() {
       <div style={{
         position: 'absolute', bottom: '-2.5rem', right: '2%', width: '9rem',
       }} className="hidden sm:block">
-        <IPhoneFrame src="/screenshots/mobile-eventos-equipa.webp" alt="Confirmações de presença da equipa de Louvor, no telemóvel" />
+        <IPhoneFrame src="/screenshots/mobile-eventos-equipa.webp" alt="Confirmações de presença da equipe de Louvor, no celular" />
       </div>
 
       <FloatingChip label="Presença confirmada" top="6%" left="-2%" delay="0s" />
@@ -589,10 +610,11 @@ function FloatingChip({ label, top, left, delay }: { label: string; top: string;
     <div
       className="hidden md:flex"
       style={{
-        position: 'absolute', top, left,
+        position: 'absolute', top, left, zIndex: 3,
         alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.8rem', borderRadius: '9999px',
-        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)',
-        backdropFilter: 'blur(10px)', fontSize: '0.72rem', fontWeight: 600, color: '#fff',
+        background: 'rgba(20,22,26,0.85)', border: '1px solid rgba(255,255,255,0.14)',
+        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', fontSize: '0.72rem', fontWeight: 600, color: '#fff',
+        boxShadow: '0 8px 24px -8px rgba(0,0,0,0.5)',
         animation: `wis-float 4s ease-in-out ${delay} infinite`,
       }}
     >
@@ -665,7 +687,7 @@ function WizardMock() {
             border: '1px solid rgba(255,255,255,0.08)',
           }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 700, margin: '0 0 0.3rem' }}>{m}</p>
-            <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Escolhe a equipa</p>
+            <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Escolha a equipe</p>
           </div>
         ))}
       </div>
@@ -690,12 +712,6 @@ const ghostBtn: React.CSSProperties = {
   padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.82rem', fontWeight: 600,
   background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
   color: 'rgba(255,255,255,0.8)', textDecoration: 'none', whiteSpace: 'nowrap',
-};
-
-const badgeStyle: React.CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-  fontSize: '0.72rem', fontWeight: 600, padding: '0.3rem 0.75rem', borderRadius: '9999px',
-  background: 'rgba(143,208,234,0.1)', border: '1px solid rgba(143,208,234,0.25)', color: '#8fd0ea',
 };
 
 const storeBadge: React.CSSProperties = {
