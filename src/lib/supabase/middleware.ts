@@ -32,6 +32,12 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Webhook do Stripe: chamado pelos servidores do Stripe, sem sessão — a
+  // autenticidade vem da assinatura verificada dentro da própria rota.
+  if (path.startsWith('/api/stripe/webhook')) {
+    return supabaseResponse;
+  }
+
   // Ecrãs de autenticação: um utilizador já autenticado não deve vê-los —
   // é reencaminhado para o dashboard (ver mais abaixo).
   const isAuthPage = path.startsWith('/login') ||
