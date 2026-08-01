@@ -162,27 +162,33 @@ export function PlanosClient({ plans }: Props) {
           desc="Cada culto num só ecrã: quem está escalado em cada ministério, o roteiro do momento e a ordem das músicas do dia."
           chips={[
             { icon: ListChecks, label: 'Rascunho → publicação' },
-            { icon: Music2, label: 'Playlist do YouTube' },
+            { icon: Music2, label: 'Setlist do culto' },
             { icon: UserCheck, label: 'Confirmação de presença' },
           ]}
+          macSrc="/screenshots/web-escala-publicar.webp" macAlt="Escala do Culto de Domingo, publicada, com opção de notificar por WhatsApp"
+          phoneSrc="/screenshots/mobile-setlist.webp" phoneAlt="Setlist do Culto de Domingo no telemóvel, com tom e BPM de cada música"
         />
         <ProductBlock
           n="02" title="Repertório" reverse
-          desc="Tom, BPM, letra, cifra e links — com capa automática do YouTube e um importador de CSV para trazeres o teu catálogo de uma vez."
+          desc="Tom, BPM, letra, cifra e links — com importador de CSV para trazeres o teu catálogo de uma vez, e ranking de músicas mais tocadas."
           chips={[
             { icon: Music2, label: 'Tom e BPM' },
-            { icon: ListMusic, label: 'Catálogo partilhado' },
+            { icon: ListMusic, label: 'Ranking de músicas' },
             { icon: Sparkles, label: 'Importação CSV' },
           ]}
+          macSrc="/screenshots/web-repertorio-ranking.webp" macAlt="Repertório em modo Ranking, com as músicas mais tocadas e a data da última vez"
+          phoneSrc="/screenshots/mobile-repertorio.webp" phoneAlt="Lista de repertório no telemóvel, com tom de cada música"
         />
         <ProductBlock
           n="03" title="Escalas e pessoas" reverse={false}
-          desc="Funções por ministério, indisponibilidades visíveis para quem escala, papéis (admin, líder, membro) e aviso automático ao publicar."
+          desc="Funções por ministério, indisponibilidades visíveis para quem escala, e cada pessoa escolhe onde serve e as suas funções."
           chips={[
-            { icon: Bell, label: 'Publicar e notificar' },
-            { icon: Clock, label: 'Indisponibilidades' },
-            { icon: Users, label: 'Papéis da equipa' },
+            { icon: Clock, label: 'Indisponibilidades da equipa' },
+            { icon: Users, label: 'Ministérios e funções' },
+            { icon: Bell, label: 'Papéis da equipa' },
           ]}
+          macSrc="/screenshots/web-indisponibilidade.webp" macAlt="Indisponibilidade da equipa, com motivo e período visível para quem escala"
+          phoneSrc="/screenshots/mobile-funcoes.webp" phoneAlt="Escolha de ministérios e funções de cada pessoa, no telemóvel"
         />
       </section>
 
@@ -502,82 +508,78 @@ function BackgroundGlow() {
 }
 
 /**
- * Composição visual do produto: uma janela de navegador com o painel, um
- * telemóvel sobreposto, e chips flutuantes. Representação estilizada — não
- * são capturas reais (essas têm de vir de um PNG na pasta /public, ver nota
- * no chat). A estrutura fica pronta para trocar por <img> quando as tiveres.
+ * Composição visual do produto: um MacBook com a captura real do painel web
+ * e um iPhone sobreposto com uma captura real do mobile, mais chips
+ * flutuantes em vidro fosco.
  */
 function ProductComposition() {
   return (
-    <div style={{ position: 'relative', padding: '1rem 0 3rem' }}>
-      {/* Janela de navegador */}
+    <div style={{ position: 'relative', padding: '1rem 0 4.5rem' }}>
+      <MacFrame src="/screenshots/web-inicio.webp" alt="Painel Início do WIS, com os próximos eventos da organização" />
+
       <div style={{
-        borderRadius: '0.875rem', border: '1px solid rgba(255,255,255,0.12)',
-        background: '#0d0e11', boxShadow: '0 30px 80px -20px rgba(0,0,0,0.6)', overflow: 'hidden',
+        position: 'absolute', bottom: '-2.5rem', right: '2%', width: '9rem',
+      }} className="hidden sm:block">
+        <IPhoneFrame src="/screenshots/mobile-eventos-equipa.webp" alt="Confirmações de presença da equipa de Louvor, no telemóvel" />
+      </div>
+
+      <FloatingChip label="Presença confirmada" top="6%" left="-2%" delay="0s" />
+      <FloatingChip label="Escala publicada" top="46%" left="-6%" delay="0.8s" />
+      <FloatingChip label="Setlist pronto · 5 músicas" top="86%" left="4%" delay="1.6s" />
+    </div>
+  );
+}
+
+/** Moldura de MacBook (bisel + base) em torno de uma captura real do painel web. */
+function MacFrame({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{
+        borderRadius: '0.7rem 0.7rem 0 0', border: '1px solid rgba(255,255,255,0.14)',
+        borderBottom: 'none', background: '#0d0e11', padding: '0.55rem 0.55rem 0',
+        boxShadow: '0 30px 80px -20px rgba(0,0,0,0.65)',
       }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.9rem',
-          borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)',
-        }}>
-          <span style={{ width: 9, height: 9, borderRadius: '9999px', background: '#ef4444' }} />
-          <span style={{ width: 9, height: 9, borderRadius: '9999px', background: '#f59e0b' }} />
-          <span style={{ width: 9, height: 9, borderRadius: '9999px', background: '#22c55e' }} />
-          <span style={{
-            marginLeft: '0.75rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)',
-            background: 'rgba(255,255,255,0.04)', padding: '0.15rem 0.6rem', borderRadius: '0.4rem',
-          }}>
-            wis-services.com
-          </span>
-        </div>
-        <div style={{ display: 'flex', minHeight: '18rem' }}>
-          <div style={{ width: '13rem', borderRight: '1px solid rgba(255,255,255,0.06)', padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {['Início', 'Eventos', 'Escalas', 'Ministérios', 'Repertório'].map((item, i) => (
-              <div key={item} style={{
-                fontSize: '0.75rem', padding: '0.45rem 0.6rem', borderRadius: '0.4rem',
-                color: i === 2 ? '#fff' : 'rgba(255,255,255,0.4)',
-                background: i === 2 ? 'rgba(143,208,234,0.12)' : 'transparent',
-              }}>
-                {item}
-              </div>
-            ))}
-          </div>
-          <div style={{ flex: 1, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>Culto de Domingo</div>
-            {['Louvor · 4', 'Multimédia · 2', 'Sonoplastia · 1'].map((row) => (
-              <div key={row} style={{
-                fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', padding: '0.6rem 0.75rem',
-                borderRadius: '0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
-              }}>
-                {row}
-              </div>
-            ))}
-          </div>
+          position: 'absolute', top: '0.75rem', left: '50%', transform: 'translateX(-50%)',
+          width: 5, height: 5, borderRadius: '9999px', background: 'rgba(255,255,255,0.15)',
+        }} />
+        <div style={{ borderRadius: '0.4rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={alt} loading="lazy" style={{ display: 'block', width: '100%', height: 'auto' }} />
         </div>
       </div>
-
-      {/* Telemóvel sobreposto */}
+      {/* Base/dobradiça */}
       <div style={{
-        position: 'absolute', bottom: '-0.5rem', right: '2%', width: '7.5rem',
-        borderRadius: '1.25rem', border: '4px solid #1a1b1f', background: '#0d0e11',
-        boxShadow: '0 20px 50px -15px rgba(0,0,0,0.7)', overflow: 'hidden',
-      }} className="hidden sm:block">
-        <div style={{ padding: '0.75rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#fff' }}>Início</div>
-          {['Escala', 'Repertório'].map((row) => (
-            <div key={row} style={{
-              fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', padding: '0.4rem 0.5rem',
-              borderRadius: '0.35rem', background: 'rgba(255,255,255,0.04)',
-            }}>
-              {row}
-            </div>
-          ))}
-        </div>
+        height: '0.7rem', background: 'linear-gradient(180deg, #2a2b30 0%, #1a1b1f 100%)',
+        borderRadius: '0 0 0.3rem 0.3rem', position: 'relative',
+      }}>
+        <div style={{
+          position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          width: '18%', height: '0.35rem', background: '#0d0e11', borderRadius: '0 0 0.5rem 0.5rem',
+        }} />
       </div>
+    </div>
+  );
+}
 
-      {/* Chips flutuantes */}
-      <FloatingChip label="Presença confirmada" top="8%" left="-2%" delay="0s" />
-      <FloatingChip label="Escala publicada" top="42%" left="-6%" delay="0.8s" />
-      <FloatingChip label="Setlist pronto · 4 músicas" top="76%" left="4%" delay="1.6s" />
+/** Moldura de iPhone (dynamic island + home indicator) em torno de uma captura real do mobile. */
+function IPhoneFrame({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div style={{
+      position: 'relative', borderRadius: '1.6rem', border: '3px solid #1f2024',
+      background: '#0d0e11', boxShadow: '0 25px 60px -18px rgba(0,0,0,0.7)', overflow: 'hidden',
+      zIndex: 1,
+    }}>
+      <div style={{
+        position: 'absolute', top: '0.4rem', left: '50%', transform: 'translateX(-50%)',
+        width: '32%', height: '0.85rem', borderRadius: '9999px', background: '#000', zIndex: 2,
+      }} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} loading="lazy" style={{ display: 'block', width: '100%', height: 'auto' }} />
+      <div style={{
+        position: 'absolute', bottom: '0.45rem', left: '50%', transform: 'translateX(-50%)',
+        width: '34%', height: '0.2rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.55)',
+      }} />
     </div>
   );
 }
@@ -601,9 +603,10 @@ function FloatingChip({ label, top, left, delay }: { label: string; top: string;
   );
 }
 
-function ProductBlock({ n, title, desc, chips, reverse }: {
+function ProductBlock({ n, title, desc, chips, reverse, macSrc, macAlt, phoneSrc, phoneAlt }: {
   n: string; title: string; desc: string;
   chips: { icon: typeof Music2; label: string }[]; reverse: boolean;
+  macSrc: string; macAlt: string; phoneSrc: string; phoneAlt: string;
 }) {
   return (
     <div style={{
@@ -627,29 +630,13 @@ function ProductBlock({ n, title, desc, chips, reverse }: {
           ))}
         </div>
       </div>
-      <div style={{ direction: 'ltr', display: 'flex', justifyContent: 'center', gap: '1.25rem', position: 'relative', minHeight: '16rem' }}>
-        <PhoneMock style={{ transform: 'translateY(1.5rem)' }} />
-        <PhoneMock style={{ transform: 'translateY(-1rem)' }} className="hidden sm:block" />
-      </div>
-    </div>
-  );
-}
-
-function PhoneMock({ style, className }: { style?: React.CSSProperties; className?: string }) {
-  return (
-    <div className={className} style={{
-      width: '8.5rem', height: '16rem', borderRadius: '1.5rem', border: '5px solid #1a1b1f',
-      background: '#0d0e11', boxShadow: '0 25px 60px -20px rgba(0,0,0,0.65)', overflow: 'hidden',
-      flexShrink: 0, ...style,
-    }}>
-      <div style={{ padding: '0.9rem 0.7rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <div style={{ height: '0.6rem', width: '60%', borderRadius: '0.2rem', background: 'rgba(255,255,255,0.15)' }} />
-        {[1, 2, 3].map((i) => (
-          <div key={i} style={{
-            height: '2.2rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.07)',
-          }} />
-        ))}
+      <div style={{ direction: 'ltr', position: 'relative', minHeight: '18rem' }}>
+        <div style={{ maxWidth: '24rem', margin: '0 auto' }}>
+          <MacFrame src={macSrc} alt={macAlt} />
+        </div>
+        <div style={{ position: 'absolute', bottom: '-1.5rem', right: '4%', width: '7rem' }} className="hidden sm:block">
+          <IPhoneFrame src={phoneSrc} alt={phoneAlt} />
+        </div>
       </div>
     </div>
   );
