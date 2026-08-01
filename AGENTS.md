@@ -158,8 +158,12 @@ RLS**. É dívida técnica conhecida.
 
 - Chave do Resend (Secret `RESEND_API_KEY`) — sem ela os emails não saem
 - Job agendado de lembretes (decidir: Cloudflare Cron Triggers)
-- Pagamento real (Stripe) — Setup, Checkout, Billing Portal e Webhooks feitos
-  (dev); falta a lógica de downgrade completa (voltar ao Semente + bloquear
-  excedente ao cancelar) e configurar o endpoint de webhook + `STRIPE_WEBHOOK_SECRET`
-  no Cloudflare quando for para produção (ver Fase 2 em curso)
+- Pagamento real (Stripe) — Setup, Checkout, Billing Portal, Webhooks e a
+  decisão de downgrade (voltar ao Semente, `downgraded_locked` se ficar acima
+  dos limites, ecrã "escolher o que fica ativo") feitos (dev). **Falta**: a
+  aplicação real do "só leitura" nas telas de escala/ministérios/membros —
+  hoje `organizations.active_ministry_ids/active_member_ids` são guardados
+  mas ainda não são lidos para bloquear edição dos recursos não escolhidos.
+  Falta também configurar o endpoint de webhook + `STRIPE_WEBHOOK_SECRET` no
+  Cloudflare quando for para produção (ver Fase 2 em curso)
 - Validar em produção: feed de calendário (colar no Google Calendar)

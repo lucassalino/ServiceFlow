@@ -32,7 +32,8 @@ import { MyFunctionsSection } from './MyFunctionsSection';
 import { MyHistorySection } from './MyHistorySection';
 import { EmailPreferencesSection } from './EmailPreferencesSection';
 import { CalendarSyncSection } from './CalendarSyncSection';
-// import { PlanSection } from './PlanSection'; // planos/cupões temporariamente ocultos
+import { PlanSection } from './PlanSection';
+import { DowngradeLockScreen } from './DowngradeLockScreen';
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Nome obrigatório'),
@@ -349,6 +350,7 @@ export function SettingsClient({ orgId }: Props) {
 
   return (
     <div className="dash-purple-bg">
+      {isAdmin && activeOrg && <DowngradeLockScreen orgId={orgId} />}
       <div className="p-5 md:p-8 max-w-2xl mx-auto space-y-5">
 
         {/* ── Header ──────────────────────────────────── */}
@@ -573,12 +575,12 @@ export function SettingsClient({ orgId }: Props) {
           </Section>
         )}
 
-        {/* ── Plano + concessão dev + cupões (cartão próprio) — temporariamente oculto ── */}
-        {/* {isAdmin && activeOrg && (
+        {/* ── Plano + concessão dev + cupões (cartão próprio) ── */}
+        {isAdmin && activeOrg && (
           <Section title="Plano e cupões">
             <PlanSection orgId={orgId} isAdmin={isAdmin} />
           </Section>
-        )} */}
+        )}
 
         {/* ── Sessão ──────────────────────────────────── */}
         <Section title="Sessão">

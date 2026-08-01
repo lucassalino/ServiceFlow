@@ -54,6 +54,36 @@ async function findPlanByPriceId(admin: any, priceId: string): Promise<{ slug: s
   return null;
 }
 
+/**
+ * Reverte a org para o Semente e verifica, recurso a recurso, se fica acima
+ * dos limites grátis. Se ficar, marca `downgraded_locked` — sem apagar nada,
+ * o admin escolhe depois (na Tarefa 5 / ecrã "escolher o que fica ativo")
+ * até 1 ministério + 10 pessoas para manter operacionais.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function downgradeToFree(admin: any, orgId: string): Promise<void> {
+  await admin.from('org_subscriptions').update({ plan: DEFAULT_PLAN }).eq('org_id', orgId);
+
+  let locked = false;
+  for (const resource of ['people', 'ministry', 'admin'] as const) {
+    const { data } = await admin.rpc('check_plan_limit', { p_org_id: orgId, p_resource_type: resource });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row && row.allowed === false) locked = true;
+  }
+
+  await admin.from('org_subscriptions').update({
+    status: locked ? 'downgraded_locked' : 'active',
+    stripe_subscription_id: null,
+    updated_at: new Date().toISOString(),
+  }).eq('org_id', orgId);
+
+  // Sem bloqueio: garante que uma reativação anterior não deixou um "escolher
+  // o que fica ativo" por aplicar (o vazio significa "todos ativos").
+  if (!locked) {
+    await admin.from('organizations').update({ active_ministry_ids: [], active_member_ids: [] }).eq('id', orgId);
+  }
+}
+
 /** Traduz o status de subscrição do Stripe para o vocabulário interno. */
 function mapStripeStatus(status: Stripe.Subscription.Status): 'active' | 'past_due' | 'canceled' {
   switch (status) {
@@ -117,6 +147,9 @@ export async function POST(request: Request) {
           stripe_subscription_id: session.subscription as string,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'org_id' });
+
+        // Reativação: remove qualquer bloqueio de downgrade anterior.
+        await admin.from('organizations').update({ active_ministry_ids: [], active_member_ids: [] }).eq('id', orgId);
         break;
       }
 
@@ -127,13 +160,19 @@ export async function POST(request: Request) {
 
         const priceId = subscription.items.data[0]?.price?.id;
         const planInfo = priceId ? await findPlanByPriceId(admin, priceId) : null;
+        const status = mapStripeStatus(subscription.status);
 
         await admin.from('org_subscriptions').update({
-          status: mapStripeStatus(subscription.status),
+          status,
           ...(planInfo ? { plan: planInfo.slug, billing_cycle: planInfo.cycle } : {}),
           stripe_subscription_id: subscription.id,
           updated_at: new Date().toISOString(),
         }).eq('org_id', sub.org_id);
+
+        // Voltou a pagar em dia: remove qualquer bloqueio de downgrade anterior.
+        if (status === 'active') {
+          await admin.from('organizations').update({ active_ministry_ids: [], active_member_ids: [] }).eq('id', sub.org_id);
+        }
         break;
       }
 
@@ -142,12 +181,10 @@ export async function POST(request: Request) {
         const sub = await findOrgSubByCustomer(admin, subscription.customer as string);
         if (!sub || sub.source === 'manual') break;
 
-        // Downgrade completo (voltar ao Semente, bloquear o excedente) é a
-        // Tarefa 5 — por agora só registamos que a subscrição terminou.
-        await admin.from('org_subscriptions').update({
-          status: 'canceled',
-          updated_at: new Date().toISOString(),
-        }).eq('org_id', sub.org_id);
+        // Cancelou: volta ao Semente, sem apagar dados. Se ficar acima dos
+        // limites grátis, fica `downgraded_locked` até o admin escolher o
+        // que mantém ativo (ver DowngradeLockScreen / actions/downgrade.ts).
+        await downgradeToFree(admin, sub.org_id);
         break;
       }
 
