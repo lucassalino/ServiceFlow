@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, X, CalendarOff } from 'lucide-react';
 import { useMyUnavailability, useAddUnavailability, useRemoveUnavailability } from '@/hooks/useAvailability';
-import { describeUnavailability, WEEKDAY_LABELS } from '@/lib/availability';
+import {
+  describeUnavailability, WEEKDAY_LABELS,
+  nthWeekdayOfMonth, isLastWeekdayOfMonth, nthLabel,
+} from '@/lib/availability';
 import type { UnavailabilityKind, UnavailabilityPeriod } from '@/actions/availability';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,12 +32,21 @@ export function UnavailabilitySection() {
   const [recurringDate, setRecurringDate] = useState<string | null>(null);
   const [period, setPeriod] = useState<UnavailabilityPeriod | 'all'>('all');
   const [reason, setReason] = useState('');
+  /** null = seguir a ocorrência da data escolhida; caso contrário, escolha manual. */
+  const [nth, setNth] = useState<number | null>(null);
 
   /** "YYYY-MM-DD" -> day of week (0=domingo…6=sábado), parsed as local date. */
   function weekdayFromDateStr(value: string): number {
     const [y, m, d] = value.split('-').map(Number);
     return new Date(y, m - 1, d).getDay();
   }
+
+  // Ocorrência derivada da data escolhida (ex.: 12/ago é a 2ª terça do mês).
+  // Se a data for a última ocorrência do mês, sugerimos "última".
+  const autoNth = recurringDate
+    ? (isLastWeekdayOfMonth(recurringDate) ? -1 : nthWeekdayOfMonth(recurringDate))
+    : 1;
+  const effectiveNth = nth ?? autoNth;
 
   async function handleAdd() {
     try {
@@ -44,15 +56,24 @@ export function UnavailabilitySection() {
         await addUnavailability.mutateAsync({
           kind: 'date_range', startDate, endDate, reason: reason.trim() || null,
         });
-      } else {
+      } else if (kind === 'weekly') {
         if (!recurringDate) { toast.error('Escolhe uma data para indicar o dia da semana'); return; }
         await addUnavailability.mutateAsync({
           kind: 'weekly', weekday: weekdayFromDateStr(recurringDate),
           period: period === 'all' ? null : period,
           reason: reason.trim() || null,
         });
+      } else {
+        if (!recurringDate) { toast.error('Escolhe uma data para indicar o dia da semana'); return; }
+        await addUnavailability.mutateAsync({
+          kind: 'monthly_nth',
+          weekday: weekdayFromDateStr(recurringDate),
+          nth: effectiveNth,
+          period: period === 'all' ? null : period,
+          reason: reason.trim() || null,
+        });
       }
-      setStartDate(''); setEndDate(''); setRecurringDate(null); setReason('');
+      setStartDate(''); setEndDate(''); setRecurringDate(null); setReason(''); setNth(null);
       toast.success('Indisponibilidade adicionada');
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao adicionar');
@@ -78,7 +99,8 @@ export function UnavailabilitySection() {
       <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', alignSelf: 'flex-start' }}>
         {([
           { key: 'date_range', label: 'Pontual' },
-          { key: 'weekly', label: 'Recorrente' },
+          { key: 'weekly', label: 'Semanal' },
+          { key: 'monthly_nth', label: 'Mensal' },
         ] as const).map(({ key, label }) => (
           <button
             key={key}
@@ -109,16 +131,39 @@ export function UnavailabilitySection() {
           />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: kind === 'monthly_nth' ? '1fr 1fr 1fr' : '1fr 1fr', gap: '0.875rem' }}
+          className="ua-recurring-grid">
+          <style>{`@media(max-width:640px){.ua-recurring-grid{grid-template-columns:1fr!important}}`}</style>
           <div className="space-y-1.5">
             <Label>Dia da semana</Label>
             <DatePicker value={recurringDate} onChange={setRecurringDate} placeholder="Escolhe uma data" />
-            {recurringDate && (
+            {recurringDate && kind === 'weekly' && (
               <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
                 Repete todas as {WEEKDAY_LABELS[weekdayFromDateStr(recurringDate)]}s
               </p>
             )}
+            {recurringDate && kind === 'monthly_nth' && (
+              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
+                Repete na {nthLabel(effectiveNth).toLowerCase()}{' '}
+                {WEEKDAY_LABELS[weekdayFromDateStr(recurringDate)].toLowerCase()} de cada mês
+              </p>
+            )}
           </div>
+
+          {kind === 'monthly_nth' && (
+            <div className="space-y-1.5">
+              <Label>Ocorrência</Label>
+              <Select value={String(nth ?? autoNth)} onValueChange={(v) => setNth(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <SelectItem key={n} value={String(n)}>{n}ª do mês</SelectItem>
+                  ))}
+                  <SelectItem value="-1">Última do mês</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Período</Label>
             <Select value={period} onValueChange={(v) => setPeriod(v as UnavailabilityPeriod | 'all')}>

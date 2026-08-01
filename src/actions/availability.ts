@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 
 export type UnavailabilityPeriod = 'manha' | 'tarde' | 'noite';
-export type UnavailabilityKind = 'date_range' | 'weekly';
+export type UnavailabilityKind = 'date_range' | 'weekly' | 'monthly_nth';
 
 export interface UnavailabilityEntry {
   id: string;
@@ -11,20 +11,23 @@ export interface UnavailabilityEntry {
   startDate: string | null;
   endDate: string | null;
   weekday: number | null; // 0 = domingo … 6 = sábado
+  /** Só para monthly_nth: 1..5 = N-ésima ocorrência do mês; -1 = última. */
+  nth: number | null;
   period: UnavailabilityPeriod | null; // null = o dia todo
   reason: string | null;
 }
 
 type Row = {
   id: string; kind: string; start_date: string | null; end_date: string | null;
-  weekday: number | null; period: string | null; reason: string | null;
+  weekday: number | null; nth: number | null; period: string | null; reason: string | null;
 };
 
 function toEntry(r: Row, canSeeReason: boolean): UnavailabilityEntry {
   return {
     id: r.id, kind: r.kind as UnavailabilityKind,
     startDate: r.start_date, endDate: r.end_date,
-    weekday: r.weekday, period: r.period as UnavailabilityPeriod | null,
+    weekday: r.weekday, nth: r.nth ?? null,
+    period: r.period as UnavailabilityPeriod | null,
     // O motivo é pessoal — só a própria pessoa e admin/líder o veem. Isto é redigido aqui (server-side),
     // porque RLS do Postgres só restringe linhas, não colunas: sem isto o motivo viajava sempre até ao browser.
     reason: canSeeReason ? r.reason : null,
@@ -48,14 +51,14 @@ export async function fetchUnavailabilityAction(userId: string, orgId: string): 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('member_unavailability')
-    .select('id, kind, start_date, end_date, weekday, period, reason')
+    .select('id, kind, start_date, end_date, weekday, nth, period, reason')
     .eq('user_id', userId).eq('org_id', orgId)
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
 
   const requester = await getRequester(orgId);
   const canSeeReason = requester?.isAdminOrLeader === true || requester?.userId === userId;
-  return ((data ?? []) as Row[]).map((r) => toEntry(r, canSeeReason));
+  return ((data ?? []) as unknown as Row[]).map((r) => toEntry(r, canSeeReason));
 }
 
 /** Indisponibilidades de TODA a organização, agrupadas por user_id — todos veem QUE está indisponível; o motivo é só para admin/líder (ou a própria pessoa). */
@@ -63,13 +66,13 @@ export async function fetchOrgUnavailabilityAction(orgId: string): Promise<Recor
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('member_unavailability')
-    .select('id, user_id, kind, start_date, end_date, weekday, period, reason')
+    .select('id, user_id, kind, start_date, end_date, weekday, nth, period, reason')
     .eq('org_id', orgId);
   if (error) throw new Error(error.message);
 
   const requester = await getRequester(orgId);
   const map: Record<string, UnavailabilityEntry[]> = {};
-  for (const r of (data ?? []) as (Row & { user_id: string })[]) {
+  for (const r of (data ?? []) as unknown as (Row & { user_id: string })[]) {
     const canSeeReason = requester?.isAdminOrLeader === true || requester?.userId === r.user_id;
     (map[r.user_id] ??= []).push(toEntry(r, canSeeReason));
   }
@@ -81,6 +84,8 @@ export interface AddUnavailabilityInput {
   startDate?: string | null;
   endDate?: string | null;
   weekday?: number | null;
+  /** Só para monthly_nth: 1..5 = N-ésima ocorrência do mês; -1 = última. */
+  nth?: number | null;
   period?: UnavailabilityPeriod | null;
   reason?: string | null;
 }
@@ -96,9 +101,11 @@ export async function addUnavailabilityAction(orgId: string, entry: AddUnavailab
     start_date: entry.startDate ?? null,
     end_date: entry.endDate ?? null,
     weekday: entry.weekday ?? null,
+    nth: entry.nth ?? null,
     period: entry.period ?? null,
     reason: entry.reason || null,
-  });
+    // `nth` foi acrescentada na migração 024; os tipos gerados ainda não a têm.
+  } as never);
   if (error) throw new Error(error.message);
 }
 
