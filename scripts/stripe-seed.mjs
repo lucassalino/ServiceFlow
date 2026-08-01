@@ -5,11 +5,20 @@
  * O Semente é grátis e não passa por checkout — por isso NÃO cria preço
  * para ele. Só Broto, Colheita e Celeiro × mensal/anual = 6 preços.
  *
- * Uso:
+ * Uso (fora deste sandbox — ver nota abaixo):
  *   node --env-file=.env.local scripts/stripe-seed.mjs
  *
  * Idempotente: se já existir um produto com o mesmo metadata.slug, reutiliza-o
  * em vez de duplicar. Podes correr o script várias vezes sem medo.
+ *
+ * NOTA (sessão de dev remota): o sandbox do agente tem um proxy de rede que
+ * bloqueia `api.stripe.com` por política (403 no CONNECT), mesmo com
+ * NODE_USE_ENV_PROXY=1 — não é a chave, é a rede do sandbox. Nesse ambiente,
+ * os 6 preços dos planos pagos (broto/colheita/celeiro × mensal/anual) foram
+ * criados via conector MCP do Stripe (mcp__Stripe__stripe_api_write), não por
+ * este script. Este ficheiro fica para quem correr localmente (fora do
+ * sandbox) ou precisar de recriar os preços noutra conta (ex.: ao passar
+ * para produção/live mode).
  */
 
 import Stripe from 'stripe';
