@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  CalendarCheck, Music2, Users, Bell, Smartphone, WifiOff,
+  CalendarCheck, Music2, Users, Bell, Smartphone,
   CalendarSync, ListChecks, Plus, ExternalLink, Check, Sparkles,
-  ListMusic, UserCheck, Clock,
+  ListMusic, UserCheck, Clock, Layers,
 } from 'lucide-react';
 import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
@@ -25,7 +25,7 @@ const FEATURES = [
   { icon: CalendarSync, label: 'Sincronização de calendário', desc: 'Subscreve as tuas escalas no Google ou Apple Calendar. Mudou a escala? O teu calendário acompanha.' },
   { icon: Bell, label: 'Avisos por 3 canais', desc: 'Notificação na app, WhatsApp e email — a equipa escolhe a quem avisar.' },
   { icon: Users, label: 'Multi-ministério', desc: 'Ministérios e funções à tua medida, com histórico de participação de cada voluntário.' },
-  { icon: WifiOff, label: 'Funciona offline', desc: 'É uma PWA — instala-se no ecrã inicial, sem loja, e continua a funcionar sem rede.' },
+  { icon: Layers, label: 'Instala-se sem loja', desc: 'É uma PWA — instala-se no ecrã inicial diretamente do navegador, sem passar pela App Store ou Google Play.' },
   { icon: Sparkles, label: 'Relatórios de engajamento', desc: 'Frequência de participação e distribuição por ministério, por período.' },
 ];
 
@@ -38,7 +38,6 @@ const STEPS = [
 
 const FAQ: { q: string; a: string }[] = [
   { q: 'Preciso de instalar alguma coisa?', a: 'Não. O WIS é uma PWA — abre no navegador e podes "instalá-la" no ecrã inicial do telemóvel diretamente a partir daí, sem passar pela App Store ou Google Play.' },
-  { q: 'Funciona offline?', a: 'Sim, para o que já foi carregado antes de perderes ligação. Quando a rede voltar, a app sincroniza sozinha.' },
   { q: 'Posso importar o meu repertório atual?', a: 'Sim — o Repertório tem um importador de CSV com mapeamento de colunas, para trazeres as tuas músicas de uma vez.' },
   { q: 'Como funcionam os planos?', a: 'Cada plano define quantas pessoas, ministérios e administradores cabem na tua organização, e que funcionalidades extra estão incluídas. Podes começar grátis e mudar de plano depois.' },
   { q: 'Uma igreja com vários campus, como faz?', a: 'Por agora, cria uma organização (e uma assinatura) por campus. É a forma mais simples de manter os dados de cada campus separados.' },
@@ -107,8 +106,8 @@ export function PlanosClient({ plans }: Props) {
       {/* ── Hero ───────────────────────────────────────── */}
       <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '4.5rem 1.25rem 2rem', textAlign: 'center' }}>
         <span style={badgeStyle}>
-          <WifiOff style={{ width: '0.7rem', height: '0.7rem' }} />
-          App para iOS, Android e navegador · funciona offline
+          <Layers style={{ width: '0.7rem', height: '0.7rem' }} />
+          App para iOS, Android e navegador · instala-se sem loja
         </span>
         <h1 style={{
           fontSize: 'clamp(2.1rem, 5.2vw, 3.4rem)', fontWeight: 700, letterSpacing: '-0.03em',
@@ -145,7 +144,7 @@ export function PlanosClient({ plans }: Props) {
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '1rem', textAlign: 'center',
         }}>
           {[
-            { v: '7', l: 'módulos' }, { v: 'Offline', l: 'sempre disponível' },
+            { v: '7', l: 'módulos' }, { v: 'PWA', l: 'sem loja para instalar' },
             { v: '1 conta', l: 'várias organizações' }, { v: '€ / R$', l: 'Portugal e Brasil' },
           ].map((m) => (
             <div key={m.l}>
