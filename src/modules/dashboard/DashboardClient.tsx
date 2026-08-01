@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   CalendarDays, Users, LayoutGrid,
   MapPin, Clock, ArrowRight,
-  CalendarCheck, BookOpen, Cake,
+  CalendarCheck, BookOpen, Cake, TrendingUp,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +57,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
   const { activeMembership, activeOrg } = useOrgStore();
   const firstName = activeMembership?.profile?.full_name?.split(' ')[0] ?? 'Bem-vindo';
   const isAdmin = activeMembership?.role === 'admin';
+  const canSeeReports = isAdmin || activeMembership?.role === 'leader';
   const currentMonthName = MONTH_NAMES[new Date().getMonth()];
 
   return (
@@ -82,6 +83,29 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
 
         {/* Aviso de proximidade do limite do plano (≥80%) */}
         <PlanUsageBanner />
+
+        {/* Atalho para os relatórios — só quem os pode ver */}
+        {canSeeReports && (
+          <Link
+            href={`/${orgId}/reports`}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.875rem 1rem', borderRadius: '0.875rem', textDecoration: 'none',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+            }}
+          >
+            <TrendingUp style={{ width: '1rem', height: '1rem', color: '#a5b4fc', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', margin: 0 }}>
+                Relatórios de engajamento
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', margin: '0.1rem 0 0' }}>
+                Participação da equipa por período e ministério
+              </p>
+            </div>
+            <ArrowRight style={{ width: '0.9rem', height: '0.9rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+          </Link>
+        )}
 
         {/* Upcoming events */}
         <div className="dash-glass-card overflow-hidden">
