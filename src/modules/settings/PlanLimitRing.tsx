@@ -3,7 +3,10 @@
 import { usePlanUsage } from '@/hooks/usePlanLimit';
 import { RESOURCE_LABEL, usagePercent, type PlanResource } from '@/lib/plan-limits';
 
-const RING_ORDER: PlanResource[] = ['people', 'ministry', 'admin', 'leader'];
+// Admin fica de fora: é sempre 1, em qualquer plano — nunca é um limite que
+// um upgrade resolve, por isso não faz sentido tratá-lo como "quase cheio".
+// Quem varia por plano (e é o que faz sentido mostrar) é o líder.
+const RING_ORDER: PlanResource[] = ['people', 'ministry', 'leader'];
 
 const RESOURCE_ICON: Record<PlanResource, string> = {
   people: '👤',
@@ -14,15 +17,15 @@ const RESOURCE_ICON: Record<PlanResource, string> = {
 
 /**
  * Anéis de utilização dos limites do plano — um por recurso com quantidade
- * (pessoas, ministérios, admin, líderes). Verde normalmente, amarelo a partir
- * de 80% do limite, vermelho ao atingi-lo. Recursos com limite 0 (ex.: líderes
- * no Semente/Broto) não aparecem — esse plano simplesmente não os inclui.
+ * (pessoas, ministérios, líderes). Verde normalmente, amarelo a partir de 80%
+ * do limite, vermelho ao atingi-lo. O anel de líderes aparece mesmo a 0/0
+ * (Semente/Broto) — mostra que o plano atual não inclui líderes.
  */
 export function PlanLimitRings() {
   const { data, isLoading } = usePlanUsage(true);
   if (isLoading || !data) return null;
 
-  const resources = RING_ORDER.filter((r) => data[r] && data[r].limit !== 0);
+  const resources = RING_ORDER.filter((r) => data[r]);
   if (resources.length === 0) return null;
 
   return (
@@ -45,7 +48,9 @@ function Ring({ resource, used, limit }: { resource: PlanResource; used: number;
   const stroke = 5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const filled = limit === null ? circumference : (pct / 100) * circumference;
+  // limit null = ilimitado (anel cheio); limit 0 = plano não inclui este
+  // recurso (anel cheio a vermelho, para ficar claro que está bloqueado).
+  const filled = limit === null || limit === 0 ? circumference : (pct / 100) * circumference;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

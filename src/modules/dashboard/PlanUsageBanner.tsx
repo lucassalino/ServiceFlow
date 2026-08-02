@@ -57,7 +57,10 @@ export function PlanUsageBanner() {
 
   // Recurso mais crítico: primeiro os que já atingiram o limite, depois os
   // que estão perto. Mostramos só um aviso, para não poluir o dashboard.
-  const entries = Object.entries(data) as [PlanResource, PlanLimitState][];
+  // Admin fica de fora: é sempre 1 em qualquer plano, nunca é um limite que
+  // um upgrade resolve, por isso avisar sobre ele não é acionável.
+  const entries = (Object.entries(data) as [PlanResource, PlanLimitState][])
+    .filter(([resource]) => resource !== 'admin');
   const critical =
     entries.find(([, s]) => isAtLimit(s)) ?? entries.find(([, s]) => isNearLimit(s));
   if (!critical) return null;
