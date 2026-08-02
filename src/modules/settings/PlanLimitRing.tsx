@@ -1,5 +1,6 @@
 'use client';
 
+import { Users, LayoutGrid, ShieldCheck, Star } from 'lucide-react';
 import { usePlanUsage } from '@/hooks/usePlanLimit';
 import { RESOURCE_LABEL, usagePercent, type PlanResource } from '@/lib/plan-limits';
 
@@ -8,11 +9,11 @@ import { RESOURCE_LABEL, usagePercent, type PlanResource } from '@/lib/plan-limi
 // Quem varia por plano (e é o que faz sentido mostrar) é o líder.
 const RING_ORDER: PlanResource[] = ['people', 'ministry', 'leader'];
 
-const RESOURCE_ICON: Record<PlanResource, string> = {
-  people: '👤',
-  ministry: '📋',
-  admin: '🛡️',
-  leader: '⭐',
+const RESOURCE_ICON: Record<PlanResource, typeof Users> = {
+  people: Users,
+  ministry: LayoutGrid,
+  admin: ShieldCheck,
+  leader: Star,
 };
 
 /**
@@ -39,6 +40,7 @@ export function PlanLimitRings() {
 
 function Ring({ resource, used, limit }: { resource: PlanResource; used: number; limit: number | null }) {
   const label = RESOURCE_LABEL[resource];
+  const Icon = RESOURCE_ICON[resource];
   const pct = usagePercent({ used, limit });
   const atLimit = limit !== null && used >= limit;
   const nearLimit = limit !== null && !atLimit && pct >= 80;
@@ -70,9 +72,8 @@ function Ring({ resource, used, limit }: { resource: PlanResource; used: number;
         </svg>
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.9rem',
         }}>
-          {RESOURCE_ICON[resource]}
+          <Icon style={{ width: '1.05rem', height: '1.05rem', color: 'rgba(255,255,255,0.55)' }} />
         </div>
       </div>
       <div>
