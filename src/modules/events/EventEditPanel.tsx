@@ -8,8 +8,16 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
-  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp,
+  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp, GripVertical,
 } from 'lucide-react';
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -350,6 +358,22 @@ export function EventEditPanel({ event, onBack }: Props) {
     setMembersByMinistry((prev) => {
       const cur = prev[ministryId] ?? [];
       return { ...prev, [ministryId]: cur.map((m) => m.userId !== userId ? m : { ...m, functions: m.functions.includes(fn) ? m.functions.filter((f) => f !== fn) : [...m.functions, fn] }) };
+    });
+  }
+
+  const setlistSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+  );
+
+  function handleSetlistDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    setSelectedSongIds((prev) => {
+      const oldIndex = prev.indexOf(String(active.id));
+      const newIndex = prev.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
     });
   }
 
@@ -788,7 +812,7 @@ export function EventEditPanel({ event, onBack }: Props) {
                 {/* Selected setlist */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
-                    Setlist seleccionado ({selectedSongIds.length})
+                    Setlist seleccionado ({selectedSongIds.length}) {selectedSongIds.length > 1 && '· arrasta para ordenar'}
                   </p>
                   {selectedSongIds.length === 0 ? (
                     <div style={{ padding: '2rem', textAlign: 'center', ...card }}>
@@ -796,41 +820,45 @@ export function EventEditPanel({ event, onBack }: Props) {
                     </div>
                   ) : (
                     <div style={card}>
-                      {selectedSongIds.map((id, idx) => {
-                        const song = (songs as unknown as Song[]).find((s) => s.id === id);
-                        if (!song) return null;
-                        return (
-                          <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', borderBottom: idx < selectedSongIds.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', width: '1.25rem', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
-                              {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
-                            </div>
-                            <select
-                              value={songKeys[id] ?? ''}
-                              onChange={(e) => setSongKey(id, e.target.value)}
-                              title="Tom para este evento"
-                              style={{
-                                flexShrink: 0, fontSize: '0.72rem', fontWeight: 600,
-                                padding: '0.2rem 0.4rem', borderRadius: '0.4rem',
-                                background: 'rgba(255,255,255,0.06)', color: '#fff',
-                                border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
-                              }}
-                            >
-                              <option value="" style={{ background: '#1a1a20' }}>Tom</option>
-                              {SONG_KEYS.map((k) => (
-                                <option key={k} value={k} style={{ background: '#1a1a20' }}>{k}</option>
-                              ))}
-                            </select>
-                            <button type="button" onClick={() => toggleSong(id)} style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                              onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
-                              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-                            >
-                              <X style={{ width: '0.75rem', height: '0.75rem' }} />
-                            </button>
-                          </div>
-                        );
-                      })}
+                      <DndContext sensors={setlistSensors} collisionDetection={closestCenter} onDragEnd={handleSetlistDragEnd}>
+                        <SortableContext items={selectedSongIds} strategy={verticalListSortingStrategy}>
+                          {selectedSongIds.map((id, idx) => {
+                            const song = (songs as unknown as Song[]).find((s) => s.id === id);
+                            if (!song) return null;
+                            return (
+                              <SortableSetlistRow key={id} id={id} isLast={idx === selectedSongIds.length - 1}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', width: '1.25rem', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
+                                  {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
+                                </div>
+                                <select
+                                  value={songKeys[id] ?? ''}
+                                  onChange={(e) => setSongKey(id, e.target.value)}
+                                  title="Tom para este evento"
+                                  style={{
+                                    flexShrink: 0, fontSize: '0.72rem', fontWeight: 600,
+                                    padding: '0.2rem 0.4rem', borderRadius: '0.4rem',
+                                    background: 'rgba(255,255,255,0.06)', color: '#fff',
+                                    border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+                                  }}
+                                >
+                                  <option value="" style={{ background: '#1a1a20' }}>Tom</option>
+                                  {SONG_KEYS.map((k) => (
+                                    <option key={k} value={k} style={{ background: '#1a1a20' }}>{k}</option>
+                                  ))}
+                                </select>
+                                <button type="button" onClick={() => toggleSong(id)} style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                                >
+                                  <X style={{ width: '0.75rem', height: '0.75rem' }} />
+                                </button>
+                              </SortableSetlistRow>
+                            );
+                          })}
+                        </SortableContext>
+                      </DndContext>
                     </div>
                   )}
                 </div>
@@ -917,5 +945,36 @@ export function EventEditPanel({ event, onBack }: Props) {
         title="Importar setlist de CSV"
       />
     </>
+  );
+}
+
+/** Linha arrastável do setlist — a pega (grip) inicia o drag, o resto da linha fica interativo (select, remover). */
+function SortableSetlistRow({ id, isLast, children }: { id: string; isLast: boolean; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem',
+        borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.06)',
+        transform: CSS.Transform.toString(transform), transition,
+        background: isDragging ? 'rgba(255,255,255,0.06)' : 'transparent',
+        opacity: isDragging ? 0.6 : 1, position: 'relative', zIndex: isDragging ? 1 : 'auto',
+      }}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label="Arrastar para reordenar"
+        style={{
+          display: 'flex', alignItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,0.25)',
+          background: 'none', border: 'none', padding: '0.25rem', cursor: 'grab', touchAction: 'none',
+        }}
+      >
+        <GripVertical style={{ width: '0.9rem', height: '0.9rem' }} />
+      </button>
+      {children}
+    </div>
   );
 }
