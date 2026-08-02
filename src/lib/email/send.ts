@@ -124,7 +124,7 @@ export async function sendNotificationEmails(params: {
       text: r.text,
       replyTo: SUPPORT_EMAIL,
       // Permite ao cliente de email oferecer "cancelar subscrição".
-      headers: { 'List-Unsubscribe': '<https://wis-services.com/definicoes>' },
+      headers: { 'List-Unsubscribe': '<https://wis-services.com/>' },
     }));
 
     const result = await sendBatch(payload);

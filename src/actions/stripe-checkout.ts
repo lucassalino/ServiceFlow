@@ -59,7 +59,7 @@ export async function createBillingPortalSessionAction(orgId: string): Promise<P
   try {
     const session = await stripe.billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
-      return_url: `${APP_URL}/definicoes`,
+      return_url: `${APP_URL}/`,
     });
     return { ok: true, url: session.url };
   } catch (e) {

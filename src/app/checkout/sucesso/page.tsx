@@ -18,14 +18,14 @@ export default function CheckoutSucessoPage() {
           daqui a alguns segundos.
         </p>
         <Link
-          href="/definicoes"
+          href="/"
           style={{
             display: 'inline-flex', padding: '0.6rem 1.2rem', borderRadius: '0.625rem',
             background: 'linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%)',
             color: '#0a0a0f', fontWeight: 800, fontSize: '0.85rem', textDecoration: 'none',
           }}
         >
-          Ir para as definições
+          Ir para a organização
         </Link>
       </div>
     </div>

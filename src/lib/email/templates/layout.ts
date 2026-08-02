@@ -65,7 +65,7 @@ export function renderLayout({ title, body, cta }: LayoutOptions): string {
                 Recebeste este email porque estás numa equipa que usa o ${APP_NAME}.
               </p>
               <p style="margin:0 0 6px;">
-                <a href="${APP_URL}/definicoes" style="color:${TEAL};text-decoration:underline;">Deixar de receber estes emails</a>
+                <a href="${APP_URL}/" style="color:${TEAL};text-decoration:underline;">Deixar de receber estes emails</a>
                 &nbsp;·&nbsp;
                 <a href="mailto:${SUPPORT_EMAIL}" style="color:${TEAL};text-decoration:underline;">Ajuda</a>
                 &nbsp;·&nbsp;
@@ -105,7 +105,7 @@ export function textFooter(): string {
     '',
     '—',
     `Recebeste este email porque estás numa equipa que usa o ${APP_NAME}.`,
-    `Deixar de receber: ${APP_URL}/definicoes`,
+    `Deixar de receber: ${APP_URL}/`,
     `Ajuda: ${SUPPORT_EMAIL}`,
     `Privacidade: ${APP_URL}/privacidade`,
   ].join('\n');
