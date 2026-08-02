@@ -111,21 +111,30 @@ export async function createCheckoutSessionAction(
     return { ok: false, reason: 'PLAN_NOT_PAYABLE', message: 'Esta organização tem um plano de cortesia — contacta o suporte para mudar.' };
   }
 
-  const stripe = getStripe();
+  let stripe;
+  try {
+    stripe = getStripe();
+  } catch (e) {
+    return { ok: false, reason: 'STRIPE_NOT_CONFIGURED', message: e instanceof Error ? e.message : 'Stripe não está configurado.' };
+  }
 
   let customerId: string | undefined = sub?.stripe_customer_id ?? undefined;
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email ?? undefined,
-      name: org?.name ?? undefined,
-      metadata: { org_id: orgId },
-    });
-    customerId = customer.id;
-    await admin.from('org_subscriptions').upsert({
-      org_id: orgId,
-      stripe_customer_id: customerId,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'org_id' });
+    try {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        name: org?.name ?? undefined,
+        metadata: { org_id: orgId },
+      });
+      customerId = customer.id;
+      await admin.from('org_subscriptions').upsert({
+        org_id: orgId,
+        stripe_customer_id: customerId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'org_id' });
+    } catch (e) {
+      return { ok: false, reason: 'UNKNOWN', message: e instanceof Error ? e.message : 'Falha ao criar o cliente no Stripe.' };
+    }
   }
 
   try {
