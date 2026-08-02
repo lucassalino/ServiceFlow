@@ -21,7 +21,10 @@ export interface PlanDef {
   /** null = ilimitado */
   maxPeople: number | null;
   maxMinistries: number | null;
+  /** Sempre 1, em qualquer plano — só o número de líderes varia. */
   maxAdmins: number | null;
+  /** null = ilimitado. 0 = plano não inclui líderes (só o admin). */
+  maxLeaders: number | null;
   /** Preços em euros. */
   priceMonthly: number;
   priceAnnual: number;
@@ -36,6 +39,7 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxPeople: 10,
     maxMinistries: 1,
     maxAdmins: 1,
+    maxLeaders: 0,
     priceMonthly: 0,
     priceAnnual: 0,
     features: ['Escala simples', 'Acesso do voluntário à app'],
@@ -47,6 +51,7 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxPeople: 25,
     maxMinistries: 5,
     maxAdmins: 1,
+    maxLeaders: 0,
     priceMonthly: 9.99,
     priceAnnual: 99.90,
     features: [
@@ -60,7 +65,8 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     order: 2,
     maxPeople: 60,
     maxMinistries: null,
-    maxAdmins: 3,
+    maxAdmins: 1,
+    maxLeaders: 3,
     priceMonthly: 19.99,
     priceAnnual: 199.90,
     features: [
@@ -78,11 +84,12 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     order: 3,
     maxPeople: null,
     maxMinistries: null,
-    maxAdmins: null,
+    maxAdmins: 1,
+    maxLeaders: null,
     priceMonthly: 39.99,
     priceAnnual: 399.90,
     features: [
-      'Pessoas e administradores ilimitados',
+      'Pessoas ilimitadas e líderes ilimitados',
       'Avisos por email quando a escala é publicada',
       'Relatórios de engajamento',
       'Suporte prioritário',

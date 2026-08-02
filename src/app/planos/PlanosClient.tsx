@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   CalendarCheck, Music2, Users, Bell,
   CalendarSync, ListChecks, Plus, ExternalLink, Sparkles,
-  ListMusic, UserCheck, Clock, Layers, LayoutGrid, Building2, Globe,
+  ListMusic, UserCheck, Clock, Layers, LayoutGrid, Building2, Globe, Loader2,
 } from 'lucide-react';
 import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
+import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
 
 const NAV = [
   { href: '#produto', label: 'Produto' },
@@ -83,9 +85,9 @@ function detectPlatform(): Platform {
   return 'desktop';
 }
 
-interface Props { plans: PlanDef[] }
+interface Props { plans: PlanDef[]; adminOrgId: string | null }
 
-export function PlanosClient({ plans }: Props) {
+export function PlanosClient({ plans, adminOrgId }: Props) {
   const [annual, setAnnual] = useState(false);
   const [platform, setPlatform] = useState<Platform>('desktop');
 
@@ -313,7 +315,7 @@ export function PlanosClient({ plans }: Props) {
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15.5rem, 1fr))', gap: '1rem',
         }}>
           {plans.map((plan, i) => (
-            <PlanCard key={plan.key} plan={plan} annual={annual} previousFeatures={i > 0 ? plans[i - 1].features : []} />
+            <PlanCard key={plan.key} plan={plan} annual={annual} previousFeatures={i > 0 ? plans[i - 1].features : []} adminOrgId={adminOrgId} />
           ))}
         </div>
 
@@ -436,10 +438,30 @@ function FooterCol({ title, links }: { title: string; links: { href: string; lab
   );
 }
 
-function PlanCard({ plan, annual, previousFeatures }: { plan: PlanDef; annual: boolean; previousFeatures: string[] }) {
+function PlanCard({ plan, annual, previousFeatures, adminOrgId }: {
+  plan: PlanDef; annual: boolean; previousFeatures: string[]; adminOrgId: string | null;
+}) {
+  const [loading, setLoading] = useState(false);
   const price = annual ? plan.priceAnnual : plan.priceMonthly;
   const savings = annualSavingsPercent(plan);
   const popular = plan.key === 'colheita';
+
+  async function handleAssinar() {
+    if (!adminOrgId) return;
+    setLoading(true);
+    try {
+      const result = await createCheckoutSessionAction(adminOrgId, plan.key, annual ? 'annual' : 'monthly');
+      if (result.ok) {
+        window.location.href = result.url;
+        return;
+      }
+      toast.error(result.message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao iniciar o checkout');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Só mostra o que o plano acrescenta ao anterior — os planos são
   // cumulativos, então repetir tudo de novo em cada cartão é ruído.
@@ -448,8 +470,9 @@ function PlanCard({ plan, annual, previousFeatures }: { plan: PlanDef; annual: b
   const limitsLine = [
     plan.maxPeople === null ? 'Pessoas ilimitadas' : `${plan.maxPeople} pessoas`,
     plan.maxMinistries === null ? 'ministérios ilimitados' : `${plan.maxMinistries} ministério${plan.maxMinistries === 1 ? '' : 's'}`,
-    plan.maxAdmins === null ? 'admins ilimitados' : `${plan.maxAdmins} admin${plan.maxAdmins === 1 ? '' : 's'}`,
-  ].join(' · ');
+    '1 admin',
+    plan.maxLeaders === null ? 'líderes ilimitados' : plan.maxLeaders === 0 ? undefined : `${plan.maxLeaders} líder${plan.maxLeaders === 1 ? '' : 'es'}`,
+  ].filter(Boolean).join(' · ');
 
   return (
     <div style={{
@@ -497,18 +520,38 @@ function PlanCard({ plan, annual, previousFeatures }: { plan: PlanDef; annual: b
         ))}
       </ul>
 
-      <Link
-        href="/register"
-        style={{
-          display: 'block', textAlign: 'center', padding: '0.65rem 1rem', borderRadius: '0.5rem',
-          textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700,
-          background: popular ? '#fff' : 'rgba(255,255,255,0.08)',
-          color: popular ? '#000' : '#fff',
-          border: popular ? 'none' : '1px solid rgba(255,255,255,0.14)',
-        }}
-      >
-        {plan.priceMonthly === 0 ? 'Começar' : 'Assinar'}
-      </Link>
+      {plan.priceMonthly === 0 || !adminOrgId ? (
+        <Link
+          href="/register"
+          style={{
+            display: 'block', textAlign: 'center', padding: '0.65rem 1rem', borderRadius: '0.5rem',
+            textDecoration: 'none', fontSize: '0.85rem', fontWeight: 700,
+            background: popular ? '#fff' : 'rgba(255,255,255,0.08)',
+            color: popular ? '#000' : '#fff',
+            border: popular ? 'none' : '1px solid rgba(255,255,255,0.14)',
+          }}
+        >
+          {plan.priceMonthly === 0 ? 'Começar' : 'Assinar'}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={handleAssinar}
+          disabled={loading}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', width: '100%',
+            textAlign: 'center', padding: '0.65rem 1rem', borderRadius: '0.5rem',
+            fontSize: '0.85rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+            background: popular ? '#fff' : 'rgba(255,255,255,0.08)',
+            color: popular ? '#000' : '#fff',
+            border: popular ? 'none' : '1px solid rgba(255,255,255,0.14)',
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          {loading && <Loader2 style={{ width: '0.85rem', height: '0.85rem' }} className="animate-spin" />}
+          Assinar
+        </button>
+      )}
     </div>
   );
 }

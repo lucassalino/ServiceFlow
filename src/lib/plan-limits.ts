@@ -8,7 +8,7 @@
  * distinguir "limite atingido" de um erro genérico e abrir o modal certo.
  */
 
-export type PlanResource = 'people' | 'ministry' | 'admin';
+export type PlanResource = 'people' | 'ministry' | 'admin' | 'leader';
 
 /** Estado do limite para um recurso. `limit: null` = ilimitado. */
 export interface PlanLimitState {
@@ -79,6 +79,7 @@ export const RESOURCE_LABEL: Record<PlanResource, { one: string; many: string }>
   people: { one: 'pessoa', many: 'pessoas' },
   ministry: { one: 'ministério', many: 'ministérios' },
   admin: { one: 'administrador', many: 'administradores' },
+  leader: { one: 'líder', many: 'líderes' },
 };
 
 /** Percentagem de utilização (0–100). Ilimitado devolve 0. */

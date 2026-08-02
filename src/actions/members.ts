@@ -45,18 +45,18 @@ export async function updateMemberRoleAction(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
-  // Promover a admin consome o limite de administradores do plano.
+  // Promover a admin ou líder consome o limite desse papel no plano.
   // (Despromover nunca é bloqueado.)
-  if (role === 'admin') {
+  if (role === 'admin' || role === 'leader') {
     const { data: member } = await supabase
       .from('organization_members').select('org_id, role').eq('id', memberId).single();
     const row = member as { org_id: string; role: string } | null;
-    // Só verifica se ainda não é admin — repor o mesmo papel não consome quota.
-    if (row && row.role !== 'admin') {
-      const limit = await canAddResource(row.org_id, 'admin');
+    // Só verifica se ainda não tem este papel — repor o mesmo papel não consome quota.
+    if (row && row.role !== role) {
+      const limit = await canAddResource(row.org_id, role);
       if (!limit.allowed) {
         return {
-          ok: false, code: PLAN_LIMIT_CODE, resource: 'admin',
+          ok: false, code: PLAN_LIMIT_CODE, resource: role,
           used: limit.used, limit: limit.limit, planName: limit.planName,
         };
       }

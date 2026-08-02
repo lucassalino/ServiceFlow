@@ -121,8 +121,9 @@ export function PlansDialog({ open, onOpenChange, currentPlan, orgId }: Props) {
                   {[
                     fmtLimit(plan.maxPeople, 'pessoa', 'pessoas'),
                     fmtLimit(plan.maxMinistries, 'ministério', 'ministérios'),
-                    plan.maxAdmins === null ? 'Vários admins' : `${plan.maxAdmins} admin`,
-                  ].map((t) => (
+                    '1 admin',
+                    plan.maxLeaders === null ? 'Líderes ilimitados' : plan.maxLeaders === 0 ? null : `${plan.maxLeaders} líder${plan.maxLeaders === 1 ? '' : 'es'}`,
+                  ].filter((t): t is string => !!t).map((t) => (
                     <span key={t} style={{
                       fontSize: '0.68rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '9999px',
                       background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)',

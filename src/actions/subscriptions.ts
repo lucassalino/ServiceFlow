@@ -1,5 +1,6 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { DEFAULT_PLAN, PLAN_LIST, type OrgSubscription, type PlanDef, type PlanKey } from '@/lib/plans';
@@ -108,16 +109,17 @@ export async function fetchPlanLimitAction(
   };
 }
 
-/** Estado dos três limites de uma vez (para o banner do dashboard). */
+/** Estado dos quatro limites de uma vez (para o banner do dashboard e as Definições). */
 export async function fetchPlanUsageAction(
   orgId: string,
 ): Promise<Record<PlanResource, PlanLimitState>> {
-  const [people, ministry, admin] = await Promise.all([
+  const [people, ministry, admin, leader] = await Promise.all([
     fetchPlanLimitAction(orgId, 'people'),
     fetchPlanLimitAction(orgId, 'ministry'),
     fetchPlanLimitAction(orgId, 'admin'),
+    fetchPlanLimitAction(orgId, 'leader'),
   ]);
-  return { people, ministry, admin };
+  return { people, ministry, admin, leader };
 }
 
 /**
@@ -142,7 +144,7 @@ export async function fetchPublicPlansAction(): Promise<PlanDef[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const from = supabase.from.bind(supabase) as any;
   const { data, error } = await from('plans')
-    .select('slug, name, max_people, max_ministries, max_admins, price_monthly, price_annual, features, sort_order')
+    .select('slug, name, max_people, max_ministries, max_admins, max_leaders, price_monthly, price_annual, features, sort_order')
     .eq('is_active', true)
     .order('sort_order');
 
@@ -156,10 +158,34 @@ export async function fetchPublicPlansAction(): Promise<PlanDef[]> {
     maxPeople: row.max_people,
     maxMinistries: row.max_ministries,
     maxAdmins: row.max_admins,
+    maxLeaders: row.max_leaders,
     priceMonthly: Number(row.price_monthly),
     priceAnnual: Number(row.price_annual),
     features: (row.features as string[] | null) ?? [],
   }));
+}
+
+/**
+ * Para o botão "Assinar" da página pública /planos: se a pessoa já tiver
+ * sessão e for admin de alguma organização, devolve o ID dessa organização
+ * (a última visitada, ou a primeira em que é admin) — assim o botão pode
+ * levar direto ao Checkout em vez de mandar sempre para o registo.
+ * Devolve null para visitantes sem sessão (aí o botão vai para /register).
+ */
+export async function fetchMyAdminOrgIdAction(): Promise<string | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const admin = getAdmin();
+  const { data: memberships } = await admin.from('organization_members')
+    .select('org_id, role').eq('user_id', user.id).eq('is_active', true).eq('role', 'admin');
+  const rows = (memberships ?? []) as { org_id: string; role: string }[];
+  if (rows.length === 0) return null;
+
+  const lastOrg = (await cookies()).get('sf_last_org')?.value;
+  if (lastOrg && rows.some((r) => r.org_id === lastOrg)) return lastOrg;
+  return rows[0].org_id;
 }
 
 // ── Funcionalidades do plano (gating booleano) ───────────────────────────────

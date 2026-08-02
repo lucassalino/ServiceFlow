@@ -116,14 +116,18 @@ RLS**. É dívida técnica conhecida.
 
 ## Planos (Fase 1 + 1.5 concluídas)
 
-| Plano | €/mês | Pessoas | Min. | Admins |
-|---|---|---|---|---|
-| Semente | 0 | 10 | 1 | 1 |
-| Broto | 9,99 | 25 | 5 | 1 |
-| Colheita | 19,99 | 60 | ∞ | 3 |
-| Celeiro | 39,99 | ∞ | ∞ | ∞ |
+| Plano | €/mês | Pessoas | Min. | Admin | Líderes |
+|---|---|---|---|---|---|
+| Semente | 0 | 10 | 1 | 1 | 0 |
+| Broto | 9,99 | 25 | 5 | 1 | 0 |
+| Colheita | 19,99 | 60 | ∞ | 1 | 3 |
+| Celeiro | 39,99 | ∞ | ∞ | 1 | ∞ |
 
-- **Limites por quantidade:** RPC `check_plan_limit(org, resource)`
+- **Admin é sempre 1**, em qualquer plano — quem varia por plano é o número
+  de líderes (migração 030, `plans.max_leaders`). Semente/Broto não incluem
+  líderes de todo (só o admin gere a organização).
+- **Limites por quantidade:** RPC `check_plan_limit(org, resource)` — recursos
+  `people` | `ministry` | `admin` | `leader`.
 - **Funcionalidades:** coluna `plans.features` + RPC `org_has_feature`
 - **Cortesia:** `org_subscriptions.source = 'manual'` → plano pago sem custo.
   AMN-Vizela e MyChurch estão assim. Mostra selo "Cortesia" na UI.

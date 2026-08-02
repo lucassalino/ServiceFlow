@@ -8,6 +8,7 @@ import { PLAN_LIST, getPlan, type PlanKey } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
 import { CouponsSection } from './CouponsSection';
 import { createBillingPortalSessionAction } from '@/actions/stripe-checkout';
+import { PlanLimitRings } from './PlanLimitRing';
 
 // Sub-secção "plana" (sem moldura própria) para integrar no cartão Organização.
 function Card({ title, icon, accent, children }: {
@@ -113,23 +114,8 @@ export function PlanSection({ orgId, isAdmin }: Props) {
               <p style={{ fontSize: '0.8rem', color: '#6ee7b7', marginTop: '0.15rem', fontWeight: 600 }}>Grátis</p>
             )}
 
-            {/* Limites — chips */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.85rem' }}>
-              {[
-                { icon: '👤', label: current.maxPeople === null ? 'Pessoas ilimitadas' : `${current.maxPeople} pessoas` },
-                { icon: '📋', label: current.maxMinistries === null ? 'Ministérios ∞' : `${current.maxMinistries} ministério${current.maxMinistries !== 1 ? 's' : ''}` },
-                { icon: '🛡️', label: current.maxAdmins === null ? 'Vários admins' : `${current.maxAdmins} admin` },
-              ].map((c) => (
-                <span key={c.label} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                  fontSize: '0.72rem', fontWeight: 600, padding: '0.28rem 0.6rem', borderRadius: '0.5rem',
-                  background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.75)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                }}>
-                  <span>{c.icon}</span>{c.label}
-                </span>
-              ))}
-            </div>
+            {/* Limites — anéis de utilização (verde / amarelo ≥80% / vermelho no limite) */}
+            <PlanLimitRings />
 
             {sub?.expires_at && (
               <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.7rem' }}>
