@@ -28,6 +28,10 @@ export function getStripe(): Stripe {
     // mude a forma dos webhooks que já tratamos.
     apiVersion: '2026-07-29.dahlia',
     typescript: true,
+    // O cliente HTTP por omissão do SDK usa o módulo `https` do Node, que não
+    // funciona no runtime do Cloudflare Workers — só sockets via `fetch`. Sem
+    // isto, qualquer chamada à API falha com "connection to Stripe" e retries.
+    httpClient: Stripe.createFetchHttpClient(),
   });
   return cached;
 }
