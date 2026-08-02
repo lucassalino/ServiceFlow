@@ -65,8 +65,8 @@ const FAQ: { q: string; a: string }[] = [
   { q: 'Preciso instalar alguma coisa?', a: 'Não. O WIS é um PWA — abre no navegador e você pode "instalá-lo" na tela inicial do celular direto por lá, sem passar pela App Store ou Google Play.' },
   { q: 'Posso importar meu repertório atual?', a: 'Sim — o Repertório tem um importador de CSV com mapeamento de colunas, pra você trazer suas músicas de uma vez.' },
   { q: 'Como funcionam os planos?', a: 'Cada plano define quantas pessoas, ministérios e administradores cabem na sua organização, e quais funcionalidades extras estão incluídas. Você pode começar grátis e mudar de plano depois.' },
-  { q: 'Uma igreja com vários campi, como faz?', a: 'Por enquanto, crie uma organização (e uma assinatura) por campus. É a forma mais simples de manter os dados de cada campus separados.' },
-  { q: 'Meus dados estão seguros?', a: 'Sim. Cada organização só vê os próprios dados — o isolamento é garantido no nível do banco de dados (Row Level Security) e por papéis (admin, líder, membro), não só na aplicação.' },
+  { q: 'Como funciona a sincronização de calendário?', a: 'Você assina um link único no Google Calendar ou no Calendário da Apple. Ele mostra só os eventos em que você está escalado e se atualiza sozinho — mudou a escala, seu calendário acompanha, sem precisar salvar de novo.' },
+  { q: 'Dá pra usar em mais de um ministério ao mesmo tempo?', a: 'Sim. Você pode servir em vários ministérios (ex.: Louvor e Multimídia) com funções diferentes em cada um, e vê as escalas de todos no mesmo lugar.' },
 ];
 
 function fmtPrice(v: number): string {
@@ -322,7 +322,7 @@ export function PlanosClient({ plans }: Props) {
         </p>
       </section>
 
-      {/* ── App / Entrar na PWA ────────────────────────── */}
+      {/* ── App / Entrar na App ────────────────────────── */}
       <section id="app" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem 1.25rem 4rem' }}>
         <div style={{
           borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.10)',
@@ -348,7 +348,7 @@ export function PlanosClient({ plans }: Props) {
               <span style={{ ...storeBadge, opacity: platform === 'ios' ? 1 : 0.6 }}>App Store <em style={soonTag}>Em breve</em></span>
               <span style={{ ...storeBadge, opacity: platform === 'android' ? 1 : 0.6 }}>Google Play <em style={soonTag}>Em breve</em></span>
               <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={primaryBtn}>
-                Entrar no PWA <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
+                Entrar na App <ExternalLink style={{ width: '0.8rem', height: '0.8rem' }} />
               </a>
             </div>
           </div>
@@ -387,13 +387,13 @@ export function PlanosClient({ plans }: Props) {
       </section>
 
       {/* ── CTA final ──────────────────────────────────── */}
-      <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '2rem 1.25rem 3rem', textAlign: 'center' }}>
+      <section style={{ maxWidth: '72rem', margin: '0 auto', padding: '5rem 1.25rem 6rem', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(1.7rem, 4vw, 2.5rem)', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 1.75rem', lineHeight: 1.2 }}>
           Domingo já vem aí. <span style={{ color: 'rgba(255,255,255,0.4)' }}>Organize sua equipe hoje.</span>
         </h2>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="#planos" style={{ ...primaryBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Começar grátis</a>
-          <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...ghostBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Entrar no PWA</a>
+          <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ ...ghostBtn, padding: '0.75rem 1.5rem', fontSize: '0.9rem' }}>Entrar na App</a>
         </div>
       </section>
 
@@ -409,7 +409,7 @@ export function PlanosClient({ plans }: Props) {
               Gestão de ministérios de igreja — escalas, eventos e repertório.
             </p>
           </div>
-          <FooterCol title="Produto" links={[{ href: '#produto', label: 'Funcionalidades' }, { href: '#planos', label: 'Planos' }, { href: APP_URL, label: 'Entrar na PWA' }]} />
+          <FooterCol title="Produto" links={[{ href: '#produto', label: 'Funcionalidades' }, { href: '#planos', label: 'Planos' }, { href: APP_URL, label: 'Entrar na App' }]} />
           <FooterCol title="Legal" links={[{ href: '/termos', label: 'Termos de Uso' }, { href: '/privacidade', label: 'Privacidade' }]} />
           <FooterCol title="Suporte" links={[{ href: '/suporte', label: 'Central de ajuda' }, { href: `mailto:${SUPPORT_EMAIL}`, label: SUPPORT_EMAIL }]} />
         </div>
