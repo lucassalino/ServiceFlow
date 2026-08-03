@@ -1,11 +1,8 @@
 'use client';
 
-import { Users, LayoutGrid, ShieldCheck, Star, TrendingUp } from 'lucide-react';
+import { Users, LayoutGrid, ShieldCheck, Star } from 'lucide-react';
 import { usePlanUsage } from '@/hooks/usePlanLimit';
-import {
-  RESOURCE_LABEL, usagePercent, isAtLimit, isNearLimit,
-  type PlanResource, type PlanLimitState,
-} from '@/lib/plan-limits';
+import { RESOURCE_LABEL, usagePercent, type PlanResource } from '@/lib/plan-limits';
 
 // Admin fica de fora: é sempre 1, em qualquer plano — nunca é um limite que
 // um upgrade resolve, por isso não faz sentido tratá-lo como "quase cheio".
@@ -37,57 +34,6 @@ export function PlanLimitRings() {
       {resources.map((r) => (
         <Ring key={r} resource={r} used={data[r].used} limit={data[r].limit} />
       ))}
-    </div>
-  );
-}
-
-/**
- * Aviso de "perto do limite" / "limite atingido" — vivia como toast no
- * dashboard, agora vive aqui nas Definições (junto dos anéis, onde faz
- * sentido agir). Admin fica de fora: é sempre 1, nunca é um limite que um
- * upgrade resolve.
- */
-export function PlanLimitNotice({ onUpgrade }: { onUpgrade: () => void }) {
-  const { data } = usePlanUsage(true);
-  if (!data) return null;
-
-  const entries = (Object.entries(data) as [PlanResource, PlanLimitState][])
-    .filter(([resource]) => resource !== 'admin');
-  const critical = entries.find(([, s]) => isAtLimit(s)) ?? entries.find(([, s]) => isNearLimit(s));
-  if (!critical) return null;
-
-  const [, state] = critical;
-  const label = RESOURCE_LABEL[critical[0]];
-  const pct = usagePercent(state);
-  const atLimit = isAtLimit(state);
-  const color = atLimit ? '#f87171' : '#fcd34d';
-  const tint = atLimit ? 'rgba(248,113,113,' : 'rgba(252,211,77,';
-
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.85rem',
-      padding: '0.7rem 0.85rem', borderRadius: '0.7rem',
-      background: `${tint}0.07)`, border: `1px solid ${tint}0.2)`,
-    }}>
-      <TrendingUp style={{ width: '0.95rem', height: '0.95rem', color, flexShrink: 0 }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600, margin: 0 }}>
-          {atLimit ? `Atingiste o limite de ${label.many}` : `Estás a usar ${pct}% do limite de ${label.many}`}
-        </p>
-        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', margin: '0.1rem 0 0' }}>
-          {state.used} de {state.limit} {label.many} · plano {state.planName}
-        </p>
-      </div>
-      <button
-        onClick={onUpgrade}
-        style={{
-          flexShrink: 0, fontSize: '0.75rem', fontWeight: 700, color, cursor: 'pointer',
-          padding: '0.35rem 0.7rem', borderRadius: '0.5rem',
-          background: `${tint}0.12)`, border: `1px solid ${tint}0.25)`,
-        }}
-      >
-        Ver planos
-      </button>
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { PLAN_LIST, getPlan, type PlanKey } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
 import { CouponsSection } from './CouponsSection';
 import { createBillingPortalSessionAction } from '@/actions/stripe-checkout';
-import { PlanLimitRings, PlanLimitNotice } from './PlanLimitRing';
+import { PlanLimitRings } from './PlanLimitRing';
 
 // Sub-secção "plana" (sem moldura própria) para integrar no cartão Organização.
 function Card({ title, icon, accent, children }: {
@@ -116,9 +116,6 @@ export function PlanSection({ orgId, isAdmin }: Props) {
 
             {/* Limites — anéis de utilização (verde / amarelo ≥80% / vermelho no limite) */}
             <PlanLimitRings />
-
-            {/* Aviso de perto/no limite — vivia como toast na Dashboard, agora fica aqui */}
-            <PlanLimitNotice onUpgrade={() => setPlansOpen(true)} />
 
             {sub?.expires_at && (
               <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.7rem' }}>
