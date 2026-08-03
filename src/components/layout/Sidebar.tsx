@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
+import { usePlanState, PlanBadge } from '@/components/FeatureGate';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -37,6 +38,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
   const pathname = usePathname();
   const { activeOrg, activeMembership, setActiveOrg } = useOrgStore();
   const { data: memberships } = useOrgMemberships();
+  const { data: planState } = usePlanState();
   const [showOrgMenu, setShowOrgMenu] = useState(false);
   const router = useRouter();
 
@@ -89,6 +91,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
           <span className="flex-1 text-left truncate" style={{ color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>
             {activeOrg?.name ?? 'Organização'}
           </span>
+          {planState && <PlanBadge state={planState} />}
           <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 transition-transform', showOrgMenu && 'rotate-180')}
             style={{ color: 'rgba(255,255,255,0.3)' }} />
         </button>
