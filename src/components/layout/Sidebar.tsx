@@ -61,13 +61,14 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
 
       {/* ── Brand ─────────────────────────────── */}
       <div className="sidebar-dark-section flex items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg flex items-center justify-center"
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: 'linear-gradient(135deg, #0D3B66 0%, #0F5C6E 100%)', border: '1px solid rgba(255,255,255,0.12)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '1.15rem', height: 'auto' }} />
           </div>
-          <span className="text-white font-semibold text-sm tracking-tight">WIS</span>
+          <span className="text-white font-semibold text-sm tracking-tight shrink-0">WIS</span>
+          {planState && <PlanBadge state={planState} />}
         </div>
         <button
           onClick={onMobileClose}
@@ -91,7 +92,6 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
           <span className="flex-1 text-left truncate" style={{ color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>
             {activeOrg?.name ?? 'Organização'}
           </span>
-          {planState && <PlanBadge state={planState} />}
           <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 transition-transform', showOrgMenu && 'rotate-180')}
             style={{ color: 'rgba(255,255,255,0.3)' }} />
         </button>
