@@ -55,7 +55,7 @@ export async function createBillingPortalSessionAction(orgId: string): Promise<P
     return { ok: false, reason: 'NO_SUBSCRIPTION', message: 'Esta organização ainda não tem uma assinatura paga.' };
   }
 
-  const stripe = getStripe();
+  const stripe = await getStripe();
   try {
     const session = await stripe.billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
@@ -113,7 +113,7 @@ export async function createCheckoutSessionAction(
 
   let stripe;
   try {
-    stripe = getStripe();
+    stripe = await getStripe();
   } catch (e) {
     return { ok: false, reason: 'STRIPE_NOT_CONFIGURED', message: e instanceof Error ? e.message : 'Stripe não está configurado.' };
   }

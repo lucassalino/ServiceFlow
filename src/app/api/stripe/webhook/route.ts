@@ -107,7 +107,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.text();
-  const stripe = getStripe();
+  const stripe = await getStripe();
 
   let event: Stripe.Event;
   try {
