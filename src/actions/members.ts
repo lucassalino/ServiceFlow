@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { OrganizationMember, MinistryMember, OrgRole } from '@/types/models';
 import { canAddResource } from '@/actions/subscriptions';
 import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
+import { assertMemberUnlockedById, assertMemberUnlockedByUserId } from '@/lib/downgrade-lock';
 
 export async function fetchOrgMembersAction(orgId: string): Promise<OrganizationMember[]> {
   const supabase = await createClient();
@@ -45,12 +46,17 @@ export async function updateMemberRoleAction(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
+  const { data: memberRow } = await supabase
+    .from('organization_members').select('org_id, role').eq('id', memberId).single();
+  const memberRowTyped = memberRow as { org_id: string; role: string } | null;
+  if (memberRowTyped) {
+    await assertMemberUnlockedById(supabase, memberRowTyped.org_id, memberId);
+  }
+
   // Promover a admin ou líder consome o limite desse papel no plano.
   // (Despromover nunca é bloqueado.)
   if (role === 'admin' || role === 'leader') {
-    const { data: member } = await supabase
-      .from('organization_members').select('org_id, role').eq('id', memberId).single();
-    const row = member as { org_id: string; role: string } | null;
+    const row = memberRowTyped;
     // Só verifica se ainda não tem este papel — repor o mesmo papel não consome quota.
     if (row && row.role !== role) {
       const limit = await canAddResource(row.org_id, role);
@@ -152,6 +158,7 @@ export async function upsertMemberMinistriesAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  await assertMemberUnlockedByUserId(supabase, orgId, userId);
   const { data: orgMinistries } = await supabase
     .from('ministries').select('id').eq('org_id', orgId);
   const orgMinistryIds = (orgMinistries ?? []).map((m: { id: string }) => m.id);

@@ -5,6 +5,7 @@ import { PRESET_MINISTRIES } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
 import { canAddResource } from '@/actions/subscriptions';
 import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
+import { assertMinistryUnlocked } from '@/lib/downgrade-lock';
 
 export async function fetchMinistriesAction(orgId: string): Promise<Ministry[]> {
   const supabase = await createClient();
@@ -45,6 +46,11 @@ export async function updateMinistryAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+
+  const { data: ministry } = await supabase.from('ministries').select('org_id').eq('id', id).single();
+  if (!ministry) throw new Error('Ministério não encontrado');
+  await assertMinistryUnlocked(supabase, ministry.org_id, id);
+
   const { error } = await supabase.from('ministries')
     .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);

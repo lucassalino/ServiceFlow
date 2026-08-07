@@ -2,6 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { EventMinistry, EventSchedule, Ministry, Song } from '@/types/models';
+import {
+  assertMinistryUnlocked, assertMemberUnlockedByUserId,
+  getEventOrgId, getEventMinistryOrgId,
+} from '@/lib/downgrade-lock';
 
 export async function fetchEventMinistriesAction(
   eventId: string,
@@ -81,6 +85,14 @@ export async function replaceEventSetupAction(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
+  const orgId = await getEventOrgId(supabase, eventId);
+  for (const { ministryId, members } of setup) {
+    await assertMinistryUnlocked(supabase, orgId, ministryId);
+    for (const { userId } of members) {
+      await assertMemberUnlockedByUserId(supabase, orgId, userId);
+    }
+  }
+
   const { data: existingMins } = await supabase
     .from('event_ministries').select('id').eq('event_id', eventId);
   if (existingMins && existingMins.length > 0) {
@@ -130,6 +142,8 @@ export async function addMinistryToEventAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const orgId = await getEventOrgId(supabase, eventId);
+  await assertMinistryUnlocked(supabase, orgId, ministryId);
   const { data, error } = await supabase.from('event_ministries')
     .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
   if (error) throw new Error(error.message);
@@ -152,6 +166,9 @@ export async function addPersonToScheduleAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const { orgId, ministryId } = await getEventMinistryOrgId(supabase, eventMinistryId);
+  await assertMinistryUnlocked(supabase, orgId, ministryId);
+  await assertMemberUnlockedByUserId(supabase, orgId, userId);
   const { data, error } = await supabase.from('event_schedules')
     .insert({ event_ministry_id: eventMinistryId, user_id: userId, functions })
     .select().single();
@@ -312,7 +329,12 @@ export async function setupEventScheduleAction(
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const orgId = await getEventOrgId(supabase, eventId);
   for (const { ministryId, members } of setup) {
+    await assertMinistryUnlocked(supabase, orgId, ministryId);
+    for (const { userId } of members) {
+      await assertMemberUnlockedByUserId(supabase, orgId, userId);
+    }
     const { data: em, error: emError } = await supabase.from('event_ministries')
       .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
     if (emError) throw new Error(emError.message);
