@@ -19,14 +19,15 @@ const RESOURCE_ICON: Record<PlanResource, typeof Users> = {
 /**
  * Anéis de utilização dos limites do plano — um por recurso com quantidade
  * (pessoas, ministérios, líderes). Verde normalmente, amarelo a partir de 80%
- * do limite, vermelho ao atingi-lo. O anel de líderes aparece mesmo a 0/0
- * (Semente/Broto) — mostra que o plano atual não inclui líderes.
+ * do limite, vermelho ao atingi-lo. O anel de líderes fica de fora quando o
+ * plano atual não inclui líderes (limit 0, ex.: Semente/Broto) — mostrar
+ * "0/0" a vermelho parecia um erro em vez de "este plano não tem líderes".
  */
 export function PlanLimitRings() {
   const { data, isLoading } = usePlanUsage(true);
   if (isLoading || !data) return null;
 
-  const resources = RING_ORDER.filter((r) => data[r]);
+  const resources = RING_ORDER.filter((r) => data[r] && data[r].limit !== 0);
   if (resources.length === 0) return null;
 
   return (
@@ -50,9 +51,8 @@ function Ring({ resource, used, limit }: { resource: PlanResource; used: number;
   const stroke = 5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  // limit null = ilimitado (anel cheio); limit 0 = plano não inclui este
-  // recurso (anel cheio a vermelho, para ficar claro que está bloqueado).
-  const filled = limit === null || limit === 0 ? circumference : (pct / 100) * circumference;
+  // limit null = ilimitado (anel cheio).
+  const filled = limit === null ? circumference : (pct / 100) * circumference;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
