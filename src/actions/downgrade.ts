@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { getDowngradeLockInfo } from '@/lib/downgrade-lock';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdmin(): any {
@@ -23,6 +24,21 @@ async function requireOrgAdmin(orgId: string) {
     throw new Error('Só um administrador da organização pode fazer isto.');
   }
   return admin;
+}
+
+/**
+ * Estado do bloqueio, para qualquer membro (não só o admin) — usado pelo
+ * cliente para desativar a entrada em recursos não escolhidos antes de sequer
+ * tentar guardar (a action em si já bloqueia, isto é só para a UX).
+ */
+export async function fetchDowngradeLockInfoAction(orgId: string): Promise<{
+  locked: boolean; ministryIds: string[]; memberIds: string[];
+}> {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error('Sessão expirada');
+
+  return getDowngradeLockInfo(supabase, orgId);
 }
 
 export interface DowngradeLockState {

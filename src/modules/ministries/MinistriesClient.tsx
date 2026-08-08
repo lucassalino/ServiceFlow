@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutGrid, Plus } from 'lucide-react';
+import { LayoutGrid, Plus, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import {
   useMinistries, useDeleteMinistry,
   useToggleMinistryActive,
 } from '@/hooks/useMinistries';
+import { useDowngradeLock } from '@/hooks/useDowngradeLock';
+import { DOWNGRADE_LOCK_MESSAGE } from '@/lib/downgrade-lock';
 import type { Ministry } from '@/types/models';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { MinistryMembersPanel } from './MinistryMembersPanel';
@@ -28,8 +30,13 @@ export function MinistriesClient() {
   const isAdmin = role === 'admin';
   const canManage = role === 'admin' || role === 'leader'; // criar/editar
   const { data: ministries = [], isLoading } = useMinistries();
+  const { data: lock } = useDowngradeLock();
   const deleteMinistry = useDeleteMinistry();
   const toggleActive = useToggleMinistryActive();
+
+  function isLocked(m: Ministry): boolean {
+    return !!lock?.locked && !lock.ministryIds.includes(m.id);
+  }
 
   const [tab, setTab] = useState<Tab>('active');
   const [detailMinistry, setDetailMinistry] = useState<Ministry | null>(null);
@@ -220,7 +227,11 @@ export function MinistriesClient() {
               <MinistryCard
                 key={ministry.id}
                 ministry={ministry}
-                onClick={() => setDetailMinistry(ministry)}
+                locked={isLocked(ministry)}
+                onClick={() => {
+                  if (isLocked(ministry)) { toast.error(DOWNGRADE_LOCK_MESSAGE); return; }
+                  setDetailMinistry(ministry);
+                }}
               />
             ))}
           </div>
@@ -256,9 +267,10 @@ export function MinistriesClient() {
 // ── Ministry Card ─────────────────────────────────────────────────────────────
 
 function MinistryCard({
-  ministry, onClick,
+  ministry, locked, onClick,
 }: {
   ministry: Ministry;
+  locked?: boolean;
   onClick: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -270,6 +282,7 @@ function MinistryCard({
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title={locked ? DOWNGRADE_LOCK_MESSAGE : undefined}
       style={{
         position: 'relative',
         display: 'flex',
@@ -283,11 +296,21 @@ function MinistryCard({
         boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         transition: 'background 0.15s, border-color 0.15s, transform 0.15s',
         transform: hovered ? 'translateY(-2px)' : 'none',
-        opacity: ministry.is_active ? 1 : 0.5,
+        opacity: ministry.is_active ? (locked ? 0.55 : 1) : 0.5,
         overflow: 'hidden',
         cursor: 'pointer',
       }}
     >
+      {locked && (
+        <div style={{
+          position: 'absolute', top: '0.5rem', right: '0.5rem',
+          width: '1.25rem', height: '1.25rem', borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)',
+        }}>
+          <Lock style={{ width: '0.65rem', height: '0.65rem', color: 'rgba(255,255,255,0.6)' }} />
+        </div>
+      )}
       {/* Top colour accent bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0,
@@ -297,13 +320,15 @@ function MinistryCard({
       }} />
 
       {/* Status dot */}
-      <div style={{
-        position: 'absolute', top: '0.625rem', right: '0.625rem',
-        width: '0.5rem', height: '0.5rem',
-        borderRadius: '50%',
-        background: ministry.is_active ? color : 'rgba(255,255,255,0.2)',
-        boxShadow: ministry.is_active ? `0 0 6px ${color}88` : 'none',
-      }} />
+      {!locked && (
+        <div style={{
+          position: 'absolute', top: '0.625rem', right: '0.625rem',
+          width: '0.5rem', height: '0.5rem',
+          borderRadius: '50%',
+          background: ministry.is_active ? color : 'rgba(255,255,255,0.2)',
+          boxShadow: ministry.is_active ? `0 0 6px ${color}88` : 'none',
+        }} />
+      )}
 
       {/* Inactive badge */}
       {!ministry.is_active && (
