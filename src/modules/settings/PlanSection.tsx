@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, ShieldCheck, ArrowUpRight, Settings2, Loader2 } from 'lucide-react';
-import { useOrgSubscription, useIsPlatformAdmin, useGrantPlan } from '@/hooks/useSubscription';
-import { PLAN_LIST, getPlan, type PlanKey } from '@/lib/plans';
+import { Sparkles, ArrowUpRight, Settings2, Loader2 } from 'lucide-react';
+import { useOrgSubscription, useIsPlatformAdmin } from '@/hooks/useSubscription';
+import { getPlan } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
 import { CouponsSection } from './CouponsSection';
 import { createBillingPortalSessionAction } from '@/actions/stripe-checkout';
@@ -33,10 +33,7 @@ interface Props { orgId: string; isAdmin: boolean }
 export function PlanSection({ orgId, isAdmin }: Props) {
   const { data: sub, isLoading } = useOrgSubscription(orgId);
   const { data: isPlatformAdmin } = useIsPlatformAdmin();
-  const grantPlan = useGrantPlan();
 
-  const [selected, setSelected] = useState<PlanKey>('semente');
-  const [note, setNote] = useState('');
   const [plansOpen, setPlansOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
 
@@ -56,19 +53,7 @@ export function PlanSection({ orgId, isAdmin }: Props) {
     }
   }
 
-  useEffect(() => { if (sub) setSelected(sub.plan); }, [sub]);
-
   const current = getPlan(sub?.plan);
-
-  async function handleGrant() {
-    try {
-      await grantPlan.mutateAsync({ orgId, plan: selected, note: note.trim() || undefined });
-      toast.success(`Plano "${getPlan(selected).label}" concedido a esta organização`);
-      setNote('');
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao conceder plano');
-    }
-  }
 
   const sourceLabel: Record<string, string> = {
     free: 'Grátis', manual: 'Concedido (dev)', coupon: 'Cupão', stripe: 'Pago',
@@ -164,58 +149,6 @@ export function PlanSection({ orgId, isAdmin }: Props) {
       </Card>
 
       <PlansDialog open={plansOpen} onOpenChange={setPlansOpen} currentPlan={current.key} orgId={orgId} />
-
-      {/* Concessão manual — só super-admin da plataforma */}
-      {isPlatformAdmin && (
-        <Card title="Conceder plano (permissão dev)" accent
-          icon={<ShieldCheck style={{ width: '1rem', height: '1rem', color: '#8fd0ea' }} />}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)' }}>
-              Só tu vês isto. Atribui um plano a esta organização sem pagamento.
-            </p>
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: '0.35rem' }}>Plano</label>
-              <select
-                value={selected}
-                onChange={(e) => setSelected(e.target.value as PlanKey)}
-                style={{
-                  width: '100%', height: '2.4rem', borderRadius: '0.5rem', padding: '0 0.75rem',
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff',
-                }}
-              >
-                {PLAN_LIST.map((p) => (
-                  <option key={p.key} value={p.key} style={{ background: '#16161a' }}>
-                    {p.label}{p.maxPeople === null ? ' — ilimitado' : ` — até ${p.maxPeople} pessoas`}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: '0.35rem' }}>Nota (opcional)</label>
-              <input
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Ex.: parceria, teste, cortesia…"
-                style={{
-                  width: '100%', height: '2.4rem', borderRadius: '0.5rem', padding: '0 0.75rem',
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff',
-                }}
-              />
-            </div>
-            <button
-              onClick={handleGrant}
-              disabled={grantPlan.isPending}
-              style={{
-                alignSelf: 'flex-start', padding: '0.5rem 1rem', borderRadius: '0.5rem',
-                background: '#8fd0ea', color: '#0a0a0f', fontWeight: 700, fontSize: '0.82rem',
-                border: 'none', cursor: 'pointer', opacity: grantPlan.isPending ? 0.6 : 1,
-              }}
-            >
-              {grantPlan.isPending ? 'A conceder…' : 'Conceder plano'}
-            </button>
-          </div>
-        </Card>
-      )}
 
       {/* Cupões — resgate (admin da org) + gestão (super-admin) */}
       <CouponsSection orgId={orgId} isAdmin={isAdmin} isPlatformAdmin={!!isPlatformAdmin} />

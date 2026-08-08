@@ -60,6 +60,12 @@ function normalize(row: any): OrgSubscription {
 /**
  * Concede um plano a uma organização (concessão manual / "permissão dev").
  * Só pode ser feito por um super-admin da plataforma. Sem pagamento.
+ *
+ * Sem UI no ServiceFlow — chamado só via SQL/RPC direto ou por outra
+ * ferramenta administrativa (ver AnalyticDashboard). Se o plano concedido
+ * ficar abaixo do uso atual da org (ex.: dar Semente a uma org com 19
+ * pessoas), a org fica `downgraded_locked`, tal como um cancelamento via
+ * Stripe — o admin escolhe depois o que fica ativo.
  */
 export async function grantPlanAction(
   orgId: string, plan: PlanKey, opts?: { note?: string; expiresAt?: string | null },
@@ -83,6 +89,18 @@ export async function grantPlanAction(
     updated_at: now,
   }, { onConflict: 'org_id' });
   if (error) throw new Error(error.message);
+
+  let locked = false;
+  for (const resource of ['people', 'ministry', 'admin', 'leader'] as const) {
+    const { data } = await admin.rpc('check_plan_limit', { p_org_id: orgId, p_resource_type: resource });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row && row.allowed === false) locked = true;
+  }
+
+  await admin.from('org_subscriptions').update({ status: locked ? 'downgraded_locked' : 'active' }).eq('org_id', orgId);
+  if (!locked) {
+    await admin.from('organizations').update({ active_ministry_ids: [], active_member_ids: [] }).eq('id', orgId);
+  }
 }
 
 // ── Limites do plano ─────────────────────────────────────────────────────────
