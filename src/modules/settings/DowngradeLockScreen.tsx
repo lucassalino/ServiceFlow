@@ -25,6 +25,7 @@ export function DowngradeLockScreen({ orgId }: Props) {
   const [ministryId, setMinistryId] = useState<string | null>(null);
   const [memberIds, setMemberIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (data?.locked) {
@@ -33,7 +34,7 @@ export function DowngradeLockScreen({ orgId }: Props) {
     }
   }, [data]);
 
-  if (!data?.locked) return null;
+  if (!data?.locked || dismissed) return null;
 
   const alreadyChosen = !!data.selectedMinistryId || (data.selectedMemberIds?.length ?? 0) > 0;
 
@@ -54,6 +55,7 @@ export function DowngradeLockScreen({ orgId }: Props) {
       await chooseDowngradeSurvivorsAction(orgId, ministryId, memberIds);
       toast.success('Escolha guardada. Estes ficam operacionais; o resto fica só de leitura.');
       qc.invalidateQueries({ queryKey: ['downgrade-lock', orgId] });
+      setDismissed(true);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Erro ao guardar a escolha');
     } finally {
@@ -62,8 +64,8 @@ export function DowngradeLockScreen({ orgId }: Props) {
   }
 
   return (
-    <Dialog open onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open onOpenChange={(v) => { if (!v) setDismissed(true); }}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <AlertTriangle style={{ width: '1.1rem', height: '1.1rem', color: '#fbbf24' }} />
@@ -96,7 +98,7 @@ export function DowngradeLockScreen({ orgId }: Props) {
             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Pessoas ativas ({memberIds.length}/10)
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem', maxHeight: '12rem', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
               {data.members?.map((m) => (
                 <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
                   <input type="checkbox" checked={memberIds.includes(m.id)} onChange={() => toggleMember(m.id)} />
