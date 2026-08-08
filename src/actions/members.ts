@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { OrganizationMember, MinistryMember, OrgRole } from '@/types/models';
 import { canAddResource } from '@/actions/subscriptions';
 import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
-import { assertMemberUnlockedById, assertMemberUnlockedByUserId } from '@/lib/downgrade-lock';
+import { checkMemberUnlockedById, checkMemberUnlockedByUserId, type LockGuarded } from '@/lib/downgrade-lock';
 
 export async function fetchOrgMembersAction(orgId: string): Promise<OrganizationMember[]> {
   const supabase = await createClient();
@@ -41,7 +41,7 @@ export async function fetchMinistriesFunctionsAction(
 
 export async function updateMemberRoleAction(
   memberId: string, role: OrgRole,
-): Promise<PlanGuarded<void>> {
+): Promise<PlanGuarded<void> | LockGuarded<void>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
@@ -50,7 +50,8 @@ export async function updateMemberRoleAction(
     .from('organization_members').select('org_id, role').eq('id', memberId).single();
   const memberRowTyped = memberRow as { org_id: string; role: string } | null;
   if (memberRowTyped) {
-    await assertMemberUnlockedById(supabase, memberRowTyped.org_id, memberId);
+    const blocked = await checkMemberUnlockedById(supabase, memberRowTyped.org_id, memberId);
+    if (blocked) return blocked;
   }
 
   // Promover a admin ou líder consome o limite desse papel no plano.
@@ -154,11 +155,12 @@ export async function upsertMemberMinistriesAction(
   userId: string,
   orgId: string,
   assignments: { ministryId: string; functions: string[] }[],
-): Promise<void> {
+): Promise<LockGuarded<void>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  await assertMemberUnlockedByUserId(supabase, orgId, userId);
+  const blocked = await checkMemberUnlockedByUserId(supabase, orgId, userId);
+  if (blocked) return blocked;
   const { data: orgMinistries } = await supabase
     .from('ministries').select('id').eq('org_id', orgId);
   const orgMinistryIds = (orgMinistries ?? []).map((m: { id: string }) => m.id);
@@ -166,7 +168,7 @@ export async function upsertMemberMinistriesAction(
     await supabase.from('ministry_members')
       .delete().eq('user_id', userId).in('ministry_id', orgMinistryIds);
   }
-  if (assignments.length === 0) return;
+  if (assignments.length === 0) return { ok: true, data: undefined };
   // Dedup por ministério (une as funções) para nunca gerar (ministry_id,user_id)
   // repetido, e upsert para ser idempotente mesmo se o delete não limpar tudo.
   const byMinistry = new Map<string, Set<string>>();
@@ -181,6 +183,7 @@ export async function upsertMemberMinistriesAction(
   const { error } = await supabase.from('ministry_members')
     .upsert(rows, { onConflict: 'ministry_id,user_id' });
   if (error) throw new Error(error.message);
+  return { ok: true, data: undefined };
 }
 
 export async function upsertMinistryMembersAction(

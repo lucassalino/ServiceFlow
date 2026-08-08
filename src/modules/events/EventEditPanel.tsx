@@ -25,6 +25,7 @@ import { useSongs } from '@/hooks/useSongs';
 import { useOrgUnavailability } from '@/hooks/useAvailability';
 import { uploadEventImageAction } from '@/actions/events';
 import { fetchEventSetupAction, replaceEventSetupAction } from '@/actions/schedule';
+import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 import { resolveFunction, SONG_KEYS } from '@/lib/constants';
 import { findConflictingUnavailability, describeUnavailability } from '@/lib/availability';
 import { fetchMinistryMembersAction } from '@/actions/members';
@@ -432,7 +433,7 @@ export function EventEditPanel({ event, onBack }: Props) {
           color: event.color, cover_image_url: coverImageUrl,
         });
         const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
-        await replaceEventSetupAction(event.id, setup, selectedSongIds, songKeys, timelineItems);
+        unwrapLockGuarded(await replaceEventSetupAction(event.id, setup, selectedSongIds, songKeys, timelineItems));
         qc.invalidateQueries({ queryKey: ['events'] });
         qc.invalidateQueries({ queryKey: ['event-setlist', event.id] });
         qc.invalidateQueries({ queryKey: ['event-ministries', event.id] });

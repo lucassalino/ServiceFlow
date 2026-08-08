@@ -3,8 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import type { EventMinistry, EventSchedule, Ministry, Song } from '@/types/models';
 import {
-  assertMinistryUnlocked, assertMemberUnlockedByUserId,
-  getEventOrgId, getEventMinistryOrgId,
+  checkMinistryUnlocked, checkMemberUnlockedByUserId,
+  getEventOrgId, getEventMinistryOrgId, type LockGuarded,
 } from '@/lib/downgrade-lock';
 
 export async function fetchEventMinistriesAction(
@@ -80,16 +80,18 @@ export async function replaceEventSetupAction(
   songIds: string[],
   songKeys: Record<string, string> = {},
   timeline: EventTimelineItemInput[] = [],
-): Promise<void> {
+): Promise<LockGuarded<void>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
   const orgId = await getEventOrgId(supabase, eventId);
   for (const { ministryId, members } of setup) {
-    await assertMinistryUnlocked(supabase, orgId, ministryId);
+    const ministryBlocked = await checkMinistryUnlocked(supabase, orgId, ministryId);
+    if (ministryBlocked) return ministryBlocked;
     for (const { userId } of members) {
-      await assertMemberUnlockedByUserId(supabase, orgId, userId);
+      const memberBlocked = await checkMemberUnlockedByUserId(supabase, orgId, userId);
+      if (memberBlocked) return memberBlocked;
     }
   }
 
@@ -133,21 +135,23 @@ export async function replaceEventSetupAction(
     const { error: tlErr } = await supabase.from('event_timeline_items').insert(rows);
     if (tlErr) throw new Error(tlErr.message);
   }
+  return { ok: true, data: undefined };
 }
 
 export async function addMinistryToEventAction(
   eventId: string,
   ministryId: string,
-): Promise<EventMinistry> {
+): Promise<LockGuarded<EventMinistry>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const orgId = await getEventOrgId(supabase, eventId);
-  await assertMinistryUnlocked(supabase, orgId, ministryId);
+  const blocked = await checkMinistryUnlocked(supabase, orgId, ministryId);
+  if (blocked) return blocked;
   const { data, error } = await supabase.from('event_ministries')
     .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
   if (error) throw new Error(error.message);
-  return data as EventMinistry;
+  return { ok: true, data: data as EventMinistry };
 }
 
 export async function removeMinistryFromEventAction(id: string): Promise<void> {
@@ -162,18 +166,20 @@ export async function addPersonToScheduleAction(
   eventMinistryId: string,
   userId: string,
   functions: string[],
-): Promise<EventSchedule> {
+): Promise<LockGuarded<EventSchedule>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const { orgId, ministryId } = await getEventMinistryOrgId(supabase, eventMinistryId);
-  await assertMinistryUnlocked(supabase, orgId, ministryId);
-  await assertMemberUnlockedByUserId(supabase, orgId, userId);
+  const ministryBlocked = await checkMinistryUnlocked(supabase, orgId, ministryId);
+  if (ministryBlocked) return ministryBlocked;
+  const memberBlocked = await checkMemberUnlockedByUserId(supabase, orgId, userId);
+  if (memberBlocked) return memberBlocked;
   const { data, error } = await supabase.from('event_schedules')
     .insert({ event_ministry_id: eventMinistryId, user_id: userId, functions })
     .select().single();
   if (error) throw new Error(error.message);
-  return data as EventSchedule;
+  return { ok: true, data: data as EventSchedule };
 }
 
 export async function removePersonFromScheduleAction(id: string): Promise<void> {
@@ -325,15 +331,17 @@ export async function setupEventTimelineAction(
 export async function setupEventScheduleAction(
   eventId: string,
   setup: { ministryId: string; members: { userId: string; functions: string[] }[] }[],
-): Promise<void> {
+): Promise<LockGuarded<void>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   const orgId = await getEventOrgId(supabase, eventId);
   for (const { ministryId, members } of setup) {
-    await assertMinistryUnlocked(supabase, orgId, ministryId);
+    const ministryBlocked = await checkMinistryUnlocked(supabase, orgId, ministryId);
+    if (ministryBlocked) return ministryBlocked;
     for (const { userId } of members) {
-      await assertMemberUnlockedByUserId(supabase, orgId, userId);
+      const memberBlocked = await checkMemberUnlockedByUserId(supabase, orgId, userId);
+      if (memberBlocked) return memberBlocked;
     }
     const { data: em, error: emError } = await supabase.from('event_ministries')
       .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
@@ -345,4 +353,5 @@ export async function setupEventScheduleAction(
     const { error: schedError } = await supabase.from('event_schedules').insert(rows);
     if (schedError) throw new Error(schedError.message);
   }
+  return { ok: true, data: undefined };
 }

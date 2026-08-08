@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Ministry } from '@/types/models';
 import { unwrapPlanGuarded } from '@/lib/plan-limits';
+import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 import {
   fetchMinistriesAction,
   createMinistryAction,
@@ -38,7 +39,7 @@ export function useUpdateMinistry() {
   const { activeOrg } = useOrgStore();
   return useMutation({
     mutationFn: ({ id, ...payload }: MinistryPayload & { id: string }) =>
-      updateMinistryAction(id, payload),
+      updateMinistryAction(id, payload).then(unwrapLockGuarded),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ministries', activeOrg?.id] }),
   });
 }

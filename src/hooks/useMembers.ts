@@ -11,7 +11,18 @@ import {
   deleteMemberAction,
   upsertMemberMinistriesAction,
 } from '@/actions/members';
-import { unwrapPlanGuarded } from '@/lib/plan-limits';
+import { PlanLimitError, PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
+import { unwrapLockGuarded, DowngradeLockError, DOWNGRADE_LOCK_CODE, type LockGuarded } from '@/lib/downgrade-lock';
+
+function unwrapRoleResult(result: PlanGuarded<void> | LockGuarded<void>): void {
+  if (result.ok) return;
+  if (result.code === PLAN_LIMIT_CODE) {
+    throw new PlanLimitError({
+      resource: result.resource, used: result.used, limit: result.limit, planName: result.planName,
+    });
+  }
+  if (result.code === DOWNGRADE_LOCK_CODE) throw new DowngradeLockError(result.message);
+}
 
 export function useOrgMembers() {
   const { activeOrg } = useOrgStore();
@@ -35,7 +46,7 @@ export function useUpdateMemberRole() {
   const { activeOrg } = useOrgStore();
   return useMutation({
     mutationFn: ({ memberId, role }: { memberId: string; role: OrgRole }) =>
-      updateMemberRoleAction(memberId, role).then(unwrapPlanGuarded),
+      updateMemberRoleAction(memberId, role).then(unwrapRoleResult),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['members', activeOrg?.id] }),
   });
 }
@@ -55,7 +66,7 @@ export function useUpsertMemberMinistries() {
     mutationFn: ({ userId, assignments }: {
       userId: string;
       assignments: { ministryId: string; functions: string[] }[];
-    }) => upsertMemberMinistriesAction(userId, activeOrg!.id, assignments),
+    }) => upsertMemberMinistriesAction(userId, activeOrg!.id, assignments).then(unwrapLockGuarded),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['member-ministries', vars.userId] });
       qc.invalidateQueries({ queryKey: ['ministry-members'] });

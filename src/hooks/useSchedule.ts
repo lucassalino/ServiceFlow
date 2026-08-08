@@ -13,6 +13,7 @@ import {
   confirmScheduleAction,
   updateEventScheduleAction,
 } from '@/actions/schedule';
+import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 
 export function useEventMinistries(eventId: string | null) {
   return useQuery({
@@ -34,7 +35,7 @@ export function useAddMinistryToEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ eventId, ministryId }: { eventId: string; ministryId: string }) =>
-      addMinistryToEventAction(eventId, ministryId),
+      addMinistryToEventAction(eventId, ministryId).then(unwrapLockGuarded),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['event-ministries', vars.eventId] });
     },
@@ -57,7 +58,7 @@ export function useAddPersonToSchedule() {
   return useMutation({
     mutationFn: ({ eventMinistryId, userId, functions }: {
       eventMinistryId: string; userId: string; functions: string[];
-    }) => addPersonToScheduleAction(eventMinistryId, userId, functions),
+    }) => addPersonToScheduleAction(eventMinistryId, userId, functions).then(unwrapLockGuarded),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['event-schedules', data.event_ministry_id] });
     },

@@ -18,6 +18,7 @@ import { useSongs } from '@/hooks/useSongs';
 import { useOrgUnavailability } from '@/hooks/useAvailability';
 import { uploadEventImageAction } from '@/actions/events';
 import { setupEventScheduleAction, setupEventSetlistAction, setupEventTimelineAction } from '@/actions/schedule';
+import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 import { resolveFunction, SONG_KEYS } from '@/lib/constants';
 import { findConflictingUnavailability, describeUnavailability } from '@/lib/availability';
 import { fetchMinistryMembersAction } from '@/actions/members';
@@ -367,7 +368,7 @@ export function EventCreatePanel({ onBack }: Props) {
           observations: values.observations || null,
         });
         const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
-        if (setup.length > 0) await setupEventScheduleAction(ev.id, setup);
+        if (setup.length > 0) unwrapLockGuarded(await setupEventScheduleAction(ev.id, setup));
         if (selectedSongIds.length > 0) await setupEventSetlistAction(ev.id, selectedSongIds, songKeys);
         if (timelineItems.length > 0) await setupEventTimelineAction(ev.id, timelineItems);
         qc.invalidateQueries({ queryKey: ['events'] });

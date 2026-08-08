@@ -20,6 +20,7 @@ import {
   replaceEventSetupAction,
 } from '@/actions/schedule';
 import { MEMBER_FUNCTIONS } from '@/lib/constants';
+import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 import { fetchMinistriesFunctionsAction } from '@/actions/members';
 import type { Event, Ministry, Song } from '@/types/models';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -311,10 +312,10 @@ export function EventDialog({ event, open, onOpenChange }: Props) {
         members: membersByMinistry[ministryId] ?? [],
       }));
       if (isEditing) {
-        await replaceEventSetupAction(eventId, setup, selectedSongIds);
+        unwrapLockGuarded(await replaceEventSetupAction(eventId, setup, selectedSongIds));
         toast.success('Evento actualizado com sucesso');
       } else {
-        if (setup.length > 0) await setupEventScheduleAction(eventId, setup);
+        if (setup.length > 0) unwrapLockGuarded(await setupEventScheduleAction(eventId, setup));
         if (selectedSongIds.length > 0) await setupEventSetlistAction(eventId, selectedSongIds);
         toast.success('Evento criado com sucesso');
       }

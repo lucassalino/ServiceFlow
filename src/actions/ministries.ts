@@ -5,7 +5,7 @@ import { PRESET_MINISTRIES } from '@/lib/constants';
 import type { Ministry } from '@/types/models';
 import { canAddResource } from '@/actions/subscriptions';
 import { PLAN_LIMIT_CODE, type PlanGuarded } from '@/lib/plan-limits';
-import { assertMinistryUnlocked } from '@/lib/downgrade-lock';
+import { checkMinistryUnlocked, type LockGuarded } from '@/lib/downgrade-lock';
 
 export async function fetchMinistriesAction(orgId: string): Promise<Ministry[]> {
   const supabase = await createClient();
@@ -42,18 +42,20 @@ export async function createMinistryAction(
 export async function updateMinistryAction(
   id: string,
   payload: { name: string; icon: string; color: string; functions?: string[] },
-): Promise<void> {
+): Promise<LockGuarded<void>> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
 
   const { data: ministry } = await supabase.from('ministries').select('org_id').eq('id', id).single();
   if (!ministry) throw new Error('Ministério não encontrado');
-  await assertMinistryUnlocked(supabase, ministry.org_id, id);
+  const blocked = await checkMinistryUnlocked(supabase, ministry.org_id, id);
+  if (blocked) return blocked;
 
   const { error } = await supabase.from('ministries')
     .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
+  return { ok: true, data: undefined };
 }
 
 export async function toggleMinistryActiveAction(id: string, isActive: boolean): Promise<void> {
