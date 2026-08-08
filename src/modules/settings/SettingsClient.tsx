@@ -350,7 +350,6 @@ export function SettingsClient({ orgId }: Props) {
 
   return (
     <div className="dash-purple-bg">
-      {isAdmin && activeOrg && <DowngradeLockScreen orgId={orgId} />}
       <div className="p-5 md:p-8 max-w-2xl mx-auto space-y-5">
 
         {/* ── Header ──────────────────────────────────── */}
@@ -366,6 +365,8 @@ export function SettingsClient({ orgId }: Props) {
             Perfil e preferências da conta
           </p>
         </div>
+
+        {isAdmin && activeOrg && <DowngradeLockScreen orgId={orgId} />}
 
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">
