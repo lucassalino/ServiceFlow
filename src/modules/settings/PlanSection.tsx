@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Sparkles, ArrowUpRight, Settings2, Loader2 } from 'lucide-react';
-import { useOrgSubscription, useIsPlatformAdmin } from '@/hooks/useSubscription';
+import { useOrgSubscription } from '@/hooks/useSubscription';
 import { getPlan } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
 import { CouponsSection } from './CouponsSection';
@@ -32,7 +32,6 @@ interface Props { orgId: string; isAdmin: boolean }
 
 export function PlanSection({ orgId, isAdmin }: Props) {
   const { data: sub, isLoading } = useOrgSubscription(orgId);
-  const { data: isPlatformAdmin } = useIsPlatformAdmin();
 
   const [plansOpen, setPlansOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -151,7 +150,7 @@ export function PlanSection({ orgId, isAdmin }: Props) {
       <PlansDialog open={plansOpen} onOpenChange={setPlansOpen} currentPlan={current.key} orgId={orgId} />
 
       {/* Cupões — resgate (admin da org) + gestão (super-admin) */}
-      <CouponsSection orgId={orgId} isAdmin={isAdmin} isPlatformAdmin={!!isPlatformAdmin} />
+      <CouponsSection orgId={orgId} isAdmin={isAdmin} />
     </div>
   );
 }
