@@ -26,12 +26,30 @@ const withSerwist = withSerwistInit({
   ],
 });
 
+// Cabeçalhos de segurança aplicados a todas as respostas. Deliberadamente NÃO
+// incluímos uma CSP de `script-src` (numa app Next + PWA + Supabase isso parte
+// a hidratação/service worker sem nonces por request); usamos apenas diretivas
+// que não afetam scripts. A defesa contra roubo de token via XSS assenta em o
+// React auto-escapar e os templates de email escaparem input — não em cookies
+// httpOnly, que o padrão @supabase/ssr precisa de ler no cliente.
+const SECURITY_HEADERS = [
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+  { key: 'Content-Security-Policy', value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+];
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
+  },
+  async headers() {
+    return [{ source: '/:path*', headers: SECURITY_HEADERS }];
   },
 };
 
