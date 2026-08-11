@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { CURRENT_TERMS_VERSION } from '@/lib/legal';
 
 const registerSchema = z
   .object({
@@ -18,6 +19,9 @@ const registerSchema = z
     email: z.string().email('Email inválido'),
     password: z.string().min(6, 'Password deve ter pelo menos 6 caracteres'),
     confirmPassword: z.string().min(6, 'Confirma a password'),
+    acceptTerms: z.boolean().refine((v) => v === true, {
+      message: 'Tens de aceitar os Termos e a Política de Privacidade',
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As passwords não coincidem',
@@ -48,7 +52,7 @@ export function RegisterForm({ className }: { className?: string }) {
         email: values.email,
         password: values.password,
         options: {
-          data: { full_name: values.full_name },
+          data: { full_name: values.full_name, terms_version: CURRENT_TERMS_VERSION },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
@@ -171,6 +175,28 @@ export function RegisterForm({ className }: { className?: string }) {
           <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
         )}
       </div>
+
+      <div className="flex items-start gap-2">
+        <input
+          id="acceptTerms"
+          type="checkbox"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-transparent accent-current"
+          {...register('acceptTerms')}
+        />
+        <Label htmlFor="acceptTerms" className="text-[13px] font-normal leading-snug text-white/60">
+          Li e aceito os{' '}
+          <a href="/termos" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/85">
+            Termos de Uso
+          </a>{' '}
+          e a{' '}
+          <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/85">
+            Política de Privacidade
+          </a>
+        </Label>
+      </div>
+      {errors.acceptTerms && (
+        <p className="text-sm text-destructive -mt-2">{errors.acceptTerms.message}</p>
+      )}
 
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
