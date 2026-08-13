@@ -277,6 +277,26 @@ export async function fetchEventSetlistAction(eventId: string): Promise<(Song & 
     .map(({ order_index, musical_key, note, song }) => ({ ...song, order_index, event_key: musical_key, event_note: note }));
 }
 
+/** Reordena a setlist de um evento (drag-and-drop no ecrã de detalhe). Admin/líder apenas. */
+export async function reorderEventSetlistAction(eventId: string, orderedSongIds: string[]): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  const { data: event } = await admin.from('events').select('org_id').eq('id', eventId).single();
+  if (!event) throw new Error('Evento não encontrado');
+  const { data: membership } = await admin
+    .from('organization_members').select('role')
+    .eq('org_id', event.org_id).eq('user_id', user.id).maybeSingle();
+  const role = (membership as { role?: string } | null)?.role;
+  if (role !== 'admin' && role !== 'leader') throw new Error('Só admins e líderes podem reordenar a setlist');
+
+  await Promise.all(orderedSongIds.map((songId, index) =>
+    admin.from('event_setlists').update({ order_index: index }).eq('event_id', eventId).eq('song_id', songId),
+  ));
+}
+
 export async function updateEventScheduleAction(id: string, functions: string[]): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();

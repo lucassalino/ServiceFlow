@@ -51,6 +51,7 @@ export function EventsClient({ orgId: _orgId }: Props) {
   const deleteEvent = useDeleteEvent();
   const { activeMembership } = useOrgStore();
   const isAdmin = activeMembership?.role === 'admin';
+  const canReorderSetlist = activeMembership?.role === 'admin' || activeMembership?.role === 'leader';
 
   const [createMode, setCreateMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
@@ -125,6 +126,7 @@ export function EventsClient({ orgId: _orgId }: Props) {
           event={detailEvent}
           onBack={() => setDetailEvent(null)}
           isAdmin={isAdmin}
+          canReorderSetlist={canReorderSetlist}
           onEdit={() => handleEdit(detailEvent)}
         />
     );
