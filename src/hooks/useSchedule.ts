@@ -12,6 +12,7 @@ import {
   removePersonFromScheduleAction,
   confirmScheduleAction,
   updateEventScheduleAction,
+  reorderEventSetlistAction,
 } from '@/actions/schedule';
 import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 
@@ -104,6 +105,33 @@ export function useEventSetlist(eventId: string | null) {
     queryKey: ['event-setlist', eventId],
     enabled: !!eventId,
     queryFn: () => fetchEventSetlistAction(eventId!),
+  });
+}
+
+export function useReorderEventSetlist() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, orderedSongIds }: { eventId: string; orderedSongIds: string[] }) =>
+      reorderEventSetlistAction(eventId, orderedSongIds),
+    onMutate: async ({ eventId, orderedSongIds }) => {
+      const queryKey = ['event-setlist', eventId];
+      await qc.cancelQueries({ queryKey });
+      const previous = qc.getQueryData<(Song & { order_index: number })[]>(queryKey);
+      if (previous) {
+        const bySongId = new Map(previous.map((s) => [s.id, s]));
+        const reordered = orderedSongIds
+          .map((id, idx) => { const s = bySongId.get(id); return s ? { ...s, order_index: idx } : null; })
+          .filter((s): s is Song & { order_index: number } => s !== null);
+        qc.setQueryData(queryKey, reordered);
+      }
+      return { previous, eventId };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) qc.setQueryData(['event-setlist', context.eventId], context.previous);
+    },
+    onSettled: (_data, _err, { eventId }) => {
+      qc.invalidateQueries({ queryKey: ['event-setlist', eventId] });
+    },
   });
 }
 

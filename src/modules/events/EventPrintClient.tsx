@@ -105,7 +105,7 @@ export function EventPrintClient({ orgId, eventId }: Props) {
           <PrintSection title="Setlist">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <tbody>
-                {(setlist as (Song & { order_index: number; event_key: string | null })[]).map((song, idx) => (
+                {(setlist as (Song & { order_index: number; event_key: string | null; event_note: string | null })[]).map((song, idx) => (
                   <tr key={song.id} style={{ borderBottom: '1px solid #e4e4e7' }}>
                     <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', color: '#a1a1aa', width: '1.5rem' }}>
                       {idx + 1}
@@ -113,6 +113,11 @@ export function EventPrintClient({ orgId, eventId }: Props) {
                     <td style={{ padding: '0.4rem 0' }}>
                       <span style={{ fontWeight: 600 }}>{song.name}</span>
                       {song.artist && <span style={{ color: '#71717a' }}> — {song.artist}</span>}
+                      {song.event_note && (
+                        <div style={{ fontSize: '0.75rem', color: '#b45309', marginTop: '0.1rem' }}>
+                          {song.event_note}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '0.4rem 0', textAlign: 'right', color: '#3f3f46' }}>
                       {(song.event_key ?? song.musical_key) || ''}

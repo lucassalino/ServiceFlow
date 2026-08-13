@@ -211,7 +211,7 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      {(setlist as (Song & { order_index: number })[]).map((song, idx) => (
+                      {(setlist as (Song & { order_index: number; event_key: string | null; event_note: string | null })[]).map((song, idx) => (
                         <SetlistRow key={song.id} song={song} index={idx + 1} />
                       ))}
                     </div>
@@ -371,7 +371,8 @@ function MinistrySection({
 
 // ── Setlist row ───────────────────────────────────────────────────────────────
 
-function SetlistRow({ song, index }: { song: Song & { order_index: number }; index: number }) {
+function SetlistRow({ song, index }: { song: Song & { order_index: number; event_key?: string | null; event_note?: string | null }; index: number }) {
+  const key = song.event_key ?? song.musical_key;
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.875rem',
@@ -402,14 +403,19 @@ function SetlistRow({ song, index }: { song: Song & { order_index: number }; ind
             {song.artist}
           </p>
         )}
+        {song.event_note && (
+          <p style={{ fontSize: '0.68rem', color: '#fcd34d', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {song.event_note}
+          </p>
+        )}
       </div>
       <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
-        {song.musical_key && (
+        {key && (
           <span style={{
             fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.45rem',
             borderRadius: '9999px', background: 'rgba(255,255,255,0.07)',
             color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)',
-          }}>{song.musical_key}</span>
+          }}>{key}</span>
         )}
         {song.bpm && (
           <span style={{

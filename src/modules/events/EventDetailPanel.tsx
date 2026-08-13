@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   useEventMinistries,
   useEventSchedules,
   useEventSetlist,
   useEventTimeline,
   useConfirmSchedule,
+  useReorderEventSetlist,
 } from '@/hooks/useSchedule';
 import { getFunctionLabel } from '@/lib/constants';
 import { formatDate, formatTime, getInitials, eventPeriod } from '@/lib/utils';
@@ -40,6 +44,22 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(event.id);
   const { data: setlist = [], isLoading: setlistLoading } = useEventSetlist(event.id);
   const { data: timeline = [], isLoading: timelineLoading } = useEventTimeline(event.id);
+  const reorderSetlist = useReorderEventSetlist();
+
+  const setlistSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+  );
+
+  function handleSetlistDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const ids = (setlist as (Song & { order_index: number })[]).map((s) => s.id);
+    const oldIndex = ids.indexOf(String(active.id));
+    const newIndex = ids.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+    reorderSetlist.mutate({ eventId: event.id, orderedSongIds: arrayMove(ids, oldIndex, newIndex) });
+  }
 
   const color = event.color ?? '#a5b4fc';
 
@@ -263,11 +283,26 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  {(setlist as (Song & { order_index: number; event_key: string | null })[]).map((song, idx) => (
-                    <SetlistRow key={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
-                  ))}
-                </div>
+                {canManage ? (
+                  <DndContext sensors={setlistSensors} collisionDetection={closestCenter} onDragEnd={handleSetlistDragEnd}>
+                    <SortableContext
+                      items={(setlist as (Song & { order_index: number })[]).map((s) => s.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                        {(setlist as (Song & { order_index: number; event_key: string | null; event_note: string | null })[]).map((song, idx) => (
+                          <SortableSetlistRow key={song.id} id={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    {(setlist as (Song & { order_index: number; event_key: string | null; event_note: string | null })[]).map((song, idx) => (
+                      <SetlistRow key={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
+                    ))}
+                  </div>
+                )}
                 <YoutubePlaylistButton songs={setlist as Song[]} />
               </>
             )
@@ -608,7 +643,47 @@ function ConfirmControl({
 
 // ── Setlist row ───────────────────────────────────────────────────────────────
 
-function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number; event_key?: string | null }; index: number; onClick: () => void }) {
+function SortableSetlistRow({ id, song, index, onClick }: {
+  id: string; song: Song & { order_index: number; event_key?: string | null; event_note?: string | null };
+  index: number; onClick: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform), transition,
+        opacity: isDragging ? 0.6 : 1, position: 'relative', zIndex: isDragging ? 1 : 'auto',
+      }}
+    >
+      <SetlistRow
+        song={song}
+        index={index}
+        onClick={onClick}
+        dragHandle={
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            aria-label="Arrastar para reordenar"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: 'flex', alignItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,0.3)',
+              background: 'none', border: 'none', padding: '0.25rem', cursor: 'grab', touchAction: 'none',
+            }}
+          >
+            <GripVertical style={{ width: '0.9rem', height: '0.9rem' }} />
+          </button>
+        }
+      />
+    </div>
+  );
+}
+
+function SetlistRow({ song, index, onClick, dragHandle }: {
+  song: Song & { order_index: number; event_key?: string | null; event_note?: string | null };
+  index: number; onClick: () => void; dragHandle?: React.ReactNode;
+}) {
   const key = song.event_key ?? song.musical_key;
   return (
     <div
@@ -631,6 +706,7 @@ function SetlistRow({ song, index, onClick }: { song: Song & { order_index: numb
         (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
       }}
     >
+      {dragHandle}
       <span style={{
         width: '1.75rem', textAlign: 'right', flexShrink: 0,
         fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
@@ -651,6 +727,11 @@ function SetlistRow({ song, index, onClick }: { song: Song & { order_index: numb
         {song.artist && (
           <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {song.artist}
+          </p>
+        )}
+        {song.event_note && (
+          <p style={{ fontSize: '0.72rem', color: '#fcd34d', marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {song.event_note}
           </p>
         )}
       </div>
