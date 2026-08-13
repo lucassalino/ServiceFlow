@@ -151,6 +151,7 @@ export type Database = {
           event_id: string
           id: string
           musical_key: string | null
+          note: string | null
           order_index: number
           song_id: string
         }
@@ -158,6 +159,7 @@ export type Database = {
           event_id: string
           id?: string
           musical_key?: string | null
+          note?: string | null
           order_index?: number
           song_id: string
         }
@@ -165,6 +167,7 @@ export type Database = {
           event_id?: string
           id?: string
           musical_key?: string | null
+          note?: string | null
           order_index?: number
           song_id?: string
         }

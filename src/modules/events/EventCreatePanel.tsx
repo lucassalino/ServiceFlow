@@ -216,6 +216,7 @@ export function EventCreatePanel({ onBack }: Props) {
   const [ministryRoster, setMinistryRoster] = useState<Record<string, { userId: string; name: string; avatarUrl: string | null; functions: string[] }[]>>({});
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   const [songKeys, setSongKeys] = useState<Record<string, string>>({});
+  const [songNotes, setSongNotes] = useState<Record<string, string>>({});
   const [songSearch, setSongSearch] = useState('');
   const [timelineItems, setTimelineItems] = useState<{ time: string; title: string }[]>([]);
   const [newTimelineTime, setNewTimelineTime] = useState('');
@@ -313,6 +314,13 @@ export function EventCreatePanel({ onBack }: Props) {
     });
   }
 
+  function setSongNote(songId: string, note: string) {
+    setSongNotes((prev) => {
+      if (!note) { const next = { ...prev }; delete next[songId]; return next; }
+      return { ...prev, [songId]: note };
+    });
+  }
+
   function addTimelineItem() {
     if (!newTimelineTime || !newTimelineTitle.trim()) {
       toast.error('Preenche a hora e o título do momento');
@@ -351,7 +359,7 @@ export function EventCreatePanel({ onBack }: Props) {
         });
         const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
         if (setup.length > 0) await setupEventScheduleAction(ev.id, setup);
-        if (selectedSongIds.length > 0) await setupEventSetlistAction(ev.id, selectedSongIds, songKeys);
+        if (selectedSongIds.length > 0) await setupEventSetlistAction(ev.id, selectedSongIds, songKeys, songNotes);
         if (timelineItems.length > 0) await setupEventTimelineAction(ev.id, timelineItems);
         qc.invalidateQueries({ queryKey: ['events'] });
         toast.success('Evento criado com sucesso');
@@ -776,6 +784,17 @@ export function EventCreatePanel({ onBack }: Props) {
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
                               {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
+                              <input
+                                value={songNotes[id] ?? ''}
+                                onChange={(e) => setSongNote(id, e.target.value)}
+                                placeholder="Observação para este evento (ex.: começa no pré-refrão)"
+                                style={{
+                                  width: '100%', marginTop: '0.3rem', fontSize: '0.72rem',
+                                  padding: '0.25rem 0.45rem', borderRadius: '0.375rem',
+                                  background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
+                                  border: '1px solid rgba(255,255,255,0.08)',
+                                }}
+                              />
                             </div>
                             <select
                               value={songKeys[id] ?? ''}

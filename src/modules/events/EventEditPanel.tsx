@@ -230,6 +230,7 @@ export function EventEditPanel({ event, onBack }: Props) {
   // step 4
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   const [songKeys, setSongKeys] = useState<Record<string, string>>({});
+  const [songNotes, setSongNotes] = useState<Record<string, string>>({});
   const [songSearch, setSongSearch] = useState('');
 
   // step 5
@@ -261,6 +262,7 @@ export function EventEditPanel({ event, onBack }: Props) {
         setMembersByMinistry(setup.membersByMinistry);
         setSelectedSongIds(setup.songIds);
         setSongKeys(setup.songKeys);
+        setSongNotes(setup.songNotes);
         setTimelineItems(setup.timeline);
       })
       .catch(() => {})
@@ -352,6 +354,13 @@ export function EventEditPanel({ event, onBack }: Props) {
     });
   }
 
+  function setSongNote(songId: string, note: string) {
+    setSongNotes((prev) => {
+      if (!note) { const next = { ...prev }; delete next[songId]; return next; }
+      return { ...prev, [songId]: note };
+    });
+  }
+
   function addTimelineItem() {
     if (!newTimelineTime || !newTimelineTitle.trim()) {
       toast.error('Preenche a hora e o título do momento');
@@ -391,7 +400,7 @@ export function EventEditPanel({ event, onBack }: Props) {
           color: event.color, cover_image_url: coverImageUrl,
         });
         const setup = selectedMinistryIds.map((mid) => ({ ministryId: mid, members: membersByMinistry[mid] ?? [] }));
-        await replaceEventSetupAction(event.id, setup, selectedSongIds, songKeys, timelineItems);
+        await replaceEventSetupAction(event.id, setup, selectedSongIds, songKeys, timelineItems, songNotes);
         qc.invalidateQueries({ queryKey: ['events'] });
         qc.invalidateQueries({ queryKey: ['event-setlist', event.id] });
         qc.invalidateQueries({ queryKey: ['event-ministries', event.id] });
@@ -773,6 +782,17 @@ export function EventEditPanel({ event, onBack }: Props) {
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
                               {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
+                              <input
+                                value={songNotes[id] ?? ''}
+                                onChange={(e) => setSongNote(id, e.target.value)}
+                                placeholder="Observação para este evento (ex.: começa no pré-refrão)"
+                                style={{
+                                  width: '100%', marginTop: '0.3rem', fontSize: '0.72rem',
+                                  padding: '0.25rem 0.45rem', borderRadius: '0.375rem',
+                                  background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
+                                  border: '1px solid rgba(255,255,255,0.08)',
+                                }}
+                              />
                             </div>
                             <select
                               value={songKeys[id] ?? ''}

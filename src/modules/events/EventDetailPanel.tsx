@@ -263,7 +263,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, onEdit }: Props) {
             ) : (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  {(setlist as (Song & { order_index: number; event_key: string | null })[]).map((song, idx) => (
+                  {(setlist as (Song & { order_index: number; event_key: string | null; event_note: string | null })[]).map((song, idx) => (
                     <SetlistRow key={song.id} song={song} index={idx + 1} onClick={() => setSelectedSong(song)} />
                   ))}
                 </div>
@@ -607,7 +607,7 @@ function ConfirmControl({
 
 // ── Setlist row ───────────────────────────────────────────────────────────────
 
-function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number; event_key?: string | null }; index: number; onClick: () => void }) {
+function SetlistRow({ song, index, onClick }: { song: Song & { order_index: number; event_key?: string | null; event_note?: string | null }; index: number; onClick: () => void }) {
   const key = song.event_key ?? song.musical_key;
   return (
     <div
@@ -650,6 +650,11 @@ function SetlistRow({ song, index, onClick }: { song: Song & { order_index: numb
         {song.artist && (
           <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {song.artist}
+          </p>
+        )}
+        {song.event_note && (
+          <p style={{ fontSize: '0.72rem', color: '#fcd34d', marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {song.event_note}
           </p>
         )}
       </div>
