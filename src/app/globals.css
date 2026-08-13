@@ -593,27 +593,72 @@
   transform: translateY(-1px);
 }
 
-/* Org selection — action links (create / join) */
-.auth-glass a.org-select-action {
+/* Org selection — action cards (create / join) */
+.org-select-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+@media (max-width: 380px) {
+  .org-select-actions { grid-template-columns: 1fr; }
+}
+
+.auth-glass a.org-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1.1rem 1rem;
+  border-radius: 0.875rem;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.09);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.auth-glass a.org-select-card:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-2px);
+}
+
+.org-select-card-glow {
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(18px);
+  opacity: 0.18;
+}
+
+.org-select-card-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.7rem;
-  border-radius: 0.625rem;
-  border: 1px dashed rgba(255,255,255,0.16);
-  background: transparent;
-  color: rgba(255,255,255,0.6);
-  font-size: 0.825rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
 }
 
-.auth-glass a.org-select-action:hover {
-  background: rgba(255,255,255,0.05);
+.org-select-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #fff;
-  border-color: rgba(255,255,255,0.3);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.org-select-card-desc {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.42);
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* Padding responsivo partilhado pelos painéis de detalhe/formulário */

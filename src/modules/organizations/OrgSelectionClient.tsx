@@ -48,7 +48,7 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
         <ArrowLeft style={{ width: '1.1rem', height: '1.1rem' }} />
       </button>
 
-      <div className="w-full max-w-[420px]">
+      <div className="w-full max-w-[460px]">
         <div className="auth-glass">
 
           {/* Header */}
@@ -121,14 +121,26 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
           </div>
 
           {/* Actions */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <Link href="/new-org" className="org-select-action">
-              <Plus style={{ width: '1rem', height: '1rem' }} />
-              Criar organização
+          <div className="org-select-actions">
+            <Link href="/new-org" className="org-select-card">
+              <div className="org-select-card-glow" style={{ background: 'radial-gradient(circle, #8fd0ea 0%, transparent 70%)' }} />
+              <div className="org-select-card-icon" style={{ background: 'rgba(143,208,234,0.15)', color: '#8fd0ea' }}>
+                <Plus style={{ width: '1.1rem', height: '1.1rem' }} />
+              </div>
+              <div>
+                <p className="org-select-card-title">Criar organização</p>
+                <p className="org-select-card-desc">Começa do zero com a tua equipa</p>
+              </div>
             </Link>
-            <Link href="/join-org" className="org-select-action">
-              <LogIn style={{ width: '1rem', height: '1rem' }} />
-              Entrar numa organização
+            <Link href="/join-org" className="org-select-card">
+              <div className="org-select-card-glow" style={{ background: 'radial-gradient(circle, #a5b4fc 0%, transparent 70%)' }} />
+              <div className="org-select-card-icon" style={{ background: 'rgba(165,180,252,0.15)', color: '#a5b4fc' }}>
+                <LogIn style={{ width: '1.1rem', height: '1.1rem' }} />
+              </div>
+              <div>
+                <p className="org-select-card-title">Entrar numa organização</p>
+                <p className="org-select-card-desc">Já tens um código de convite</p>
+              </div>
             </Link>
           </div>
 
