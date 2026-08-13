@@ -9,7 +9,7 @@ import { useOrgMembers } from '@/hooks/useMembers';
 import { unavailabilityForDate, describeUnavailability } from '@/lib/availability';
 import { formatTime, eventPeriod, getInitials } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { Event } from '@/types/models';
 import type { UnavailabilityEntry } from '@/actions/availability';
 
@@ -36,9 +36,14 @@ export function CalendarClient({ orgId }: Props) {
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selectedDate, setSelectedDate] = useState<string>(todayISO());
 
-  const memberNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const m of orgMembers) map.set(m.user_id, m.profile?.full_name || m.profile?.email || 'Sem nome');
+  const memberById = useMemo(() => {
+    const map = new Map<string, { name: string; avatarUrl: string | null }>();
+    for (const m of orgMembers) {
+      map.set(m.user_id, {
+        name: m.profile?.full_name || m.profile?.email || 'Sem nome',
+        avatarUrl: m.profile?.avatar_url ?? null,
+      });
+    }
     return map;
   }, [orgMembers]);
 
@@ -49,11 +54,12 @@ export function CalendarClient({ orgId }: Props) {
 
   // Quem está indisponível numa data, entre todas as pessoas da organização — usa a mesma lógica
   // de fronteiras de date_range/weekly já usada para indisponibilidade individual.
-  function unavailableOnDate(iso: string): { userId: string; name: string; entry: UnavailabilityEntry }[] {
-    const hits: { userId: string; name: string; entry: UnavailabilityEntry }[] = [];
+  function unavailableOnDate(iso: string): { userId: string; name: string; avatarUrl: string | null; entry: UnavailabilityEntry }[] {
+    const hits: { userId: string; name: string; avatarUrl: string | null; entry: UnavailabilityEntry }[] = [];
     for (const [userId, entries] of unavailabilityEntries) {
+      const member = memberById.get(userId);
       for (const entry of unavailabilityForDate(entries, iso)) {
-        hits.push({ userId, name: memberNameById.get(userId) ?? 'Sem nome', entry });
+        hits.push({ userId, name: member?.name ?? 'Sem nome', avatarUrl: member?.avatarUrl ?? null, entry });
       }
     }
     return hits;
@@ -184,13 +190,16 @@ export function CalendarClient({ orgId }: Props) {
                             aspectRatio: '1',
                             borderRadius: '0.625rem',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-                            background: isSelected ? 'rgba(255,255,255,0.14)' : isToday ? 'rgba(165,180,252,0.12)' : dayUnavail.length > 0 ? 'rgba(248,113,113,0.06)' : 'transparent',
+                            background: isSelected ? 'rgba(255,255,255,0.14)' : isToday ? 'rgba(165,180,252,0.12)' : 'transparent',
                             border: isSelected ? '1px solid rgba(255,255,255,0.25)' : isToday ? '1px solid rgba(165,180,252,0.3)' : '1px solid transparent',
                             cursor: 'pointer', transition: 'background 0.12s',
                           }}
                         >
                           {dayUnavail.length > 0 && (
-                            <CalendarOff style={{ position: 'absolute', top: '2px', right: '2px', width: '0.6rem', height: '0.6rem', color: '#f87171' }} />
+                            <span style={{
+                              position: 'absolute', top: '4px', right: '4px',
+                              width: '5px', height: '5px', borderRadius: '9999px', background: '#f87171',
+                            }} />
                           )}
                           <span style={{
                             fontSize: '0.78rem', fontWeight: isToday || isSelected ? 700 : 500,
@@ -224,17 +233,27 @@ export function CalendarClient({ orgId }: Props) {
                 {selectedLabel}
               </p>
               {selectedDayUnavail.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginTop: '0.625rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(248,113,113,0.6)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <CalendarOff className="h-3 w-3" />
+                    Indisponíveis
+                  </p>
                   {selectedDayUnavail.map((u) => (
-                    <div key={u.entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Avatar style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }}>
-                        <AvatarFallback style={{ fontSize: '0.55rem', background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>
+                    <div key={u.entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <Avatar style={{ width: '1.75rem', height: '1.75rem', flexShrink: 0 }}>
+                        {u.avatarUrl && <AvatarImage src={u.avatarUrl} alt={u.name} />}
+                        <AvatarFallback style={{ fontSize: '0.65rem', background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>
                           {getInitials(u.name)}
                         </AvatarFallback>
                       </Avatar>
-                      <p style={{ fontSize: '0.75rem', color: '#f87171', minWidth: 0 }}>
-                        <span style={{ fontWeight: 600 }}>{u.name}</span> — {describeUnavailability(u.entry)}
-                      </p>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {u.name}
+                        </p>
+                        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {describeUnavailability(u.entry)}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -477,20 +477,21 @@ export function EventEditPanel({ event, onBack }: Props) {
         .ep-steptabs { display: none; }
         .ep-content { padding: 2.5rem 3rem 4rem; min-width: 0; }
         .ep-member-grid > *, .ep-ministry-grid > *, .ep-date-grid > * { min-width: 0; }
-        .ep-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .ep-date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+        .ep-two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; }
+        .ep-date-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.875rem; }
         .ep-ministry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
         .ep-member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
-        .ep-setlist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+        .ep-setlist-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+        .ep-setlist-grid > * { min-width: 0; }
         @media (max-width: 767px) {
           .ep-sidebar { display: none !important; }
           .ep-steptabs { display: flex; gap: 0.375rem; overflow-x: auto; margin-bottom: 1.25rem; }
           .ep-content { padding: 1.25rem 1.1rem 2rem; overflow-x: hidden; }
-          .ep-two-col { grid-template-columns: 1fr; }
-          .ep-date-grid { grid-template-columns: 1fr; }
-          .ep-ministry-grid { grid-template-columns: 1fr; }
-          .ep-member-grid { grid-template-columns: 1fr; }
-          .ep-setlist-grid { grid-template-columns: 1fr; }
+          .ep-two-col { grid-template-columns: minmax(0, 1fr); }
+          .ep-date-grid { grid-template-columns: minmax(0, 1fr); }
+          .ep-ministry-grid { grid-template-columns: minmax(0, 1fr); }
+          .ep-member-grid { grid-template-columns: minmax(0, 1fr); }
+          .ep-setlist-grid { grid-template-columns: minmax(0, 1fr); }
         }
       `}</style>
 
@@ -837,44 +838,46 @@ export function EventEditPanel({ event, onBack }: Props) {
                             if (!song) return null;
                             return (
                               <SortableSetlistRow key={id} id={id} isLast={idx === selectedSongIds.length - 1}>
-                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', width: '1.25rem', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
-                                  {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
-                                  <input
-                                    value={songNotes[id] ?? ''}
-                                    onChange={(e) => setSongNote(id, e.target.value)}
-                                    placeholder="Observação para este evento (ex.: começa no pré-refrão)"
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', minWidth: 0 }}>
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', width: '1.25rem', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
+                                    {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
+                                  </div>
+                                  <select
+                                    value={songKeys[id] ?? ''}
+                                    onChange={(e) => setSongKey(id, e.target.value)}
+                                    title="Tom para este evento"
                                     style={{
-                                      width: '100%', marginTop: '0.3rem', fontSize: '0.72rem',
-                                      padding: '0.25rem 0.45rem', borderRadius: '0.375rem',
-                                      background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
-                                      border: '1px solid rgba(255,255,255,0.08)',
+                                      flexShrink: 0, fontSize: '0.72rem', fontWeight: 600,
+                                      padding: '0.2rem 0.4rem', borderRadius: '0.4rem',
+                                      background: 'rgba(255,255,255,0.06)', color: '#fff',
+                                      border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
                                     }}
-                                  />
+                                  >
+                                    <option value="" style={{ background: '#1a1a20' }}>Tom</option>
+                                    {SONG_KEYS.map((k) => (
+                                      <option key={k} value={k} style={{ background: '#1a1a20' }}>{k}</option>
+                                    ))}
+                                  </select>
+                                  <button type="button" onClick={() => toggleSong(id)} style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                                  >
+                                    <X style={{ width: '0.75rem', height: '0.75rem' }} />
+                                  </button>
                                 </div>
-                                <select
-                                  value={songKeys[id] ?? ''}
-                                  onChange={(e) => setSongKey(id, e.target.value)}
-                                  title="Tom para este evento"
+                                <input
+                                  value={songNotes[id] ?? ''}
+                                  onChange={(e) => setSongNote(id, e.target.value)}
+                                  placeholder="Observação para este evento (ex.: começa no pré-refrão)"
                                   style={{
-                                    flexShrink: 0, fontSize: '0.72rem', fontWeight: 600,
-                                    padding: '0.2rem 0.4rem', borderRadius: '0.4rem',
-                                    background: 'rgba(255,255,255,0.06)', color: '#fff',
-                                    border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+                                    width: '100%', minWidth: 0, fontSize: '0.72rem',
+                                    padding: '0.25rem 0.45rem', borderRadius: '0.375rem',
+                                    background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
+                                    border: '1px solid rgba(255,255,255,0.08)', boxSizing: 'border-box',
                                   }}
-                                >
-                                  <option value="" style={{ background: '#1a1a20' }}>Tom</option>
-                                  {SONG_KEYS.map((k) => (
-                                    <option key={k} value={k} style={{ background: '#1a1a20' }}>{k}</option>
-                                  ))}
-                                </select>
-                                <button type="button" onClick={() => toggleSong(id)} style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                                  onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
-                                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-                                >
-                                  <X style={{ width: '0.75rem', height: '0.75rem' }} />
-                                </button>
+                                />
                               </SortableSetlistRow>
                             );
                           })}
@@ -976,11 +979,12 @@ function SortableSetlistRow({ id, isLast, children }: { id: string; isLast: bool
     <div
       ref={setNodeRef}
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem',
+        display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.625rem 1rem',
         borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.06)',
         transform: CSS.Transform.toString(transform), transition,
         background: isDragging ? 'rgba(255,255,255,0.06)' : 'transparent',
         opacity: isDragging ? 0.6 : 1, position: 'relative', zIndex: isDragging ? 1 : 'auto',
+        minWidth: 0, maxWidth: '100%',
       }}
     >
       <button
@@ -991,11 +995,14 @@ function SortableSetlistRow({ id, isLast, children }: { id: string; isLast: bool
         style={{
           display: 'flex', alignItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,0.25)',
           background: 'none', border: 'none', padding: '0.25rem', cursor: 'grab', touchAction: 'none',
+          marginTop: '0.15rem',
         }}
       >
         <GripVertical style={{ width: '0.9rem', height: '0.9rem' }} />
       </button>
-      {children}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+        {children}
+      </div>
     </div>
   );
 }
