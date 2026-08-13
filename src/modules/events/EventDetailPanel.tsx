@@ -67,6 +67,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
     return (
       <SongDetailPanel
         song={selectedSong}
+        eventNote={(selectedSong as Song & { event_note?: string | null }).event_note}
         onBack={() => setSelectedSong(null)}
         isAdmin={false}
         onEdit={() => {}}
@@ -730,7 +731,10 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
           </p>
         )}
         {song.event_note && (
-          <p style={{ fontSize: '0.72rem', color: '#fcd34d', marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{
+            fontSize: '0.72rem', color: '#fcd34d', marginTop: '0.2rem', lineHeight: 1.4,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
             {song.event_note}
           </p>
         )}

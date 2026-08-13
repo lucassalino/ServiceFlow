@@ -404,7 +404,10 @@ function SetlistRow({ song, index }: { song: Song & { order_index: number; event
           </p>
         )}
         {song.event_note && (
-          <p style={{ fontSize: '0.68rem', color: '#fcd34d', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{
+            fontSize: '0.68rem', color: '#fcd34d', marginTop: '0.15rem', lineHeight: 1.4,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
             {song.event_note}
           </p>
         )}

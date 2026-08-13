@@ -8,6 +8,8 @@ interface Props {
   song: Song;
   ministryName?: string;
   ministryIcon?: string;
+  /** Observação específica deste evento (ex.: "começa no pré-refrão") — não faz parte do registo global da música. */
+  eventNote?: string | null;
   onBack: () => void;
   isAdmin: boolean;
   canManage?: boolean;
@@ -15,7 +17,7 @@ interface Props {
   onDelete: () => void;
 }
 
-export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAdmin, canManage = isAdmin, onEdit, onDelete }: Props) {
+export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, onBack, isAdmin, canManage = isAdmin, onEdit, onDelete }: Props) {
   const links = [
     { label: 'YouTube', url: song.youtube_url, icon: <Youtube style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#f87171' },
     { label: 'Spotify',  url: song.spotify_url, icon: <Music   style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#1db954' },
@@ -144,6 +146,21 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, onBack, isAd
             </div>
           </div>
         </div>
+
+        {/* ── Observação deste evento ──────────────── */}
+        {eventNote && (
+          <div style={{
+            background: 'rgba(252,211,77,0.08)', border: '1px solid rgba(252,211,77,0.25)',
+            borderRadius: '0.875rem', padding: '1rem 1.25rem', marginBottom: '1.75rem',
+          }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fcd34d', marginBottom: '0.4rem' }}>
+              Observação para este evento
+            </p>
+            <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
+              {eventNote}
+            </p>
+          </div>
+        )}
 
         {/* ── Links ────────────────────────────────── */}
         {activeLinks.length > 0 ? (
