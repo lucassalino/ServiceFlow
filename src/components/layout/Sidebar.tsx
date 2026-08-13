@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, Users, Music2, BookOpen,
-  Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X,
+  Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X, KeyRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOrgStore } from '@/stores/orgStore';
@@ -124,6 +124,15 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
             >
               <Plus className="h-3.5 w-3.5 shrink-0" />
               Nova organização
+            </Link>
+            <Link
+              href="/join-org"
+              onClick={() => { setShowOrgMenu(false); onMobileClose(); }}
+              className="sidebar-dark-btn"
+              style={{ borderRadius: 0 }}
+            >
+              <KeyRound className="h-3.5 w-3.5 shrink-0" />
+              Entrar com código
             </Link>
           </div>
         )}
