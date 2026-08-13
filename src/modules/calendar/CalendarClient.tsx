@@ -4,11 +4,14 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, CalendarDays, MapPin, Clock, CalendarOff } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
-import { useMyUnavailability } from '@/hooks/useAvailability';
+import { useOrgUnavailability } from '@/hooks/useAvailability';
+import { useOrgMembers } from '@/hooks/useMembers';
 import { unavailabilityForDate, describeUnavailability } from '@/lib/availability';
-import { formatTime, eventPeriod } from '@/lib/utils';
+import { formatTime, eventPeriod, getInitials } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Event } from '@/types/models';
+import type { UnavailabilityEntry } from '@/actions/availability';
 
 interface Props { orgId: string }
 
@@ -28,9 +31,33 @@ function todayISO(): string {
 
 export function CalendarClient({ orgId }: Props) {
   const { data: events = [], isLoading } = useEvents();
-  const { data: myUnavailability = [] } = useMyUnavailability();
+  const { data: orgUnavailability = {} } = useOrgUnavailability();
+  const { data: orgMembers = [] } = useOrgMembers();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selectedDate, setSelectedDate] = useState<string>(todayISO());
+
+  const memberNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const m of orgMembers) map.set(m.user_id, m.profile?.full_name || m.profile?.email || 'Sem nome');
+    return map;
+  }, [orgMembers]);
+
+  const unavailabilityEntries = useMemo(
+    () => Object.entries(orgUnavailability) as [string, UnavailabilityEntry[]][],
+    [orgUnavailability],
+  );
+
+  // Quem está indisponível numa data, entre todas as pessoas da organização — usa a mesma lógica
+  // de fronteiras de date_range/weekly já usada para indisponibilidade individual.
+  function unavailableOnDate(iso: string): { userId: string; name: string; entry: UnavailabilityEntry }[] {
+    const hits: { userId: string; name: string; entry: UnavailabilityEntry }[] = [];
+    for (const [userId, entries] of unavailabilityEntries) {
+      for (const entry of unavailabilityForDate(entries, iso)) {
+        hits.push({ userId, name: memberNameById.get(userId) ?? 'Sem nome', entry });
+      }
+    }
+    return hits;
+  }
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, Event[]>();
@@ -77,7 +104,7 @@ export function CalendarClient({ orgId }: Props) {
 
   const today = todayISO();
   const selectedEvents = (eventsByDate.get(selectedDate) ?? []).slice().sort((a, b) => a.time.localeCompare(b.time));
-  const selectedDayUnavail = unavailabilityForDate(myUnavailability, selectedDate);
+  const selectedDayUnavail = unavailableOnDate(selectedDate);
   const selectedLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-PT', {
     weekday: 'long', day: 'numeric', month: 'long',
   });
@@ -144,14 +171,14 @@ export function CalendarClient({ orgId }: Props) {
                       if (!date) return <div key={di} />;
                       const iso = toISODate(date);
                       const dayEvents = eventsByDate.get(iso) ?? [];
-                      const dayUnavail = unavailabilityForDate(myUnavailability, iso);
+                      const dayUnavail = unavailableOnDate(iso);
                       const isToday = iso === today;
                       const isSelected = iso === selectedDate;
                       return (
                         <button
                           key={di}
                           onClick={() => setSelectedDate(iso)}
-                          title={dayUnavail.length > 0 ? dayUnavail.map(describeUnavailability).join(' · ') : undefined}
+                          title={dayUnavail.length > 0 ? dayUnavail.map((u) => `${u.name} — ${describeUnavailability(u.entry)}`).join(' · ') : undefined}
                           style={{
                             position: 'relative',
                             aspectRatio: '1',
@@ -197,12 +224,18 @@ export function CalendarClient({ orgId }: Props) {
                 {selectedLabel}
               </p>
               {selectedDayUnavail.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.625rem' }}>
-                  {selectedDayUnavail.map((e) => (
-                    <p key={e.id} style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#f87171' }}>
-                      <CalendarOff className="h-3 w-3 shrink-0" />
-                      {describeUnavailability(e)}
-                    </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', marginTop: '0.625rem' }}>
+                  {selectedDayUnavail.map((u) => (
+                    <div key={u.entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Avatar style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }}>
+                        <AvatarFallback style={{ fontSize: '0.55rem', background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>
+                          {getInitials(u.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p style={{ fontSize: '0.75rem', color: '#f87171', minWidth: 0 }}>
+                        <span style={{ fontWeight: 600 }}>{u.name}</span> — {describeUnavailability(u.entry)}
+                      </p>
+                    </div>
                   ))}
                 </div>
               )}
