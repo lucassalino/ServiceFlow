@@ -278,9 +278,8 @@ export async function checkInScheduleAction(id: string, checkedIn: boolean): Pro
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
 
-  const { data: schedule, error: fetchError } = await admin
+  const { data: schedule, error: fetchError } = await supabase
     .from('event_schedules')
     .select('user_id, event_ministry:event_ministries(event:events(org_id))')
     .eq('id', id).single();
@@ -290,7 +289,7 @@ export async function checkInScheduleAction(id: string, checkedIn: boolean): Pro
   if (!orgId) throw new Error('Evento não encontrado');
 
   if (row.user_id !== user.id) {
-    const { data: membership } = await admin
+    const { data: membership } = await supabase
       .from('organization_members').select('role')
       .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
     const role = (membership as { role?: string } | null)?.role;
@@ -299,7 +298,7 @@ export async function checkInScheduleAction(id: string, checkedIn: boolean): Pro
     }
   }
 
-  const { error } = await admin.from('event_schedules')
+  const { error } = await supabase.from('event_schedules')
     .update({ checked_in_at: checkedIn ? new Date().toISOString() : null }).eq('id', id);
   if (error) throw new Error(error.message);
 }
