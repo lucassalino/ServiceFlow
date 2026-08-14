@@ -18,7 +18,6 @@ import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from 
 import { useLeaveOrganization, useDeleteOrganization, useTransferOrgAdmin } from '@/hooks/useOrganizations';
 import { useOrgMembers } from '@/hooks/useMembers';
 import { uploadOrgLogoAction } from '@/actions/organizations';
-import { CheckinQrSection } from '@/modules/checkin/CheckinQrSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -581,18 +580,6 @@ export function SettingsClient({ orgId }: Props) {
         {isAdmin && activeOrg && (
           <Section title="Plano e cupões">
             <PlanSection orgId={orgId} isAdmin={isAdmin} />
-          </Section>
-        )}
-
-        {/* ── Check-in por QR Code (admin only) ────────── */}
-        {isAdmin && activeOrg && (
-          <Section title="Check-in por QR Code">
-            <CheckinQrSection
-              orgId={orgId}
-              initialLatitude={activeOrg.checkin_latitude}
-              initialLongitude={activeOrg.checkin_longitude}
-              initialRadiusMeters={activeOrg.checkin_radius_meters}
-            />
           </Section>
         )}
 

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { MapPin, Loader2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { APP_URL } from '@/lib/app-url';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUpdateOrgCheckinLocation } from '@/hooks/useCheckin';
@@ -25,9 +24,15 @@ export function CheckinQrSection({ orgId, initialLatitude, initialLongitude, ini
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const checkinUrl = `${APP_URL}/${orgId}/checkin`;
+  // Usa sempre o domínio atual (não um domínio fixo) — assim o QR aponta
+  // sempre para o mesmo ambiente onde foi gerado (dev, prd, etc.), evitando
+  // 404 por o link apontar para um domínio sem esta funcionalidade publicada.
+  const [origin, setOrigin] = useState('');
+  useEffect(() => { setOrigin(window.location.origin); }, []);
+  const checkinUrl = origin ? `${origin}/${orgId}/checkin` : '';
 
   useEffect(() => {
+    if (!checkinUrl) return;
     QRCode.toDataURL(checkinUrl, { width: 240, margin: 1, color: { dark: '#0a0a0e', light: '#ffffff' } })
       .then(setQrDataUrl).catch(() => setQrDataUrl(null));
   }, [checkinUrl]);
