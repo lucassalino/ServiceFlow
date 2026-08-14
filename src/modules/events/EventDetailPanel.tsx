@@ -26,6 +26,7 @@ import {
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
 import { SongDetailPanel } from '@/modules/songs/SongDetailPanel';
+import { ConfirmAttendanceDialog } from '@/components/ConfirmAttendanceDialog';
 
 interface Props {
   event: Event;
@@ -431,15 +432,16 @@ function MinistrySection({
   const confirmSchedule = useConfirmSchedule();
   const color = em.ministry.color ?? '#a5b4fc';
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [attendanceTarget, setAttendanceTarget] = useState<EventSchedule | null>(null);
 
   const confirmedCount = schedules.filter((s) => s.confirmed === true).length;
 
-  async function handleConfirm(schedule: EventSchedule) {
+  async function handleAnswer(schedule: EventSchedule, confirmed: boolean) {
     if (schedule.user_id !== currentUserId) return;
-    const next = schedule.confirmed !== true;
     try {
-      await confirmSchedule.mutateAsync({ id: schedule.id, eventMinistryId: em.id, confirmed: next });
-      if (next) setSaveDialogOpen(true);
+      await confirmSchedule.mutateAsync({ id: schedule.id, eventMinistryId: em.id, confirmed });
+      setAttendanceTarget(null);
+      if (confirmed) setSaveDialogOpen(true);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
@@ -522,15 +524,25 @@ function MinistrySection({
               <ConfirmControl
                 schedule={schedule}
                 isMe={isMe}
-                isPending={confirmSchedule.isPending}
-                onToggle={() => handleConfirm(schedule)}
                 event={event}
+                onOpen={() => setAttendanceTarget(schedule)}
               />
             </div>
           );
         })
       )}
     </div>
+
+    <ConfirmAttendanceDialog
+      open={attendanceTarget !== null}
+      onOpenChange={(o) => { if (!o) setAttendanceTarget(null); }}
+      eventName={event.name}
+      eventSubtitle={`${formatDate(event.date)} · ${formatTime(event.time)}`}
+      currentStatus={attendanceTarget?.confirmed ?? null}
+      isPending={confirmSchedule.isPending}
+      onConfirm={() => attendanceTarget && handleAnswer(attendanceTarget, true)}
+      onDecline={() => attendanceTarget && handleAnswer(attendanceTarget, false)}
+    />
 
     <AlertDialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
       <AlertDialogContent>
@@ -555,12 +567,11 @@ function MinistrySection({
 // ── Confirmação de presença ────────────────────────────────────────────────────
 
 function ConfirmControl({
-  schedule, isMe, isPending, onToggle, event,
+  schedule, isMe, onOpen, event,
 }: {
   schedule: EventSchedule;
   isMe: boolean;
-  isPending: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
   event: Event;
 }) {
   const confirmed = schedule.confirmed;
@@ -587,12 +598,13 @@ function ConfirmControl({
     );
   }
 
-  // A própria pessoa: botão interativo com texto claro.
+  // A própria pessoa: botão interativo com texto claro, que abre o popup confirmar/declinar.
   const isConfirmed = confirmed === true;
-  const label = isConfirmed ? 'Presença confirmada' : 'Confirmar presença';
-  const fg = isConfirmed ? '#6ee7b7' : '#0a0a0e';
-  const bg = isConfirmed ? 'rgba(110,231,183,0.15)' : '#fff';
-  const border = isConfirmed ? 'rgba(110,231,183,0.3)' : 'transparent';
+  const isDeclined = confirmed === false;
+  const label = isConfirmed ? 'Presença confirmada' : isDeclined ? 'Recusaste — alterar?' : 'Confirmar presença';
+  const fg = isConfirmed ? '#6ee7b7' : isDeclined ? '#f87171' : '#0a0a0e';
+  const bg = isConfirmed ? 'rgba(110,231,183,0.15)' : isDeclined ? 'rgba(239,68,68,0.12)' : '#fff';
+  const border = isConfirmed ? 'rgba(110,231,183,0.3)' : isDeclined ? 'rgba(239,68,68,0.3)' : 'transparent';
 
   return (
     <div style={{
@@ -619,23 +631,21 @@ function ConfirmControl({
         </button>
       )}
       <button
-        disabled={isPending}
-        onClick={onToggle}
-        title={isConfirmed ? 'Clique para cancelar a confirmação' : 'Clique para confirmar a tua presença'}
+        onClick={onOpen}
+        title="Clique para confirmar ou declinar a tua presença"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
           padding: '0.45rem 0.9rem', borderRadius: '9999px',
           fontSize: '0.75rem', fontWeight: 600,
           color: fg, background: bg, border: `1px solid ${border}`,
-          cursor: isPending ? 'wait' : 'pointer',
-          opacity: isPending ? 0.6 : 1,
+          cursor: 'pointer',
           whiteSpace: 'nowrap',
           transition: 'background 0.12s, opacity 0.12s, transform 0.1s',
         }}
-        onMouseEnter={(e) => { if (!isPending) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
       >
-        {isConfirmed ? <Check style={{ width: '0.85rem', height: '0.85rem' }} /> : null}
+        {isConfirmed ? <Check style={{ width: '0.85rem', height: '0.85rem' }} /> : isDeclined ? <X style={{ width: '0.85rem', height: '0.85rem' }} /> : null}
         {label}
       </button>
     </div>
