@@ -273,6 +273,58 @@ export async function confirmScheduleAction(
   if (error) throw new Error(error.message);
 }
 
+/** Marca/desmarca o check-in de presença no dia do evento. A própria pessoa ou admin/líder podem fazê-lo. */
+export async function checkInScheduleAction(id: string, checkedIn: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  const { data: schedule, error: fetchError } = await admin
+    .from('event_schedules')
+    .select('user_id, event_ministry:event_ministries(event:events(org_id))')
+    .eq('id', id).single();
+  if (fetchError || !schedule) throw new Error('Escala não encontrada');
+  const row = schedule as unknown as { user_id: string; event_ministry: { event: { org_id: string } | null } | null };
+  const orgId = row.event_ministry?.event?.org_id;
+  if (!orgId) throw new Error('Evento não encontrado');
+
+  if (row.user_id !== user.id) {
+    const { data: membership } = await admin
+      .from('organization_members').select('role')
+      .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
+    const role = (membership as { role?: string } | null)?.role;
+    if (role !== 'admin' && role !== 'leader') {
+      throw new Error('Só admins e líderes podem marcar presença de outra pessoa');
+    }
+  }
+
+  const { error } = await admin.from('event_schedules')
+    .update({ checked_in_at: checkedIn ? new Date().toISOString() : null }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export interface EventAssignment { userId: string; ministryId: string; ministryName: string }
+
+/** Todas as pessoas escaladas num evento, em todos os ministérios — usado para detetar conflitos de escala. */
+export async function fetchEventAssignmentsAction(eventId: string): Promise<EventAssignment[]> {
+  const supabase = await createClient();
+  const { data: eventMins } = await supabase
+    .from('event_ministries').select('id, ministry_id, ministry:ministries(name)').eq('event_id', eventId);
+  const emList = (eventMins ?? []) as unknown as { id: string; ministry_id: string; ministry: { name: string } | null }[];
+  const emIds = emList.map((em) => em.id);
+  if (emIds.length === 0) return [];
+  const emById = new Map(emList.map((em) => [em.id, em]));
+
+  const { data: schedules } = await supabase
+    .from('event_schedules').select('user_id, event_ministry_id').in('event_ministry_id', emIds);
+
+  return ((schedules ?? []) as { user_id: string; event_ministry_id: string }[]).map((s) => {
+    const em = emById.get(s.event_ministry_id)!;
+    return { userId: s.user_id, ministryId: em.ministry_id, ministryName: em.ministry?.name ?? '' };
+  });
+}
+
 export async function fetchEventSetlistAction(eventId: string): Promise<(Song & { order_index: number; event_key: string | null; event_note: string | null })[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

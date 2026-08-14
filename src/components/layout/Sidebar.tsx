@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, Users, Music2, BookOpen,
-  Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X, KeyRound,
+  Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X, KeyRound, Megaphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOrgStore } from '@/stores/orgStore';
@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { href: 'availability', label: 'Indisponibilidade', icon: CalendarOff },
   { href: 'members',    label: 'Pessoas',     icon: Users },
   { href: 'ministries', label: 'Ministérios', icon: Music2 },
+  { href: 'mural',      label: 'Mural',       icon: Megaphone },
   { href: 'songs',      label: 'Repertório',  icon: BookOpen },
   { href: 'settings',   label: 'Definições',  icon: Settings },
 ];

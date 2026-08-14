@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string
+          id: string
+          org_id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by: string
+          id?: string
+          org_id: string
+          pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          org_id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalog_songs: {
         Row: {
           artist: string
@@ -109,6 +157,7 @@ export type Database = {
       }
       event_schedules: {
         Row: {
+          checked_in_at: string | null
           confirmed: boolean | null
           event_ministry_id: string
           functions: string[]
@@ -116,6 +165,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          checked_in_at?: string | null
           confirmed?: boolean | null
           event_ministry_id: string
           functions?: string[]
@@ -123,6 +173,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          checked_in_at?: string | null
           confirmed?: boolean | null
           event_ministry_id?: string
           functions?: string[]

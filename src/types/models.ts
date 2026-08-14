@@ -38,7 +38,13 @@ export interface EventMinistry {
 }
 export interface EventSchedule {
   id: string; event_ministry_id: string; user_id: string;
-  functions: string[]; confirmed: boolean | null; profile?: UserProfile;
+  functions: string[]; confirmed: boolean | null; checked_in_at: string | null;
+  profile?: UserProfile;
+}
+export interface Announcement {
+  id: string; org_id: string; title: string; body: string; pinned: boolean;
+  created_by: string; created_at: string; updated_at: string;
+  profile?: UserProfile;
 }
 export interface Song {
   id: string; org_id: string; name: string; artist: string | null;
