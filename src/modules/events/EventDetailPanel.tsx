@@ -680,7 +680,7 @@ function SortableSetlistRow({ id, song, index, onClick }: {
             onClick={(e) => e.stopPropagation()}
             style={{
               display: 'flex', alignItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,0.3)',
-              background: 'none', border: 'none', padding: '0.25rem', cursor: 'grab', touchAction: 'none',
+              background: 'none', border: 'none', padding: '0.25rem 0', cursor: 'grab', touchAction: 'none',
             }}
           >
             <GripVertical style={{ width: '0.9rem', height: '0.9rem' }} />
@@ -717,13 +717,25 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
         (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
       }}
     >
-      {dragHandle}
-      <span style={{
-        width: '1.75rem', textAlign: 'right', flexShrink: 0,
-        fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
-      }}>
-        {index}
-      </span>
+      {dragHandle && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', flexShrink: 0 }}>
+          {dragHandle}
+          <span style={{
+            width: '1.5rem', textAlign: 'right', flexShrink: 0,
+            fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
+          }}>
+            {index}
+          </span>
+        </div>
+      )}
+      {!dragHandle && (
+        <span style={{
+          width: '1.75rem', textAlign: 'right', flexShrink: 0,
+          fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
+        }}>
+          {index}
+        </span>
+      )}
       <div style={{
         width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
