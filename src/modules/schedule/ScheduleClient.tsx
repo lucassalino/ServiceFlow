@@ -27,6 +27,7 @@ import { resolveFunction, getFunctionLabel, getFunctionEmoji } from '@/lib/const
 import { formatDate, formatTime, getInitials } from '@/lib/utils';
 import { buildWhatsAppLink, scheduleMessage } from '@/lib/whatsapp';
 import { fetchEventScheduledContactsAction } from '@/actions/schedule';
+import { ConfirmAttendanceDialog } from '@/components/ConfirmAttendanceDialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
@@ -275,14 +276,15 @@ function PersonDialog({
 
 // ── Ministry Slot ────────────────────────────────────────────────────────────
 
-function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
+function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }: {
   em: EventMinistry & { ministry: Ministry }; eventId: string; isAdmin: boolean;
-  eventDate: string; eventTime: string;
+  eventName: string; eventDate: string; eventTime: string;
 }) {
   const [expanded, setExpanded] = useState(true);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<EventSchedule | null>(null);
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
+  const [attendanceTarget, setAttendanceTarget] = useState<EventSchedule | null>(null);
 
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const { data: unavailabilityByUser } = useOrgUnavailability();
@@ -315,6 +317,7 @@ function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
     if (schedule.user_id !== currentUserId) return;
     try {
       await confirmSchedule.mutateAsync({ id: schedule.id, eventMinistryId: em.id, confirmed });
+      setAttendanceTarget(null);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro');
     }
@@ -450,8 +453,8 @@ function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
                     }
                     return (
                       <button
-                        onClick={() => handleConfirm(schedule, !schedule.confirmed)}
-                        title={title}
+                        onClick={() => setAttendanceTarget(schedule)}
+                        title="Confirmar ou declinar presença"
                         style={{ ...circleStyle, cursor: 'pointer' }}
                       >
                         {icon}
@@ -475,6 +478,17 @@ function MinistrySlot({ em, eventId, isAdmin, eventDate, eventTime }: {
           )}
         </div>
       )}
+
+      <ConfirmAttendanceDialog
+        open={attendanceTarget !== null}
+        onOpenChange={(o) => { if (!o) setAttendanceTarget(null); }}
+        eventName={eventName}
+        eventSubtitle={`${formatDate(eventDate)} · ${formatTime(eventTime)}`}
+        currentStatus={attendanceTarget?.confirmed ?? null}
+        isPending={confirmSchedule.isPending}
+        onConfirm={() => attendanceTarget && handleConfirm(attendanceTarget, true)}
+        onDecline={() => attendanceTarget && handleConfirm(attendanceTarget, false)}
+      />
 
       <PersonDialog open={addPersonOpen} onOpenChange={setAddPersonOpen} mode="add"
         eventMinistryId={em.id} ministryId={em.ministry_id} assignedUserIds={assignedUserIds}
@@ -851,7 +865,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {(eventMinistries as (EventMinistry & { ministry: Ministry })[]).map((em) => (
                   <MinistrySlot key={em.id} em={em} eventId={selectedEvent.id} isAdmin={isAdmin}
-                    eventDate={selectedEvent.date} eventTime={selectedEvent.time} />
+                    eventName={selectedEvent.name} eventDate={selectedEvent.date} eventTime={selectedEvent.time} />
                 ))}
               </div>
             )}
