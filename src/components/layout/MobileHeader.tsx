@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
+import { Menu, Megaphone } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { NotificationBell } from './NotificationBell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,6 +44,9 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        <Link href={`/${orgId}/mural`} aria-label="Mural de recados" className="sidebar-dark-icon-btn">
+          <Megaphone className="h-5 w-5" />
+        </Link>
         <NotificationBell orgId={orgId} />
         <Link href={`/${orgId}/settings`} aria-label="Definições" className="shrink-0">
           <Avatar className="h-7 w-7">

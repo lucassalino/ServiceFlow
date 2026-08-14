@@ -10,6 +10,8 @@ export interface UserProfile {
 export interface Organization {
   id: string; name: string; invite_code: string;
   logo_url: string | null; created_at: string; updated_at: string;
+  checkin_latitude: number | null; checkin_longitude: number | null;
+  checkin_radius_meters: number;
 }
 export interface OrganizationMember {
   id: string; org_id: string; user_id: string;
@@ -38,7 +40,8 @@ export interface EventMinistry {
 }
 export interface EventSchedule {
   id: string; event_ministry_id: string; user_id: string;
-  functions: string[]; confirmed: boolean | null; checked_in_at: string | null;
+  functions: string[]; confirmed: boolean | null;
+  checked_in_at: string | null; checked_out_at: string | null;
   profile?: UserProfile;
 }
 export interface Announcement {
