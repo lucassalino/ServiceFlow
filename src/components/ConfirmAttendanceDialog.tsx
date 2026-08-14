@@ -34,7 +34,7 @@ export function ConfirmAttendanceDialog({
 
         <AlertDialogHeader style={{ textAlign: 'center', alignItems: 'center' }}>
           <AlertDialogTitle style={{ fontSize: '1.1rem' }}>
-            Vais confirmar presença?
+            Confirmar presença?
           </AlertDialogTitle>
           <AlertDialogDescription style={{ textAlign: 'center' }}>
             {eventName}{eventSubtitle ? ` — ${eventSubtitle}` : ''}
@@ -42,7 +42,7 @@ export function ConfirmAttendanceDialog({
               <>
                 <br />
                 <span style={{ fontSize: '0.78rem', opacity: 0.8 }}>
-                  {currentStatus ? 'Já confirmaste. Podes mudar de resposta abaixo.' : 'Já tinhas recusado. Podes mudar de resposta abaixo.'}
+                  {currentStatus ? 'Você já confirmou. Pode mudar a resposta abaixo.' : 'Você já tinha recusado. Pode mudar a resposta abaixo.'}
                 </span>
               </>
             )}
@@ -80,7 +80,7 @@ export function ConfirmAttendanceDialog({
             }}
           >
             <Check style={{ width: '0.85rem', height: '0.85rem' }} />
-            Confirmar presença
+            Confirmar
           </button>
         </div>
       </AlertDialogContent>

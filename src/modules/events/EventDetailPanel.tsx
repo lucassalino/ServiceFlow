@@ -549,7 +549,7 @@ function MinistrySection({
         <AlertDialogHeader>
           <AlertDialogTitle>Guardar evento no calendário?</AlertDialogTitle>
           <AlertDialogDescription>
-            Presença confirmada em &quot;{event.name}&quot;. Queres adicionar este evento ao calendário do teu telemóvel (Google Calendar, Calendário da Apple, etc.)?
+            Presença confirmada em &quot;{event.name}&quot;. Quer adicionar este evento ao calendário do seu celular (Google Calendar, Calendário da Apple, etc.)?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -601,7 +601,7 @@ function ConfirmControl({
   // A própria pessoa: botão interativo com texto claro, que abre o popup confirmar/declinar.
   const isConfirmed = confirmed === true;
   const isDeclined = confirmed === false;
-  const label = isConfirmed ? 'Presença confirmada' : isDeclined ? 'Recusaste — alterar?' : 'Confirmar presença';
+  const label = isConfirmed ? 'Presença confirmada' : isDeclined ? 'Recusou — alterar?' : 'Confirmar';
   const fg = isConfirmed ? '#6ee7b7' : isDeclined ? '#f87171' : '#0a0a0e';
   const bg = isConfirmed ? 'rgba(110,231,183,0.15)' : isDeclined ? 'rgba(239,68,68,0.12)' : '#fff';
   const border = isConfirmed ? 'rgba(110,231,183,0.3)' : isDeclined ? 'rgba(239,68,68,0.3)' : 'transparent';
@@ -614,7 +614,7 @@ function ConfirmControl({
       {isConfirmed && (
         <button
           onClick={() => downloadEventICS(event)}
-          title="Descarregar ficheiro .ics para adicionar ao Google Calendar, Apple Calendar ou Outlook"
+          title="Baixar arquivo .ics para adicionar ao Google Calendar, Apple Calendar ou Outlook"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
             padding: '0.45rem 0.7rem', borderRadius: '9999px',
@@ -632,7 +632,7 @@ function ConfirmControl({
       )}
       <button
         onClick={onOpen}
-        title="Clique para confirmar ou declinar a tua presença"
+        title="Clique para confirmar ou declinar sua presença"
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
           padding: '0.45rem 0.9rem', borderRadius: '9999px',
