@@ -99,6 +99,89 @@ export async function fetchMyCheckinStatusAction(orgId: string): Promise<Checkin
   };
 }
 
+export interface CheckinOverviewPerson {
+  scheduleId: string;
+  eventMinistryId: string;
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  ministryName: string;
+  confirmed: boolean | null;
+  checkedInAt: string | null;
+  checkedOutAt: string | null;
+}
+
+export interface CheckinOverviewEvent {
+  eventId: string;
+  eventName: string;
+  eventTime: string;
+  people: CheckinOverviewPerson[];
+}
+
+/** Visão de gestão do check-in para admin/líder: todos os eventos de hoje e quem já entrou/saiu. */
+export async function fetchTodayCheckinOverviewAction(orgId: string): Promise<CheckinOverviewEvent[]> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  const { data: membership } = await admin
+    .from('organization_members').select('role')
+    .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
+  const role = (membership as { role?: string } | null)?.role;
+  if (role !== 'admin' && role !== 'leader') throw new Error('Só admins e líderes podem gerir o check-in');
+
+  const today = todayISODate();
+  const { data: events } = await admin
+    .from('events').select('id, name, time').eq('org_id', orgId).eq('date', today).order('time');
+  const todaysEvents = (events ?? []) as { id: string; name: string; time: string }[];
+  if (todaysEvents.length === 0) return [];
+
+  const { data: eventMins } = await admin
+    .from('event_ministries').select('id, event_id, ministry:ministries(name)')
+    .in('event_id', todaysEvents.map((e) => e.id));
+  const emList = (eventMins ?? []) as unknown as { id: string; event_id: string; ministry: { name: string } | null }[];
+  if (emList.length === 0) return todaysEvents.map((e) => ({ eventId: e.id, eventName: e.name, eventTime: e.time, people: [] }));
+
+  const { data: schedules } = await admin
+    .from('event_schedules')
+    .select('id, event_ministry_id, user_id, confirmed, checked_in_at, checked_out_at, profile:profiles(full_name, avatar_url)')
+    .in('event_ministry_id', emList.map((em) => em.id));
+  type SchedRow = {
+    id: string; event_ministry_id: string; user_id: string; confirmed: boolean | null;
+    checked_in_at: string | null; checked_out_at: string | null;
+    profile: { full_name: string; avatar_url: string | null } | null;
+  };
+  const allScheds = (schedules ?? []) as unknown as SchedRow[];
+
+  const emById = new Map(emList.map((em) => [em.id, em]));
+  const peopleByEvent = new Map<string, CheckinOverviewPerson[]>();
+  for (const s of allScheds) {
+    const em = emById.get(s.event_ministry_id);
+    if (!em) continue;
+    const list = peopleByEvent.get(em.event_id) ?? [];
+    list.push({
+      scheduleId: s.id,
+      eventMinistryId: s.event_ministry_id,
+      userId: s.user_id,
+      name: s.profile?.full_name ?? 'Sem nome',
+      avatarUrl: s.profile?.avatar_url ?? null,
+      ministryName: em.ministry?.name ?? '',
+      confirmed: s.confirmed,
+      checkedInAt: s.checked_in_at,
+      checkedOutAt: s.checked_out_at,
+    });
+    peopleByEvent.set(em.event_id, list);
+  }
+
+  return todaysEvents.map((e) => ({
+    eventId: e.id,
+    eventName: e.name,
+    eventTime: e.time,
+    people: (peopleByEvent.get(e.id) ?? []).sort((a, b) => a.name.localeCompare(b.name)),
+  }));
+}
+
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;
   const toRad = (d: number) => (d * Math.PI) / 180;

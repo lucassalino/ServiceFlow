@@ -1,6 +1,9 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMyCheckinStatusAction, checkInWithLocationAction, type CheckinStatus } from '@/actions/checkin';
+import {
+  fetchMyCheckinStatusAction, checkInWithLocationAction, fetchTodayCheckinOverviewAction,
+  type CheckinStatus, type CheckinOverviewEvent,
+} from '@/actions/checkin';
 import { updateOrgCheckinLocationAction } from '@/actions/organizations';
 
 export function useMyCheckinStatus(orgId: string | null) {
@@ -25,6 +28,15 @@ export function useCheckInWithLocation(orgId: string | null) {
   });
 }
 
+export function useTodayCheckinOverview(orgId: string | null) {
+  return useQuery({
+    queryKey: ['today-checkin-overview', orgId],
+    enabled: !!orgId,
+    queryFn: () => fetchTodayCheckinOverviewAction(orgId!),
+    refetchInterval: 30_000,
+  });
+}
+
 export function useUpdateOrgCheckinLocation() {
   const qc = useQueryClient();
   return useMutation({
@@ -37,4 +49,4 @@ export function useUpdateOrgCheckinLocation() {
   });
 }
 
-export type { CheckinStatus };
+export type { CheckinStatus, CheckinOverviewEvent };

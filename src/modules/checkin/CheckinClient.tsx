@@ -4,11 +4,21 @@ import { useState } from 'react';
 import { CheckCircle2, LogOut, MapPin, AlertCircle, CalendarX2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMyCheckinStatus, useCheckInWithLocation } from '@/hooks/useCheckin';
+import { useOrgStore } from '@/stores/orgStore';
 import { formatTime } from '@/lib/utils';
+import { CheckinManageView } from './CheckinManageView';
 
 interface Props { orgId: string }
 
 export function CheckinClient({ orgId }: Props) {
+  const { activeMembership } = useOrgStore();
+  const canManage = activeMembership?.role === 'admin' || activeMembership?.role === 'leader';
+
+  if (canManage) return <CheckinManageView orgId={orgId} />;
+  return <CheckinSelfView orgId={orgId} />;
+}
+
+function CheckinSelfView({ orgId }: Props) {
   const { data: status, isLoading } = useMyCheckinStatus(orgId);
   const checkIn = useCheckInWithLocation(orgId);
   const [locating, setLocating] = useState(false);

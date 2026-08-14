@@ -17,7 +17,6 @@ import { useOrgStore } from '@/stores/orgStore';
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAccount } from '@/hooks/useProfile';
 import { useLeaveOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
 import { uploadOrgLogoAction } from '@/actions/organizations';
-import { CheckinQrSection } from '@/modules/checkin/CheckinQrSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -515,18 +514,6 @@ export function SettingsClient({ orgId }: Props) {
                 {orgForm.formState.isSubmitting ? 'A guardar…' : 'Guardar organização'}
               </button>
             </form>
-          </Section>
-        )}
-
-        {/* ── Check-in por QR Code (admin only) ────────── */}
-        {isAdmin && activeOrg && (
-          <Section title="Check-in por QR Code">
-            <CheckinQrSection
-              orgId={orgId}
-              initialLatitude={activeOrg.checkin_latitude}
-              initialLongitude={activeOrg.checkin_longitude}
-              initialRadiusMeters={activeOrg.checkin_radius_meters}
-            />
           </Section>
         )}
 
