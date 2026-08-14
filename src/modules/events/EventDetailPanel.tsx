@@ -601,7 +601,7 @@ function ConfirmControl({
   // A própria pessoa: botão interativo com texto claro, que abre o popup confirmar/declinar.
   const isConfirmed = confirmed === true;
   const isDeclined = confirmed === false;
-  const label = isConfirmed ? 'Presença confirmada' : isDeclined ? 'Recusou — alterar?' : 'Confirmar';
+  const label = isConfirmed ? 'Confirmado' : isDeclined ? 'Declinado' : 'Confirmar';
   const fg = isConfirmed ? '#6ee7b7' : isDeclined ? '#f87171' : '#0a0a0e';
   const bg = isConfirmed ? 'rgba(110,231,183,0.15)' : isDeclined ? 'rgba(239,68,68,0.12)' : '#fff';
   const border = isConfirmed ? 'rgba(110,231,183,0.3)' : isDeclined ? 'rgba(239,68,68,0.3)' : 'transparent';
