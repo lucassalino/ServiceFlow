@@ -158,6 +158,7 @@ export type Database = {
       event_schedules: {
         Row: {
           checked_in_at: string | null
+          checked_out_at: string | null
           confirmed: boolean | null
           event_ministry_id: string
           functions: string[]
@@ -166,6 +167,7 @@ export type Database = {
         }
         Insert: {
           checked_in_at?: string | null
+          checked_out_at?: string | null
           confirmed?: boolean | null
           event_ministry_id: string
           functions?: string[]
@@ -174,6 +176,7 @@ export type Database = {
         }
         Update: {
           checked_in_at?: string | null
+          checked_out_at?: string | null
           confirmed?: boolean | null
           event_ministry_id?: string
           functions?: string[]
@@ -607,6 +610,9 @@ export type Database = {
       }
       organizations: {
         Row: {
+          checkin_latitude: number | null
+          checkin_longitude: number | null
+          checkin_radius_meters: number
           created_at: string
           id: string
           invite_code: string
@@ -615,6 +621,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          checkin_latitude?: number | null
+          checkin_longitude?: number | null
+          checkin_radius_meters?: number
           created_at?: string
           id?: string
           invite_code: string
@@ -623,6 +632,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          checkin_latitude?: number | null
+          checkin_longitude?: number | null
+          checkin_radius_meters?: number
           created_at?: string
           id?: string
           invite_code?: string
