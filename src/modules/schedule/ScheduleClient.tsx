@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Plus, X, Check, Users, ChevronDown, ChevronRight,
-  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin, Bell, Minus, CalendarOff,
+  Send, Pencil, CalendarDays, ArrowLeft, Clock, MapPin, Bell, Minus, CalendarOff, AlertTriangle, UserCheck,
 } from 'lucide-react';
 import { useEvents, usePublishEvent } from '@/hooks/useEvents';
 import { useOrgStore } from '@/stores/orgStore';
@@ -21,6 +21,8 @@ import {
   useAddPersonToSchedule,
   useRemovePersonFromSchedule,
   useConfirmSchedule,
+  useCheckInSchedule,
+  useEventAssignments,
   useUpdateEventSchedule,
 } from '@/hooks/useSchedule';
 import { resolveFunction, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
@@ -112,11 +114,12 @@ function AddMinistryDialog({
 // ── Person Dialog ────────────────────────────────────────────────────────────
 
 function PersonDialog({
-  open, onOpenChange, mode, eventMinistryId, ministryId, assignedUserIds, editTarget, eventDate, eventTime,
+  open, onOpenChange, mode, eventId, eventMinistryId, ministryId, assignedUserIds, editTarget, eventDate, eventTime,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   mode: 'add' | 'edit';
+  eventId: string;
   eventMinistryId: string;
   ministryId: string;
   assignedUserIds: string[];
@@ -126,8 +129,16 @@ function PersonDialog({
 }) {
   const { data: ministryMembers = [] } = useMinistryMembers(ministryId);
   const { data: unavailabilityByUser } = useOrgUnavailability();
+  const { data: assignments = [] } = useEventAssignments(eventId);
   const addPerson = useAddPersonToSchedule();
   const updateSchedule = useUpdateEventSchedule();
+
+  // Ministérios (deste evento) onde a pessoa já está escalada, fora deste ministério.
+  function conflictMinistries(userId: string): string[] {
+    return [...new Set(
+      assignments.filter((a) => a.userId === userId && a.ministryId !== ministryId).map((a) => a.ministryName),
+    )];
+  }
 
   const typedMinistryMembers = ministryMembers as unknown as MinistryMember[];
 
@@ -216,6 +227,7 @@ function PersonDialog({
                   {available.map((m) => {
                     const name = m.profile?.full_name ?? m.user_id;
                     const conflict = findConflictingUnavailability(unavailabilityByUser?.[m.user_id], eventDate, eventTime);
+                    const scheduleConflicts = conflictMinistries(m.user_id);
                     return (
                       <button key={m.user_id} onClick={() => handleSelectPerson(m.user_id)}
                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-accent transition-colors text-left ${selectedUserId === m.user_id ? 'bg-accent' : ''}`}>
@@ -223,6 +235,11 @@ function PersonDialog({
                           <AvatarFallback className="text-[10px]">{getInitials(name)}</AvatarFallback>
                         </Avatar>
                         <span className="flex-1">{name}</span>
+                        {scheduleConflicts.length > 0 && (
+                          <span title={`Já escalado em: ${scheduleConflicts.join(', ')}`} className="shrink-0">
+                            <AlertTriangle className="h-3.5 w-3.5" style={{ color: '#fbbf24' }} />
+                          </span>
+                        )}
                         {conflict && (
                           <span title={describeUnavailability(conflict)} className="shrink-0">
                             <CalendarOff className="h-3.5 w-3.5" style={{ color: '#f87171' }} />
@@ -236,6 +253,13 @@ function PersonDialog({
                   )}
                 </div>
               </ScrollArea>
+            </div>
+          )}
+          {selectedUserId && conflictMinistries(selectedUserId).length > 0 && (
+            <div className="flex items-start gap-2 rounded-md p-2.5 text-xs"
+              style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24' }}>
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <span>Esta pessoa já está escalada em <strong>{conflictMinistries(selectedUserId).join(', ')}</strong> neste mesmo evento.</span>
             </div>
           )}
           <div>
@@ -288,11 +312,27 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
 
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const { data: unavailabilityByUser } = useOrgUnavailability();
+  const { data: assignments = [] } = useEventAssignments(eventId);
   const removeMinistry = useRemoveMinistryFromEvent();
   const removePerson = useRemovePersonFromSchedule();
   const confirmSchedule = useConfirmSchedule();
+  const checkInSchedule = useCheckInSchedule();
   const { activeMembership } = useOrgStore();
   const currentUserId = activeMembership?.user_id;
+
+  function scheduleConflicts(userId: string): string[] {
+    return [...new Set(
+      assignments.filter((a) => a.userId === userId && a.ministryId !== em.ministry_id).map((a) => a.ministryName),
+    )];
+  }
+
+  async function handleCheckIn(schedule: EventSchedule, checkedIn: boolean) {
+    try {
+      await checkInSchedule.mutateAsync({ id: schedule.id, eventMinistryId: em.id, checkedIn });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro');
+    }
+  }
 
   async function handleRemoveMinistry() {
     try {
@@ -386,6 +426,7 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
               const name = schedule.profile?.full_name ?? schedule.user_id;
               const isLast = idx === schedules.length - 1;
               const conflict = findConflictingUnavailability(unavailabilityByUser?.[schedule.user_id], eventDate, eventTime);
+              const otherMinistries = scheduleConflicts(schedule.user_id);
               return (
                 <div key={schedule.id} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -405,6 +446,11 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       {name}
+                      {otherMinistries.length > 0 && (
+                        <span title={`Também escalado em: ${otherMinistries.join(', ')}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
+                          <AlertTriangle style={{ width: '0.75rem', height: '0.75rem', color: '#fbbf24' }} />
+                        </span>
+                      )}
                       {conflict && (
                         <span title={describeUnavailability(conflict)} style={{ display: 'inline-flex', flexShrink: 0 }}>
                           <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: '#f87171' }} />
@@ -462,6 +508,25 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                     );
                   })()}
 
+                  {/* Check-in de presença — visível para admin/líder, marcado no dia do evento */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleCheckIn(schedule, !schedule.checked_in_at)}
+                      disabled={checkInSchedule.isPending}
+                      title={schedule.checked_in_at ? 'Presente — clique para desmarcar' : 'Marcar presença (check-in)'}
+                      style={{
+                        width: '1.75rem', height: '1.75rem', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: 'none', flexShrink: 0, cursor: 'pointer',
+                        background: schedule.checked_in_at ? 'rgba(165,180,252,0.18)' : 'rgba(255,255,255,0.07)',
+                        color: schedule.checked_in_at ? '#a5b4fc' : 'rgba(255,255,255,0.3)',
+                        transition: 'background 0.12s',
+                      }}
+                    >
+                      <UserCheck style={{ width: '0.85rem', height: '0.85rem' }} />
+                    </button>
+                  )}
+
                   {isAdmin && (
                     <>
                       <button className="dark-icon-btn" onClick={() => setEditTarget(schedule)} title="Editar">
@@ -491,11 +556,11 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
       />
 
       <PersonDialog open={addPersonOpen} onOpenChange={setAddPersonOpen} mode="add"
-        eventMinistryId={em.id} ministryId={em.ministry_id} assignedUserIds={assignedUserIds}
+        eventId={eventId} eventMinistryId={em.id} ministryId={em.ministry_id} assignedUserIds={assignedUserIds}
         eventDate={eventDate} eventTime={eventTime} />
 
       <PersonDialog open={!!editTarget} onOpenChange={(v) => { if (!v) setEditTarget(null); }}
-        mode="edit" eventMinistryId={em.id} ministryId={em.ministry_id}
+        mode="edit" eventId={eventId} eventMinistryId={em.id} ministryId={em.ministry_id}
         assignedUserIds={assignedUserIds} editTarget={editTarget}
         eventDate={eventDate} eventTime={eventTime} />
 

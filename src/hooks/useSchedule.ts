@@ -11,6 +11,8 @@ import {
   addPersonToScheduleAction,
   removePersonFromScheduleAction,
   confirmScheduleAction,
+  checkInScheduleAction,
+  fetchEventAssignmentsAction,
   updateEventScheduleAction,
   reorderEventSetlistAction,
 } from '@/actions/schedule';
@@ -85,6 +87,27 @@ export function useConfirmSchedule() {
     onSuccess: (eventMinistryId) => {
       qc.invalidateQueries({ queryKey: ['event-schedules', eventMinistryId] });
     },
+  });
+}
+
+export function useCheckInSchedule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, eventMinistryId, checkedIn }: {
+      id: string; eventMinistryId: string; checkedIn: boolean;
+    }) => checkInScheduleAction(id, checkedIn).then(() => eventMinistryId),
+    onSuccess: (eventMinistryId) => {
+      qc.invalidateQueries({ queryKey: ['event-schedules', eventMinistryId] });
+    },
+  });
+}
+
+/** Todas as pessoas escaladas num evento, em todos os ministérios — para detetar conflitos de escala. */
+export function useEventAssignments(eventId: string | null) {
+  return useQuery({
+    queryKey: ['event-assignments', eventId],
+    enabled: !!eventId,
+    queryFn: () => fetchEventAssignmentsAction(eventId!),
   });
 }
 

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
-  CalendarDays, Music2, Clock, Plus, CalendarOff,
+  CalendarDays, Music2, Clock, Plus, CalendarOff, AlertTriangle,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrgStore } from '@/stores/orgStore';
@@ -280,6 +280,14 @@ export function EventCreatePanel({ onBack }: Props) {
 
   function getMemberFunctions(ministryId: string, userId: string) {
     return (membersByMinistry[ministryId] ?? []).find((m) => m.userId === userId)?.functions ?? [];
+  }
+
+  // Nomes dos outros ministérios (deste evento) onde a pessoa já está selecionada.
+  function otherMinistriesFor(currentMinistryId: string, userId: string): string[] {
+    return Object.entries(membersByMinistry)
+      .filter(([mid, members]) => mid !== currentMinistryId && members.some((m) => m.userId === userId))
+      .map(([mid]) => (ministries as unknown as Ministry[]).find((m) => m.id === mid)?.name)
+      .filter((name): name is string => !!name);
   }
 
   function toggleMember(ministryId: string, userId: string) {
@@ -662,6 +670,7 @@ export function EventCreatePanel({ onBack }: Props) {
                               const conflict = watchedDate
                                 ? findConflictingUnavailability(unavailabilityByUser?.[rm.userId], watchedDate, watchedTime)
                                 : null;
+                              const otherMinistries = checked ? otherMinistriesFor(ministryId, rm.userId) : [];
                               return (
                                 <div key={rm.userId} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', cursor: 'pointer', background: checked ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}>
@@ -670,6 +679,11 @@ export function EventCreatePanel({ onBack }: Props) {
                                       <AvatarFallback style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{getInitials(name)}</AvatarFallback>
                                     </Avatar>
                                     <span style={{ flex: 1, fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                                    {otherMinistries.length > 0 && (
+                                      <span title={`Também escalado em: ${otherMinistries.join(', ')}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
+                                        <AlertTriangle style={{ width: '0.75rem', height: '0.75rem', color: '#fbbf24' }} />
+                                      </span>
+                                    )}
                                     {conflict && (
                                       <span title={describeUnavailability(conflict)} style={{ display: 'inline-flex', flexShrink: 0 }}>
                                         <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: '#f87171' }} />
