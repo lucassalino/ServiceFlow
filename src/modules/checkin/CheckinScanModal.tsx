@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import QrScanner from 'qr-scanner';
+import jsQR from 'jsqr';
 import { CameraOff } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-
-QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
 
 interface Props {
   open: boolean;
@@ -13,6 +11,14 @@ interface Props {
   /** Chamado com o texto descodificado do QR. */
   onScan: (decodedText: string) => void;
 }
+
+interface BarcodeDetectorResult {
+  rawValue: string;
+}
+interface BarcodeDetectorLike {
+  detect: (source: CanvasImageSource) => Promise<BarcodeDetectorResult[]>;
+}
+type BarcodeDetectorCtor = new (opts: { formats: string[] }) => BarcodeDetectorLike;
 
 function describeCameraError(err: unknown): string {
   const name = err instanceof Error ? err.name : '';
@@ -26,44 +32,102 @@ function describeCameraError(err: unknown): string {
   if (name === 'NotReadableError') {
     return 'A câmara está a ser usada por outra aplicação.';
   }
+  if (name === 'SecurityError' || /insecure|secure context/i.test(message)) {
+    return 'O acesso à câmara requer uma ligação segura (https).';
+  }
   return `Não conseguimos aceder à câmara (${message || name || 'erro desconhecido'}).`;
 }
 
 /** Modal com a câmara ativa para ler o QR code de check-in sem sair da app. */
 export function CheckinScanModal({ open, onOpenChange, onScan }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const scannerRef = useRef<QrScanner | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const detectorRef = useRef<BarcodeDetectorLike | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open || !videoRef.current) return;
+    if (!open) return;
     setError(null);
 
     let cancelled = false;
-    const scanner = new QrScanner(
-      videoRef.current,
-      (result) => { onScan(result.data); onOpenChange(false); },
-      { highlightScanRegion: true, highlightCodeOutline: true, preferredCamera: 'environment' },
-    );
-    scannerRef.current = scanner;
+    const video = videoRef.current;
+    if (!video) return;
 
-    QrScanner.hasCamera()
-      .then((has) => {
-        if (cancelled) return;
-        if (!has) { setError('Não encontrámos nenhuma câmara neste dispositivo.'); return; }
-        return scanner.start();
+    if (!canvasRef.current) canvasRef.current = document.createElement('canvas');
+    const canvas = canvasRef.current;
+
+    const BarcodeDetectorGlobal = (window as unknown as { BarcodeDetector?: BarcodeDetectorCtor }).BarcodeDetector;
+    if (BarcodeDetectorGlobal) {
+      try {
+        detectorRef.current = new BarcodeDetectorGlobal({ formats: ['qr_code'] });
+      } catch {
+        detectorRef.current = null;
+      }
+    }
+
+    const tick = async () => {
+      if (cancelled || !video.videoWidth || !video.videoHeight) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) { rafRef.current = requestAnimationFrame(tick); return; }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      try {
+        if (detectorRef.current) {
+          const results = await detectorRef.current.detect(canvas);
+          if (cancelled) return;
+          if (results.length > 0 && results[0].rawValue) {
+            onScan(results[0].rawValue);
+            onOpenChange(false);
+            return;
+          }
+        } else {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (cancelled) return;
+          if (code && code.data) {
+            onScan(code.data);
+            onOpenChange(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('QR detect failed:', err);
+      }
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'environment' } })
+      .then((stream) => {
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        video.srcObject = stream;
+        video.play().catch(() => {});
+        rafRef.current = requestAnimationFrame(tick);
       })
       .catch((err) => {
         if (cancelled) return;
-        console.error('QrScanner start failed:', err);
+        console.error('getUserMedia failed:', err);
         setError(describeCameraError(err));
       });
 
     return () => {
       cancelled = true;
-      scanner.stop();
-      scanner.destroy();
-      scannerRef.current = null;
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      video.srcObject = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
