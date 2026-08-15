@@ -174,6 +174,33 @@ export async function fetchTodayCheckinOverviewAction(orgId: string): Promise<Ch
 }
 
 /**
+ * Faz check-in/check-out da própria pessoa com um simples botão — sem QR nem
+ * geolocalização. O líder/admin marca os voluntários pela vista de gestão.
+ */
+export async function checkInSelfAction(scheduleId: string, checkedIn: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error('Sessão expirada');
+  const admin = getAdmin();
+
+  const { data: schedule, error: fetchError } = await admin
+    .from('event_schedules')
+    .select('user_id')
+    .eq('id', scheduleId).single();
+  if (fetchError || !schedule) throw new Error('Escala não encontrada');
+  if ((schedule as { user_id: string }).user_id !== user.id) {
+    throw new Error('Só podes confirmar a tua própria presença');
+  }
+
+  const now = new Date().toISOString();
+  const patch = checkedIn ? { checked_in_at: now } : { checked_out_at: now };
+  const { error } = await admin.from('event_schedules').update(patch).eq('id', scheduleId);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * [DESATIVADO por agora — o fluxo de leitura de QR/câmara está comentado na UI;
+ * o check-in faz-se por botão via checkInSelfAction. Mantido para reativação futura.]
  * Faz check-in/check-out da própria pessoa depois de ler, dentro da app, o QR
  * code físico afixado no local — a leitura é a prova de presença (substitui
  * geolocalização). O texto lido tem de corresponder ao link de check-in
