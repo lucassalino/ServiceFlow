@@ -63,32 +63,6 @@ export async function uploadOrgLogoAction(formData: FormData): Promise<string> {
   return logoUrl;
 }
 
-/** Define a localização e o raio de tolerância usados para validar o check-in por QR code. Só admin. */
-export async function updateOrgCheckinLocationAction(
-  orgId: string,
-  payload: { latitude: number; longitude: number; radiusMeters: number },
-): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error('Sessão expirada');
-  const admin = getAdmin();
-
-  const { data: membership } = await admin
-    .from('organization_members').select('role')
-    .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
-  if ((membership as { role?: string } | null)?.role !== 'admin') {
-    throw new Error('Apenas administradores podem definir a localização do check-in');
-  }
-
-  const { error } = await admin.from('organizations').update({
-    checkin_latitude: payload.latitude,
-    checkin_longitude: payload.longitude,
-    checkin_radius_meters: payload.radiusMeters,
-    updated_at: new Date().toISOString(),
-  }).eq('id', orgId);
-  if (error) throw new Error(error.message);
-}
-
 export async function leaveOrganizationAction(orgId: string): Promise<{ error?: string; needsDelete?: boolean }> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
