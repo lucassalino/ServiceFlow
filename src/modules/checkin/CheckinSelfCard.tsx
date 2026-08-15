@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { CheckCircle2, LogOut, QrCode, CalendarX2, Loader2 } from 'lucide-react';
+import { CheckCircle2, LogOut, UserCheck, CalendarX2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useMyCheckinStatus, useCheckInWithScan } from '@/hooks/useCheckin';
+import { useMyCheckinStatus, useCheckInSelf } from '@/hooks/useCheckin';
 import { formatTime } from '@/lib/utils';
-import { CheckinScanModal } from './CheckinScanModal';
+// [DESATIVADO por agora — leitura de QR pela câmara. Para reativar, repor o
+// modal e trocar useCheckInSelf por useCheckInWithScan.]
+// import { useState } from 'react';
+// import { CheckinScanModal } from './CheckinScanModal';
 
 interface Props {
   orgId: string;
@@ -16,24 +18,15 @@ interface Props {
 /** Cartão de auto check-in/check-out — usado tanto para membros como para admin/líder confirmarem a própria presença. */
 export function CheckinSelfCard({ orgId, compact = false }: Props) {
   const { data: status, isLoading } = useMyCheckinStatus(orgId);
-  const checkIn = useCheckInWithScan(orgId);
-  const [scanOpen, setScanOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<boolean | null>(null);
+  const checkIn = useCheckInSelf(orgId);
 
-  function openScanner(checkedIn: boolean) {
-    setPendingAction(checkedIn);
-    setScanOpen(true);
-  }
-
-  async function handleScan(scannedText: string) {
-    if (!status || pendingAction === null) return;
+  async function handleClick(checkedIn: boolean) {
+    if (!status) return;
     try {
-      await checkIn.mutateAsync({ scheduleId: status.scheduleId, checkedIn: pendingAction, scannedText });
-      toast.success(pendingAction ? 'Presença confirmada!' : 'Até à próxima!');
+      await checkIn.mutateAsync({ scheduleId: status.scheduleId, checkedIn });
+      toast.success(checkedIn ? 'Presença confirmada!' : 'Até à próxima!');
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao confirmar presença');
-    } finally {
-      setPendingAction(null);
     }
   }
 
@@ -68,38 +61,34 @@ export function CheckinSelfCard({ orgId, compact = false }: Props) {
   }
 
   return (
-    <>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '1rem',
-        padding: compact ? '0' : '0.5rem 0',
-        flexWrap: 'wrap',
-      }}>
-        <div style={{ flex: 1, minWidth: '10rem' }}>
-          <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>{status.eventName}</p>
-          <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
-            {formatTime(status.eventTime)}
-            {status.checkedInAt && ' · presença confirmada'}
-          </p>
-        </div>
-        <button
-          onClick={() => openScanner(!status.checkedInAt)}
-          disabled={checkIn.isPending}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-            padding: '0.6rem 1.1rem', borderRadius: '0.625rem',
-            fontSize: '0.85rem', fontWeight: 700,
-            background: status.checkedInAt ? 'rgba(255,255,255,0.08)' : '#fff',
-            color: status.checkedInAt ? '#fff' : '#0a0a0e',
-            border: status.checkedInAt ? '1px solid rgba(255,255,255,0.15)' : 'none',
-            cursor: checkIn.isPending ? 'wait' : 'pointer', opacity: checkIn.isPending ? 0.6 : 1,
-          }}
-        >
-          {status.checkedInAt ? <LogOut style={{ width: '0.9rem', height: '0.9rem' }} /> : <QrCode style={{ width: '0.9rem', height: '0.9rem' }} />}
-          {status.checkedInAt ? 'Fazer check-out' : 'Fazer check-in'}
-        </button>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '1rem',
+      padding: compact ? '0' : '0.5rem 0',
+      flexWrap: 'wrap',
+    }}>
+      <div style={{ flex: 1, minWidth: '10rem' }}>
+        <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>{status.eventName}</p>
+        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+          {formatTime(status.eventTime)}
+          {status.checkedInAt && ' · presença confirmada'}
+        </p>
       </div>
-
-      <CheckinScanModal open={scanOpen} onOpenChange={setScanOpen} onScan={handleScan} />
-    </>
+      <button
+        onClick={() => handleClick(!status.checkedInAt)}
+        disabled={checkIn.isPending}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+          padding: '0.6rem 1.1rem', borderRadius: '0.625rem',
+          fontSize: '0.85rem', fontWeight: 700,
+          background: status.checkedInAt ? 'rgba(255,255,255,0.08)' : '#fff',
+          color: status.checkedInAt ? '#fff' : '#0a0a0e',
+          border: status.checkedInAt ? '1px solid rgba(255,255,255,0.15)' : 'none',
+          cursor: checkIn.isPending ? 'wait' : 'pointer', opacity: checkIn.isPending ? 0.6 : 1,
+        }}
+      >
+        {status.checkedInAt ? <LogOut style={{ width: '0.9rem', height: '0.9rem' }} /> : <UserCheck style={{ width: '0.9rem', height: '0.9rem' }} />}
+        {status.checkedInAt ? 'Fazer check-out' : 'Fazer check-in'}
+      </button>
+    </div>
   );
 }

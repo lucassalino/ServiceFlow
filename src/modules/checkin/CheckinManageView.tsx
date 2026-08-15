@@ -6,7 +6,8 @@ import { useTodayCheckinOverview } from '@/hooks/useCheckin';
 import { useCheckInSchedule } from '@/hooks/useSchedule';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials, formatTime } from '@/lib/utils';
-import { CheckinQrSection } from './CheckinQrSection';
+// [DESATIVADO por agora — fluxo de QR/câmara. Para reativar, repor a secção abaixo.]
+// import { CheckinQrSection } from './CheckinQrSection';
 import { CheckinSelfCard } from './CheckinSelfCard';
 
 interface Props { orgId: string }
@@ -137,7 +138,7 @@ export function CheckinManageView({ orgId }: Props) {
           </div>
         )}
 
-        {/* ── QR code ─────────────────────────────────────── */}
+        {/* ── QR code ── [DESATIVADO por agora — o check-in faz-se por botão] ──
         <div style={{
           background: 'rgba(22,22,26,0.85)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -150,6 +151,7 @@ export function CheckinManageView({ orgId }: Props) {
             <CheckinQrSection orgId={orgId} />
           </div>
         </div>
+        */}
       </div>
     </div>
   );

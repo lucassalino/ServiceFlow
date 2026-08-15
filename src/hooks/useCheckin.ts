@@ -1,7 +1,7 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchMyCheckinStatusAction, checkInWithScanAction, fetchTodayCheckinOverviewAction,
+  fetchMyCheckinStatusAction, checkInSelfAction, checkInWithScanAction, fetchTodayCheckinOverviewAction,
   type CheckinStatus, type CheckinOverviewEvent,
 } from '@/actions/checkin';
 
@@ -14,6 +14,20 @@ export function useMyCheckinStatus(orgId: string | null) {
   });
 }
 
+export function useCheckInSelf(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ scheduleId, checkedIn }: { scheduleId: string; checkedIn: boolean }) =>
+      checkInSelfAction(scheduleId, checkedIn),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-checkin-status', orgId] });
+      qc.invalidateQueries({ queryKey: ['event-schedules'] });
+      qc.invalidateQueries({ queryKey: ['today-checkin-overview', orgId] });
+    },
+  });
+}
+
+/** [DESATIVADO por agora — fluxo de QR/câmara comentado na UI.] */
 export function useCheckInWithScan(orgId: string | null) {
   const qc = useQueryClient();
   return useMutation({
