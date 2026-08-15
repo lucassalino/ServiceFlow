@@ -18,8 +18,6 @@ export interface CheckinStatus {
   eventTime: string;
   checkedInAt: string | null;
   checkedOutAt: string | null;
-  orgHasLocation: boolean;
-  orgRadiusMeters: number;
 }
 
 function todayISODate(): string {
@@ -42,11 +40,6 @@ export async function fetchMyCheckinStatusAction(orgId: string): Promise<Checkin
     .from('organization_members').select('id')
     .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
   if (!membership) throw new Error('Não pertences a esta organização');
-
-  const { data: org } = await admin
-    .from('organizations').select('checkin_latitude, checkin_longitude, checkin_radius_meters')
-    .eq('id', orgId).single();
-  if (!org) throw new Error('Organização não encontrada');
 
   const today = todayISODate();
   const { data: events } = await admin
@@ -94,8 +87,6 @@ export async function fetchMyCheckinStatusAction(orgId: string): Promise<Checkin
     eventTime: best.event.time,
     checkedInAt: best.sched.checked_in_at,
     checkedOutAt: best.sched.checked_out_at,
-    orgHasLocation: org.checkin_latitude !== null && org.checkin_longitude !== null,
-    orgRadiusMeters: org.checkin_radius_meters,
   };
 }
 
@@ -182,23 +173,16 @@ export async function fetchTodayCheckinOverviewAction(orgId: string): Promise<Ch
   }));
 }
 
-function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 /**
- * Faz check-in/check-out da própria pessoa via QR code, validando que está
- * dentro do raio definido para a organização (quando configurado).
+ * Faz check-in/check-out da própria pessoa depois de ler, dentro da app, o QR
+ * code físico afixado no local — a leitura é a prova de presença (substitui
+ * geolocalização). O texto lido tem de corresponder ao link de check-in
+ * desta organização.
  */
-export async function checkInWithLocationAction(
+export async function checkInWithScanAction(
   scheduleId: string,
   checkedIn: boolean,
-  location: { latitude: number; longitude: number } | null,
+  scannedText: string,
 ): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -215,16 +199,8 @@ export async function checkInWithLocationAction(
   const orgId = row.event_ministry?.event?.org_id;
   if (!orgId) throw new Error('Evento não encontrado');
 
-  const { data: org } = await admin
-    .from('organizations').select('checkin_latitude, checkin_longitude, checkin_radius_meters')
-    .eq('id', orgId).single();
-
-  if (org && org.checkin_latitude !== null && org.checkin_longitude !== null) {
-    if (!location) throw new Error('Não conseguimos aceder à tua localização. Ativa o GPS e tenta novamente.');
-    const distance = haversineMeters(location.latitude, location.longitude, org.checkin_latitude, org.checkin_longitude);
-    if (distance > org.checkin_radius_meters) {
-      throw new Error(`Estás a ${Math.round(distance)}m do local — precisa estar a menos de ${org.checkin_radius_meters}m para confirmar presença.`);
-    }
+  if (!scannedText.includes(`/${orgId}/checkin`)) {
+    throw new Error('Esse QR code não é o de check-in desta organização.');
   }
 
   const now = new Date().toISOString();

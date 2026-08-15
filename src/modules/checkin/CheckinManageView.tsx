@@ -4,15 +4,14 @@ import { toast } from 'sonner';
 import { CalendarX2, UserCheck, Check, Minus } from 'lucide-react';
 import { useTodayCheckinOverview } from '@/hooks/useCheckin';
 import { useCheckInSchedule } from '@/hooks/useSchedule';
-import { useOrgStore } from '@/stores/orgStore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials, formatTime } from '@/lib/utils';
 import { CheckinQrSection } from './CheckinQrSection';
+import { CheckinSelfCard } from './CheckinSelfCard';
 
 interface Props { orgId: string }
 
 export function CheckinManageView({ orgId }: Props) {
-  const { activeOrg } = useOrgStore();
   const { data: events = [], isLoading } = useTodayCheckinOverview(orgId);
   const checkInSchedule = useCheckInSchedule();
 
@@ -39,6 +38,18 @@ export function CheckinManageView({ orgId }: Props) {
           <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
             Quem já confirmou presença nos eventos de hoje
           </p>
+        </div>
+
+        {/* ── A tua presença ─────────────────────────────── */}
+        <div style={{
+          background: 'rgba(22,22,26,0.85)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '0.875rem', padding: '1rem 1.125rem',
+        }}>
+          <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '0.5rem' }}>
+            A tua presença
+          </p>
+          <CheckinSelfCard orgId={orgId} compact />
         </div>
 
         {/* ── Today's events ────────────────────────────── */}
@@ -126,26 +137,19 @@ export function CheckinManageView({ orgId }: Props) {
           </div>
         )}
 
-        {/* ── QR code / configuração ────────────────────── */}
-        {activeOrg && (
-          <div style={{
-            background: 'rgba(22,22,26,0.85)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '0.875rem', overflow: 'hidden',
-          }}>
-            <div style={{ padding: '0.9rem 1.125rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>QR code e localização</h2>
-            </div>
-            <div style={{ padding: '1.25rem' }}>
-              <CheckinQrSection
-                orgId={orgId}
-                initialLatitude={activeOrg.checkin_latitude}
-                initialLongitude={activeOrg.checkin_longitude}
-                initialRadiusMeters={activeOrg.checkin_radius_meters}
-              />
-            </div>
+        {/* ── QR code ─────────────────────────────────────── */}
+        <div style={{
+          background: 'rgba(22,22,26,0.85)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '0.875rem', overflow: 'hidden',
+        }}>
+          <div style={{ padding: '0.9rem 1.125rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>QR code de check-in</h2>
           </div>
-        )}
+          <div style={{ padding: '1.25rem' }}>
+            <CheckinQrSection orgId={orgId} />
+          </div>
+        </div>
       </div>
     </div>
   );

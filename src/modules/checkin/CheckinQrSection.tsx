@@ -2,25 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { MapPin, Loader2, Copy, Check } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useUpdateOrgCheckinLocation } from '@/hooks/useCheckin';
 
 interface Props {
   orgId: string;
-  initialLatitude: number | null;
-  initialLongitude: number | null;
-  initialRadiusMeters: number;
 }
 
-export function CheckinQrSection({ orgId, initialLatitude, initialLongitude, initialRadiusMeters }: Props) {
-  const updateLocation = useUpdateOrgCheckinLocation();
-  const [latitude, setLatitude] = useState(initialLatitude);
-  const [longitude, setLongitude] = useState(initialLongitude);
-  const [radiusMeters, setRadiusMeters] = useState(initialRadiusMeters);
-  const [capturing, setCapturing] = useState(false);
+export function CheckinQrSection({ orgId }: Props) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -37,37 +27,6 @@ export function CheckinQrSection({ orgId, initialLatitude, initialLongitude, ini
       .then(setQrDataUrl).catch(() => setQrDataUrl(null));
   }, [checkinUrl]);
 
-  function handleCapture() {
-    if (!('geolocation' in navigator)) {
-      toast.error('O teu navegador não suporta geolocalização');
-      return;
-    }
-    setCapturing(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLatitude(pos.coords.latitude);
-        setLongitude(pos.coords.longitude);
-        setCapturing(false);
-        toast.success('Localização capturada — guarda para aplicar');
-      },
-      () => { setCapturing(false); toast.error('Não foi possível obter a localização'); },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  }
-
-  async function handleSave() {
-    if (latitude === null || longitude === null) {
-      toast.error('Captura a localização primeiro');
-      return;
-    }
-    try {
-      await updateLocation.mutateAsync({ orgId, latitude, longitude, radiusMeters });
-      toast.success('Localização de check-in guardada');
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao guardar');
-    }
-  }
-
   async function handleCopy() {
     await navigator.clipboard.writeText(checkinUrl);
     setCopied(true);
@@ -78,8 +37,8 @@ export function CheckinQrSection({ orgId, initialLatitude, initialLongitude, ini
   return (
     <div className="dark-inputs space-y-4">
       <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
-        Imprime o QR code abaixo e cola-o à entrada. Ao abrir o link, a pessoa escalada confirma presença —
-        se definires uma localização, só é aceite dentro do raio configurado.
+        Imprime o QR code abaixo e cola-o à entrada. Cada pessoa escalada lê o código pela câmara
+        (dentro da app, no botão de check-in/check-out) para confirmar presença.
       </p>
 
       {qrDataUrl && (
@@ -104,51 +63,6 @@ export function CheckinQrSection({ orgId, initialLatitude, initialLongitude, ini
           {copied ? <Check style={{ width: '0.8rem', height: '0.8rem' }} /> : <Copy style={{ width: '0.8rem', height: '0.8rem' }} />}
         </button>
       </div>
-
-      <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-
-      <div className="space-y-1.5">
-        <Label>Localização da igreja</Label>
-        <button
-          type="button"
-          onClick={handleCapture}
-          disabled={capturing}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.5rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
-            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
-            borderRadius: '0.5rem', color: 'rgba(255,255,255,0.85)',
-            cursor: capturing ? 'wait' : 'pointer', opacity: capturing ? 0.6 : 1,
-          }}
-        >
-          {capturing ? <Loader2 className="animate-spin" style={{ width: '0.9rem', height: '0.9rem' }} /> : <MapPin style={{ width: '0.9rem', height: '0.9rem' }} />}
-          {capturing ? 'A obter localização…' : 'Usar a minha localização atual'}
-        </button>
-        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>
-          Fica junto da entrada da igreja e clica no botão para capturar a coordenada.
-          {latitude !== null && longitude !== null && (
-            <> Atual: {latitude.toFixed(5)}, {longitude.toFixed(5)}.</>
-          )}
-        </p>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="checkin-radius">Raio de tolerância (metros)</Label>
-        <Input
-          id="checkin-radius" type="number" min={20} max={2000}
-          value={radiusMeters}
-          onChange={(e) => setRadiusMeters(Number(e.target.value) || 150)}
-        />
-      </div>
-
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={updateLocation.isPending || latitude === null}
-        className="dark-primary-btn"
-      >
-        {updateLocation.isPending ? 'A guardar…' : 'Guardar localização de check-in'}
-      </button>
     </div>
   );
 }
