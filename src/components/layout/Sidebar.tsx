@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, Users, Music2, BookOpen,
   Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X, KeyRound, Megaphone, QrCode,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOrgStore } from '@/stores/orgStore';
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: 'schedule',   label: 'Escalas',     icon: CalendarCheck },
   { href: 'calendar',   label: 'Calendário',  icon: CalendarDays },
   { href: 'checkin',    label: 'Check-in',    icon: QrCode },
+  { href: 'liturgies',  label: 'Roteiros',    icon: ClipboardList },
   { href: 'availability', label: 'Indisponibilidade', icon: CalendarOff },
   { href: 'members',    label: 'Pessoas',     icon: Users },
   { href: 'ministries', label: 'Ministérios', icon: Music2 },
