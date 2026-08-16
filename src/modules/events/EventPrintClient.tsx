@@ -21,49 +21,47 @@ export function EventPrintClient({ orgId, eventId }: Props) {
   const { data: timeline = [] } = useEventTimeline(event?.id ?? null);
 
   if (eventsLoading) {
-    return <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', color: '#3f3f46' }}>A carregar…</div>;
+    return (
+      <div className="dash-purple-bg" style={{ minHeight: '100vh', padding: '2rem', color: 'rgba(255,255,255,0.5)' }}>
+        A carregar…
+      </div>
+    );
   }
 
   if (!event) {
     return (
-      <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', color: '#3f3f46' }}>
-        <p style={{ marginBottom: '0.75rem' }}>Evento não encontrado.</p>
-        <Link href={`/${orgId}/events`} style={{ color: '#18181b' }}>Voltar aos eventos</Link>
+      <div className="dash-purple-bg" style={{ minHeight: '100vh', padding: '2rem' }}>
+        <p style={{ marginBottom: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Evento não encontrado.</p>
+        <Link href={`/${orgId}/events`} style={{ color: '#fff' }}>Voltar aos eventos</Link>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#e4e4e7' }}>
+    <div className="dash-purple-bg" style={{ minHeight: '100vh' }}>
       {/* Barra de ações — não sai impressa */}
       <div className="no-print" style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '1rem 1.5rem', borderBottom: '1px solid #d4d4d8',
-        background: '#fff', position: 'sticky', top: 0, zIndex: 10,
+        padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(10,10,14,0.9)', backdropFilter: 'blur(12px)',
+        position: 'sticky', top: 0, zIndex: 10,
       }}>
         <Link href={`/${orgId}/events?event=${event.id}`} style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-          fontSize: '0.85rem', color: '#52525b', textDecoration: 'none',
+          fontSize: '0.85rem', color: 'rgba(255,255,255,0.55)', textDecoration: 'none',
         }}>
           <ArrowLeft size={16} /> Voltar ao evento
         </Link>
-        <button
-          onClick={() => window.print()}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.5rem 1.1rem', borderRadius: '0.5rem',
-            background: '#18181b', color: '#fff',
-            fontSize: '0.85rem', fontWeight: 600, border: 'none', cursor: 'pointer',
-          }}
-        >
+        <button onClick={() => window.print()} className="dark-primary-btn">
           <Printer size={16} /> Imprimir / Guardar PDF
         </button>
       </div>
 
-      {/* Conteúdo imprimível */}
+      {/* Folha imprimível — mantém-se branca (é o que sai no PDF) */}
       <div id="print-area" style={{
-        maxWidth: '780px', margin: '0 auto', padding: '2.5rem 2rem',
+        maxWidth: '780px', margin: '2rem auto', padding: '2.5rem 2rem',
         background: '#fff', color: '#18181b', fontFamily: 'system-ui, sans-serif',
+        borderRadius: '0.75rem', boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
       }}>
         <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a' }}>
           {activeOrg?.name ?? 'Roteiro do evento'}
