@@ -400,6 +400,60 @@ export type Database = {
           },
         ]
       }
+      liturgies: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string | null
+          id: string
+          key_verse: string
+          moments: Json
+          name: string
+          org_id: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date?: string | null
+          id?: string
+          key_verse?: string
+          moments?: Json
+          name: string
+          org_id: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string | null
+          id?: string
+          key_verse?: string
+          moments?: Json
+          name?: string
+          org_id?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liturgies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "liturgies_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ministries: {
         Row: {
           color: string

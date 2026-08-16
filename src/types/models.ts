@@ -49,6 +49,24 @@ export interface Announcement {
   created_by: string; created_at: string; updated_at: string;
   profile?: UserProfile;
 }
+/** Um momento do roteiro de culto (estrutura herdada da app HolyFlow). */
+export interface LiturgyMoment {
+  nome: string;
+  tipo: 'pessoa' | 'video' | 'projecao';
+  responsavel: string;
+  duracao: string;
+  obs: string;
+  palavraTema: string;
+  palavraTexto: string;
+  musicas: string[];
+  avisos: string[];
+}
+export interface Liturgy {
+  id: string; org_id: string; name: string; date: string | null;
+  theme: string; key_verse: string; moments: LiturgyMoment[];
+  created_by: string; created_at: string; updated_at: string;
+  profile?: UserProfile;
+}
 export interface Song {
   id: string; org_id: string; name: string; artist: string | null;
   musical_key: string | null; bpm: number | null; ministry_id: string | null;
