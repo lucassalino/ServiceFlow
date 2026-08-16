@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus, GripVertical } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus, GripVertical, ChevronDown, ClipboardList, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useLiturgies } from '@/hooks/useLiturgies';
 import { SongDetailPanel } from '@/modules/songs/SongDetailPanel';
 import { ConfirmAttendanceDialog } from '@/components/ConfirmAttendanceDialog';
 
@@ -100,25 +102,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
 
           {canManage && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {activeOrg?.id && (
-                <Link href={`/${activeOrg.id}/events/${event.id}/print`} target="_blank" rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                    padding: '0.375rem 0.875rem',
-                    fontSize: '0.775rem', fontWeight: 500,
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: '0.5rem',
-                    color: 'rgba(255,255,255,0.7)', cursor: 'pointer', textDecoration: 'none',
-                    transition: 'background 0.12s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
-                >
-                  <Printer style={{ width: '0.8rem', height: '0.8rem' }} />
-                  Exportar
-                </Link>
-              )}
+              {activeOrg?.id && <ExportMenu orgId={activeOrg.id} eventId={event.id} />}
               <button onClick={onEdit} style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                 padding: '0.375rem 0.875rem',
@@ -857,5 +841,102 @@ function YoutubePlaylistButton({ songs }: { songs: Song[] }) {
         <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.5 }} />
       </a>
     </div>
+  );
+}
+
+// ── Menu de exportação ──────────────────────────────────────────────────────
+
+/**
+ * Substitui o antigo botão único "Exportar": além da escala/setlist do evento,
+ * permite gerar o PDF do roteiro de culto associado a este evento.
+ */
+function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
+  const [open, setOpen] = useState(false);
+  const { data: liturgies = [] } = useLiturgies();
+  const liturgy = liturgies.find((l) => l.event_id === eventId) ?? null;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+          padding: '0.375rem 0.875rem',
+          fontSize: '0.775rem', fontWeight: 500,
+          background: 'rgba(255,255,255,0.07)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: '0.5rem',
+          color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+          transition: 'background 0.12s',
+        }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+        >
+          <Printer style={{ width: '0.8rem', height: '0.8rem' }} />
+          Exportar
+          <ChevronDown style={{ width: '0.7rem', height: '0.7rem', opacity: 0.6 }} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64" style={{
+        background: '#16161a', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '0.75rem', overflow: 'hidden', padding: '0.3rem',
+      }}>
+        <ExportMenuItem
+          href={`/${orgId}/events/${eventId}/print`}
+          icon={<Users style={{ width: '0.9rem', height: '0.9rem' }} />}
+          title="Escala e setlist"
+          subtitle="Quem está escalado, roteiro e músicas"
+          onNavigate={() => setOpen(false)}
+        />
+        {liturgy ? (
+          <ExportMenuItem
+            href={`/${orgId}/liturgies/${liturgy.id}/print?print=1`}
+            icon={<ClipboardList style={{ width: '0.9rem', height: '0.9rem' }} />}
+            title="Roteiro do culto"
+            subtitle={`${liturgy.moments.length} momento${liturgy.moments.length !== 1 ? 's' : ''} · PDF`}
+            onNavigate={() => setOpen(false)}
+          />
+        ) : (
+          <div style={{ display: 'flex', gap: '0.6rem', padding: '0.6rem 0.7rem' }}>
+            <FileText style={{ width: '0.9rem', height: '0.9rem', color: 'rgba(255,255,255,0.2)', flexShrink: 0, marginTop: '0.1rem' }} />
+            <div>
+              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)' }}>
+                Roteiro do culto
+              </p>
+              <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.1rem' }}>
+                Nenhum roteiro associado. Cria um em Roteiros e escolhe este evento.
+              </p>
+            </div>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ExportMenuItem({ href, icon, title, subtitle, onNavigate }: {
+  href: string; icon: React.ReactNode; title: string; subtitle: string; onNavigate: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onNavigate}
+      style={{
+        display: 'flex', gap: '0.6rem', padding: '0.6rem 0.7rem',
+        borderRadius: '0.5rem', textDecoration: 'none',
+        color: 'rgba(255,255,255,0.8)', transition: 'background 0.12s',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+    >
+      <span style={{ flexShrink: 0, marginTop: '0.1rem', color: 'rgba(255,255,255,0.5)' }}>{icon}</span>
+      <span>
+        <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{title}</span>
+        <span style={{ display: 'block', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem' }}>
+          {subtitle}
+        </span>
+      </span>
+    </Link>
   );
 }

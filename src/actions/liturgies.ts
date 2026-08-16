@@ -61,6 +61,8 @@ export async function fetchLiturgiesAction(orgId: string): Promise<Liturgy[]> {
 
 export interface LiturgyPayload {
   name: string;
+  /** Evento a que este roteiro pertence (opcional). */
+  event_id: string | null;
   date: string | null;
   theme: string;
   key_verse: string;
@@ -76,6 +78,7 @@ export async function createLiturgyAction(orgId: string, payload: LiturgyPayload
   const { data, error } = await admin.from('liturgies')
     .insert({
       org_id: orgId,
+      event_id: payload.event_id || null,
       name: payload.name.trim() || 'Sem título',
       date: payload.date || null,
       theme: payload.theme.trim(),
@@ -98,6 +101,7 @@ export async function updateLiturgyAction(id: string, payload: LiturgyPayload): 
   await requireAdminOrLeader((existing as { org_id: string }).org_id, user.id);
   const { error } = await admin.from('liturgies')
     .update({
+      event_id: payload.event_id || null,
       name: payload.name.trim() || 'Sem título',
       date: payload.date || null,
       theme: payload.theme.trim(),

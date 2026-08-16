@@ -8,6 +8,8 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities';
 import type { Liturgy, LiturgyMoment } from '@/types/models';
 import { useCreateLiturgy, useUpdateLiturgy } from '@/hooks/useLiturgies';
+import { useEvents } from '@/hooks/useEvents';
+import { formatDate } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LiturgyMomentDialog } from './LiturgyMomentDialog';
@@ -27,6 +29,9 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
   const createLiturgy = useCreateLiturgy();
   const updateLiturgy = useUpdateLiturgy();
 
+  const { data: events = [] } = useEvents();
+
+  const [eventId, setEventId] = useState(liturgy?.event_id ?? '');
   const [name, setName] = useState(liturgy?.name ?? '');
   const [date, setDate] = useState(liturgy?.date ?? todayISO());
   const [theme, setTheme] = useState(liturgy?.theme ?? '');
@@ -49,6 +54,15 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
     const from = Number(active.id);
     const to = Number(over.id);
     setMoments((prev) => arrayMove(prev, from, to));
+  }
+
+  /** Ao escolher um evento, herda o nome e a data — poupa escrever o óbvio. */
+  function handleEventChange(value: string) {
+    setEventId(value);
+    const ev = events.find((e) => e.id === value);
+    if (!ev) return;
+    if (!name.trim()) setName(ev.name);
+    setDate(ev.date);
   }
 
   function openNewMoment() {
@@ -81,6 +95,7 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
     }
     const payload = {
       name: name.trim(),
+      event_id: eventId || null,
       date: date || null,
       theme: theme.trim(),
       key_verse: keyVerse.trim(),
@@ -124,6 +139,25 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '0.875rem', padding: '1.25rem',
         }} className="space-y-3.5">
+          <div className="space-y-1.5">
+            <Label htmlFor="lit-event">Evento (opcional)</Label>
+            <select
+              id="lit-event"
+              value={eventId}
+              onChange={(e) => handleEventChange(e.target.value)}
+              className="dark-select"
+            >
+              <option value="">— Sem evento associado —</option>
+              {events.map((ev) => (
+                <option key={ev.id} value={ev.id}>
+                  {ev.name} — {formatDate(ev.date)}
+                </option>
+              ))}
+            </select>
+            <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+              Ao associar, o evento passa a exportar este roteiro em PDF.
+            </p>
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="lit-name">Nome do culto</Label>
             <Input id="lit-name" value={name} onChange={(e) => setName(e.target.value)}

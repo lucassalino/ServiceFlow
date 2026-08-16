@@ -62,7 +62,8 @@ export interface LiturgyMoment {
   avisos: string[];
 }
 export interface Liturgy {
-  id: string; org_id: string; name: string; date: string | null;
+  id: string; org_id: string; event_id: string | null;
+  name: string; date: string | null;
   theme: string; key_verse: string; moments: LiturgyMoment[];
   created_by: string; created_at: string; updated_at: string;
   profile?: UserProfile;
