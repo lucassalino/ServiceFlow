@@ -77,16 +77,16 @@ export function RegisterForm({ className }: { className?: string }) {
     return (
       <div className={cn('flex flex-col items-center text-center gap-3 py-4', className)}>
         <div className="flex h-12 w-12 items-center justify-center rounded-full"
-          style={{ background: 'rgba(110,231,183,0.15)', border: '1px solid rgba(110,231,183,0.3)' }}>
-          <MailCheck className="h-6 w-6" style={{ color: '#6ee7b7' }} />
+          style={{ background: 'var(--wis-success-bg)', border: '1px solid #bfe6d3' }}>
+          <MailCheck className="h-6 w-6" style={{ color: 'var(--wis-success)' }} />
         </div>
-        <h3 className="text-base font-semibold text-white">Confirma o teu email</h3>
-        <p className="text-[13px] text-white/50 leading-relaxed">
+        <h3 className="text-base font-semibold text-[color:var(--wis-text)]">Confirma o teu email</h3>
+        <p className="text-[13px] text-[color:var(--wis-text-2)] leading-relaxed">
           Enviámos um link de confirmação para<br />
-          <span className="text-white/80 font-medium">{sentTo}</span>.<br />
+          <span className="text-[color:var(--wis-text)] font-medium">{sentTo}</span>.<br />
           Abre-o para ativares a conta e entrares.
         </p>
-        <p className="text-[12px] text-white/35 mt-1">
+        <p className="text-[12px] text-[color:var(--wis-text-3)] mt-1">
           Não recebeste? Verifica o spam ou tenta registar novamente.
         </p>
       </div>
@@ -141,7 +141,7 @@ export function RegisterForm({ className }: { className?: string }) {
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? 'Ocultar password' : 'Ver password'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--wis-text-3)] hover:text-[color:var(--wis-text)] transition-colors"
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
@@ -166,7 +166,7 @@ export function RegisterForm({ className }: { className?: string }) {
             type="button"
             onClick={() => setShowConfirm((v) => !v)}
             aria-label={showConfirm ? 'Ocultar password' : 'Ver password'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--wis-text-3)] hover:text-[color:var(--wis-text)] transition-colors"
           >
             {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
@@ -180,16 +180,16 @@ export function RegisterForm({ className }: { className?: string }) {
         <input
           id="acceptTerms"
           type="checkbox"
-          className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-transparent accent-current"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--wis-border-strong)] bg-transparent accent-current"
           {...register('acceptTerms')}
         />
-        <Label htmlFor="acceptTerms" className="text-[13px] font-normal leading-snug text-white/60">
+        <Label htmlFor="acceptTerms" className="text-[13px] font-normal leading-snug text-[color:var(--wis-text-2)]">
           Li e aceito os{' '}
-          <a href="/termos" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/85">
+          <a href="/termos" target="_blank" rel="noopener noreferrer" className="underline hover:text-[color:var(--wis-text)]">
             Termos de Uso
           </a>{' '}
           e a{' '}
-          <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/85">
+          <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="underline hover:text-[color:var(--wis-text)]">
             Política de Privacidade
           </a>
         </Label>

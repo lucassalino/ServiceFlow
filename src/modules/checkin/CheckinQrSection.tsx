@@ -23,7 +23,7 @@ export function CheckinQrSection({ orgId }: Props) {
 
   useEffect(() => {
     if (!checkinUrl) return;
-    QRCode.toDataURL(checkinUrl, { width: 240, margin: 1, color: { dark: '#0a0a0e', light: '#ffffff' } })
+    QRCode.toDataURL(checkinUrl, { width: 240, margin: 1, color: { dark: 'var(--wis-surface)', light: 'var(--wis-surface)' } })
       .then(setQrDataUrl).catch(() => setQrDataUrl(null));
   }, [checkinUrl]);
 
@@ -36,7 +36,7 @@ export function CheckinQrSection({ orgId }: Props) {
 
   return (
     <div className="dark-inputs space-y-4">
-      <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', lineHeight: 1.5 }}>
         Imprime o QR code abaixo e cola-o à entrada. Cada pessoa escalada lê o código pela câmara
         (dentro da app, no botão de check-in/check-out) para confirmar presença.
       </p>
@@ -56,8 +56,8 @@ export function CheckinQrSection({ orgId }: Props) {
           style={{
             flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
             padding: '0 0.9rem', fontSize: '0.8rem', fontWeight: 600,
-            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
-            borderRadius: '0.5rem', color: copied ? '#6ee7b7' : 'rgba(255,255,255,0.85)', cursor: 'pointer',
+            background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+            borderRadius: '0.5rem', color: copied ? 'var(--wis-success)' : 'var(--wis-text)', cursor: 'pointer',
           }}
         >
           {copied ? <Check style={{ width: '0.8rem', height: '0.8rem' }} /> : <Copy style={{ width: '0.8rem', height: '0.8rem' }} />}

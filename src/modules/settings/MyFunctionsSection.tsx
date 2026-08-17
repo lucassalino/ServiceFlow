@@ -49,7 +49,7 @@ export function MyFunctionsSection({ orgId }: { orgId: string }) {
 
   return (
     <div className="space-y-4">
-      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', lineHeight: 1.6 }}>
         Escolhe os ministérios onde serves e, em cada um, as tuas funções. As tuas
         funções ficam guardadas e são pré-preenchidas quando entras noutra organização.
       </p>

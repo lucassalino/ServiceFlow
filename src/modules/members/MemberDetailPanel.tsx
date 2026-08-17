@@ -19,7 +19,7 @@ const ROLE_LABEL: Record<OrgRole, string> = {
   admin: 'Administrador', leader: 'Líder', member: 'Membro',
 };
 const ROLE_COLOR: Record<OrgRole, string> = {
-  admin: '#c4b5fd', leader: '#93c5fd', member: 'rgba(255,255,255,0.45)',
+  admin: 'var(--wis-blue-soft)', leader: 'var(--wis-blue-soft)', member: 'var(--wis-surface-4)',
 };
 
 interface Props {
@@ -84,12 +84,12 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Pessoas
@@ -101,12 +101,12 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                 padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                 transition: 'background 0.12s', whiteSpace: 'nowrap',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
             >
               <History style={{ width: '0.8rem', height: '0.8rem' }} />
               Histórico
@@ -118,12 +118,12 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                   padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                  borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                   transition: 'background 0.12s', whiteSpace: 'nowrap',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
               >
                 <Pencil style={{ width: '0.8rem', height: '0.8rem' }} />
                 Gerir ministérios
@@ -138,21 +138,21 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
           {/* Left: Profile card */}
           <div style={{
             padding: '1.75rem', borderRadius: '1.25rem',
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.875rem' }}>
               <Avatar className="h-20 w-20">
                 {member.profile?.avatar_url && <AvatarImage src={member.profile.avatar_url} alt={name} />}
                 <AvatarFallback style={{
                   fontSize: '1.4rem', fontWeight: 700,
-                  background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
+                  background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
                 }}>
                   {getInitials(name)}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h1 style={{
-                  fontSize: '1.3rem', fontWeight: 800, color: '#fff',
+                  fontSize: '1.3rem', fontWeight: 800, color: 'var(--wis-text)',
                   letterSpacing: '-0.02em', margin: '0 0 0.5rem',
                 }}>
                   {name}
@@ -170,8 +170,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                     <span style={{
                       fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.6rem',
                       borderRadius: '9999px',
-                      background: 'rgba(239,68,68,0.12)', color: '#f87171',
-                      border: '1px solid rgba(248,113,113,0.25)',
+                      background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)',
+                      border: '1px solid #f5c9cb',
                     }}>
                       Inactivo
                     </span>
@@ -180,14 +180,14 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               </div>
               <div style={{
                 width: '100%', paddingTop: '0.875rem',
-                borderTop: '1px solid rgba(255,255,255,0.07)',
+                borderTop: '1px solid var(--wis-border)',
               }}>
                 {isAdmin && (
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', margin: '0 0 0.25rem', wordBreak: 'break-all' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)', margin: '0 0 0.25rem', wordBreak: 'break-all' }}>
                     {member.profile?.email}
                   </p>
                 )}
-                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', margin: 0 }}>
                   Desde {joinedDate}
                 </p>
               </div>
@@ -197,12 +197,12 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
           {/* Right: Ministries */}
           <div style={{
             padding: '1.5rem', borderRadius: '1.25rem',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
               <p style={{
                 fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', margin: 0,
+                textTransform: 'uppercase', color: 'var(--wis-text-3)', margin: 0,
               }}>
                 Ministérios · {assignments.length}
               </p>
@@ -211,12 +211,12 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                   onClick={() => setShowMinistriesPanel(true)}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                    fontSize: '0.7rem', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
+                    fontSize: '0.7rem', fontWeight: 500, color: 'var(--wis-text-3)',
                     background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                     transition: 'color 0.12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
                 >
                   <Pencil style={{ width: '0.7rem', height: '0.7rem' }} />
                   Editar
@@ -229,13 +229,13 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               {[1, 2, 3].map((i) => (
                 <div key={i} style={{
                   height: '4rem', borderRadius: '0.625rem',
-                  background: 'rgba(255,255,255,0.05)', animation: 'pulse 2s infinite',
+                  background: 'var(--wis-surface-2)', animation: 'pulse 2s infinite',
                 }} />
               ))}
             </div>
           ) : assignments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.3)', margin: '0 0 0.75rem' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', margin: '0 0 0.75rem' }}>
                 Nenhum ministério atribuído.
               </p>
               {isAdmin && (
@@ -244,8 +244,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 500,
-                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                    borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                   }}
                 >
                   <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
@@ -258,11 +258,11 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               {assignments.map((a) => {
                 const ministry = ministryMap.get(a.ministry_id);
                 if (!ministry) return null;
-                const color = ministry.color ?? '#a5b4fc';
+                const color = ministry.color ?? 'var(--wis-blue-soft)';
                 return (
                   <div key={a.ministry_id} style={{
                     padding: '0.875rem 1rem', borderRadius: '0.75rem',
-                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
                     position: 'relative', overflow: 'hidden',
                   }}>
                     <div style={{
@@ -270,7 +270,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                       background: `linear-gradient(180deg, ${color}cc, ${color}33)`,
                     }} />
                     <div style={{ paddingLeft: '0.75rem' }}>
-                      <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', margin: '0 0 0.375rem' }}>
+                      <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)', margin: '0 0 0.375rem' }}>
                         {ministry.name}
                       </p>
                       {a.functions.length > 0 ? (
@@ -287,7 +287,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                           ))}
                         </div>
                       ) : (
-                        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)', margin: 0 }}>
+                        <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', margin: 0 }}>
                           Sem função atribuída
                         </p>
                       )}

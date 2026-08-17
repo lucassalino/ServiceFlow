@@ -79,8 +79,8 @@ export function DowngradeLockScreen({ orgId }: Props) {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.45rem 0.8rem', borderRadius: '0.5rem',
-            background: 'rgba(251,191,36,0.12)', color: '#fbbf24',
-            border: '1px solid rgba(251,191,36,0.3)', cursor: 'pointer',
+            background: 'var(--wis-warning-bg)', color: 'var(--wis-warning)',
+            border: '1px solid #f3ddb6', cursor: 'pointer',
             fontSize: '0.78rem', fontWeight: 700,
           }}
         >
@@ -93,12 +93,12 @@ export function DowngradeLockScreen({ orgId }: Props) {
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertTriangle style={{ width: '1.1rem', height: '1.1rem', color: '#fbbf24' }} />
+              <AlertTriangle style={{ width: '1.1rem', height: '1.1rem', color: 'var(--wis-warning)' }} />
               Assinatura cancelada
             </DialogTitle>
           </DialogHeader>
 
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-2)', marginBottom: '1rem' }}>
             A organização voltou ao plano Semente, mas tem mais pessoas ou ministérios do que o
             Semente permite (10 pessoas · 1 ministério). Nada foi apagado — escolhe abaixo o que
             fica operacional. O resto passa a só leitura até voltares a assinar um plano pago.
@@ -106,7 +106,7 @@ export function DowngradeLockScreen({ orgId }: Props) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--wis-text-2)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Ministério ativo (escolhe 1)
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
@@ -120,7 +120,7 @@ export function DowngradeLockScreen({ orgId }: Props) {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--wis-text-2)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Pessoas ativas ({memberIds.length}/10)
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
@@ -139,8 +139,8 @@ export function DowngradeLockScreen({ orgId }: Props) {
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                 padding: '0.6rem 1rem', borderRadius: '0.625rem', border: 'none',
-                background: 'linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%)',
-                color: '#0a0a0f', fontWeight: 800, fontSize: '0.85rem', cursor: saving ? 'not-allowed' : 'pointer',
+                background: 'linear-gradient(135deg, var(--wis-blue-soft) 0%, #818cf8 100%)',
+                color: 'var(--wis-text)', fontWeight: 800, fontSize: '0.85rem', cursor: saving ? 'not-allowed' : 'pointer',
                 opacity: saving ? 0.6 : 1,
               }}
             >

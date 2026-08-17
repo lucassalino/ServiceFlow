@@ -134,7 +134,7 @@ export function LiturgyMomentDialog({ open, onOpenChange, moment, onSave }: Prop
           {showPalavra && (
             <div className="space-y-3" style={{
               padding: '0.875rem', borderRadius: '0.625rem',
-              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
             }}>
               <div className="space-y-1.5">
                 <Label htmlFor="moment-tema">Tema da mensagem</Label>
@@ -160,9 +160,9 @@ export function LiturgyMomentDialog({ open, onOpenChange, moment, onSave }: Prop
                   style={{
                     flex: 1, padding: '0.5rem', borderRadius: '0.5rem',
                     fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                    background: tipo === t.value ? '#fff' : 'rgba(255,255,255,0.06)',
-                    color: tipo === t.value ? '#0a0a0e' : 'rgba(255,255,255,0.6)',
-                    border: tipo === t.value ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                    background: tipo === t.value ? 'var(--wis-blue)' : 'var(--wis-surface-3)',
+                    color: tipo === t.value ? '#fff' : 'var(--wis-text-2)',
+                    border: tipo === t.value ? 'none' : '1px solid var(--wis-border-strong)',
                   }}
                 >
                   {t.label}
@@ -210,7 +210,7 @@ function StringListField({ label, placeholder, values, onChange, addLabel }: {
   return (
     <div className="space-y-1.5" style={{
       padding: '0.875rem', borderRadius: '0.625rem',
-      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+      background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
     }}>
       <Label>{label}</Label>
       {values.map((v, i) => (
@@ -235,7 +235,7 @@ function StringListField({ label, placeholder, values, onChange, addLabel }: {
         onClick={() => onChange([...values, ''])}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-          fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)',
+          fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)',
           background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0',
         }}
       >

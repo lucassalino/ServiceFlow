@@ -32,8 +32,8 @@ function groupByMonth(entries: MemberHistoryEntry[]) {
 }
 
 const card: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
+  background: 'var(--wis-surface-2)',
+  border: '1px solid var(--wis-border)',
   borderRadius: '0.875rem',
 };
 
@@ -55,14 +55,14 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
               onClick={onBack}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+                fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               }}
             >
               <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
               Voltar
             </button>
-            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', margin: 0 }}>Histórico</h1>
+            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--wis-text)', margin: 0 }}>Histórico</h1>
           </div>
         )}
 
@@ -71,17 +71,17 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
           <div style={{
             display: 'flex', alignItems: 'center', gap: '0.875rem',
             padding: '1rem 1.25rem', borderRadius: '0.875rem', marginBottom: '1.25rem',
-            background: 'rgba(165,180,252,0.07)', border: '1px solid rgba(165,180,252,0.14)',
+            background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
           }}>
             <Avatar className="h-10 w-10 flex-shrink-0">
               {memberAvatar && <AvatarImage src={memberAvatar} />}
-              <AvatarFallback style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(165,180,252,0.2)', color: '#a5b4fc' }}>
+              <AvatarFallback style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)' }}>
                 {getInitials(memberName)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', margin: 0 }}>{memberName}</p>
-              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', margin: '0.1rem 0 0' }}>
+              <p style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--wis-text)', margin: 0 }}>{memberName}</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', margin: '0.1rem 0 0' }}>
                 Participações anteriores em escalas
               </p>
             </div>
@@ -96,7 +96,7 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
             gap: '0.75rem', marginBottom: '1.5rem',
           }}>
             <Stat label="Participações" value={String(s.total)} />
-            <Stat label="Confirmadas" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="#6ee7b7" />
+            <Stat label="Confirmadas" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="var(--wis-success-bg)" />
             <Stat label="Ministérios" value={String(s.ministries)} />
             <Stat
               label="Último serviço"
@@ -107,14 +107,14 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
 
         {/* ── Lista ──────────────────────────────────── */}
         {isLoading ? (
-          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)' }}>A carregar…</p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>A carregar…</p>
         ) : groups.length === 0 ? (
           <div style={{ ...card, padding: '2.5rem 1.5rem', textAlign: 'center' }}>
-            <History style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-            <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+            <History style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+            <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)', margin: 0 }}>
               Ainda não há participações registadas.
             </p>
-            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.25)', margin: '0.35rem 0 0' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--wis-text-4)', margin: '0.35rem 0 0' }}>
               O histórico mostra apenas eventos que já aconteceram.
             </p>
           </div>
@@ -124,7 +124,7 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
               <div key={g.label}>
                 <p style={{
                   fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em',
-                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+                  textTransform: 'uppercase', color: 'var(--wis-text-3)',
                   marginBottom: '0.625rem',
                 }}>
                   {g.label}
@@ -150,11 +150,11 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
     <div style={{ ...card, padding: '0.875rem 1rem' }}>
       <p style={{
         fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.02em',
-        color: accent ?? '#fff', margin: 0, lineHeight: 1.2,
+        color: accent ?? 'var(--wis-text)', margin: 0, lineHeight: 1.2,
       }}>
         {value}
       </p>
-      <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.38)', margin: '0.15rem 0 0' }}>
+      <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', margin: '0.15rem 0 0' }}>
         {label}
       </p>
     </div>
@@ -162,7 +162,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 function HistoryRow({ entry }: { entry: MemberHistoryEntry }) {
-  const color = entry.ministryColor || '#a5b4fc';
+  const color = entry.ministryColor || 'var(--wis-blue-soft)';
   const day = new Date(`${entry.eventDate}T00:00:00`).getDate();
 
   return (
@@ -178,13 +178,13 @@ function HistoryRow({ entry }: { entry: MemberHistoryEntry }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: '0.875rem', fontWeight: 600, color: '#fff', margin: 0,
+          fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {entry.eventName}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
-          <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--wis-text-2)' }}>
             {entry.ministryIcon ? `${entry.ministryIcon} ` : ''}{entry.ministryName}
           </span>
           {entry.functions.map((f) => {
@@ -192,8 +192,8 @@ function HistoryRow({ entry }: { entry: MemberHistoryEntry }) {
             return (
               <span key={f} style={{
                 fontSize: '0.68rem', fontWeight: 600, padding: '0.1rem 0.45rem',
-                borderRadius: '9999px', background: 'rgba(255,255,255,0.07)',
-                color: 'rgba(255,255,255,0.55)', whiteSpace: 'nowrap',
+                borderRadius: '9999px', background: 'var(--wis-surface-3)',
+                color: 'var(--wis-text-2)', whiteSpace: 'nowrap',
               }}>
                 {fn.emoji} {fn.label}
               </span>
@@ -213,9 +213,9 @@ function HistoryRow({ entry }: { entry: MemberHistoryEntry }) {
  */
 function StatusBadge({ confirmed }: { confirmed: boolean | null }) {
   const map = {
-    yes: { icon: CalendarCheck, label: 'Confirmado', color: '#6ee7b7' },
-    no:  { icon: CalendarX,     label: 'Recusado',   color: '#f87171' },
-    na:  { icon: Clock,         label: 'Sem resposta', color: 'rgba(255,255,255,0.35)' },
+    yes: { icon: CalendarCheck, label: 'Confirmado', color: 'var(--wis-success)' },
+    no:  { icon: CalendarX,     label: 'Recusado',   color: 'var(--wis-danger)' },
+    na:  { icon: Clock,         label: 'Sem resposta', color: 'var(--wis-text-3)' },
   };
   const k = confirmed === true ? 'yes' : confirmed === false ? 'no' : 'na';
   const { icon: Icon, label, color } = map[k];

@@ -64,7 +64,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
     reorderSetlist.mutate({ eventId: event.id, orderedSongIds: arrayMove(ids, oldIndex, newIndex) });
   }
 
-  const color = event.color ?? '#a5b4fc';
+  const color = event.color ?? 'var(--wis-blue-soft)';
 
   if (selectedSong) {
     return (
@@ -89,12 +89,12 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Eventos
@@ -107,14 +107,14 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
                 display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                 padding: '0.375rem 0.875rem',
                 fontSize: '0.775rem', fontWeight: 500,
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'var(--wis-surface-3)',
+                border: '1px solid var(--wis-border-strong)',
                 borderRadius: '0.5rem',
-                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                color: 'var(--wis-text)', cursor: 'pointer',
                 transition: 'background 0.12s',
               }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
               >
                 Editar evento
               </button>
@@ -126,7 +126,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
         <div style={{
           borderRadius: '1rem', overflow: 'hidden',
           marginBottom: '1.75rem',
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: '1px solid var(--wis-border)',
           position: 'relative',
         }}>
           {event.cover_image_url ? (
@@ -136,7 +136,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
               </div>
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 40%, rgba(10,10,14,0.95) 100%)',
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 40%, var(--wis-surface) 100%)',
               }} />
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem' }}>
                 <HeroContent event={event} />
@@ -145,7 +145,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
           ) : (
             <div style={{
               padding: '1.75rem 1.5rem',
-              background: `linear-gradient(135deg, ${color}20 0%, rgba(22,22,26,0) 60%)`,
+              background: `linear-gradient(135deg, ${color}20 0%, var(--wis-surface) 60%)`,
               borderLeft: `4px solid ${color}`,
             }}>
               <HeroContent event={event} />
@@ -158,14 +158,14 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.75rem' }}>
             {event.description && (
               <Section label="Descrição">
-                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                   {event.description}
                 </p>
               </Section>
             )}
             {event.observations && (
               <Section label="Observações">
-                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                   {event.observations}
                 </p>
               </Section>
@@ -178,7 +178,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
           {/* Tab bar */}
           <div style={{
             display: 'flex', gap: '0.25rem',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderBottom: '1px solid var(--wis-border)',
             marginBottom: '1.25rem',
           }}>
             {([
@@ -193,9 +193,9 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
                   display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                   padding: '0.5rem 0.875rem',
                   fontSize: '0.8rem', fontWeight: tab === key ? 600 : 400,
-                  color: tab === key ? '#fff' : 'rgba(255,255,255,0.4)',
+                  color: tab === key ? 'var(--wis-text)' : 'var(--wis-text-3)',
                   background: 'none', border: 'none', cursor: 'pointer',
-                  borderBottom: `2px solid ${tab === key ? '#fff' : 'transparent'}`,
+                  borderBottom: `2px solid ${tab === key ? 'var(--wis-border)' : 'transparent'}`,
                   marginBottom: '-1px',
                   transition: 'color 0.12s',
                   whiteSpace: 'nowrap',
@@ -208,8 +208,8 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
                     fontSize: '0.65rem', fontWeight: 700,
                     padding: '0.1rem 0.4rem',
                     borderRadius: '9999px',
-                    background: tab === key ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)',
-                    color: tab === key ? '#fff' : 'rgba(255,255,255,0.4)',
+                    background: tab === key ? 'var(--wis-surface-4)' : 'var(--wis-surface-3)',
+                    color: tab === key ? 'var(--wis-text)' : 'var(--wis-text-3)',
                   }}>
                     {count}
                   </span>
@@ -223,13 +223,13 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
             ministriesLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {[1, 2, 3].map((i) => (
-                  <div key={i} style={{ height: '5rem', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div key={i} style={{ height: '5rem', borderRadius: '0.875rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 ))}
               </div>
             ) : eventMinistries.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <Users style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
+                <Users style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+                <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
                   Nenhum ministério atribuído a este evento.
                 </p>
               </div>
@@ -247,21 +247,21 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
             setlistLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {[1, 2, 3].map((i) => (
-                  <div key={i} style={{ height: '3rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div key={i} style={{ height: '3rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 ))}
               </div>
             ) : setlist.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <ListMusic style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
+                <ListMusic style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+                <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
                   Nenhuma música no setlist.
                 </p>
                 {canManage && (
                   <button onClick={onEdit} style={{
                     marginTop: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.4rem 0.875rem', fontSize: '0.8rem', fontWeight: 500,
-                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                    borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                   }}>
                     Editar evento para adicionar músicas
                   </button>
@@ -299,38 +299,38 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
             timelineLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {[1, 2, 3].map((i) => (
-                  <div key={i} style={{ height: '3rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div key={i} style={{ height: '3rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 ))}
               </div>
             ) : timeline.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <Clock style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
+                <Clock style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+                <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
                   Nenhum momento definido para este evento.
                 </p>
                 {canManage && (
                   <button onClick={onEdit} style={{
                     marginTop: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.4rem 0.875rem', fontSize: '0.8rem', fontWeight: 500,
-                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                    background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                    borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                   }}>
                     Editar evento para adicionar o roteiro
                   </button>
                 )}
               </div>
             ) : (
-              <div style={{ borderRadius: '0.875rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+              <div style={{ borderRadius: '0.875rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)', overflow: 'hidden' }}>
                 {timeline.map((item, idx) => (
                   <div key={idx} style={{
                     display: 'flex', alignItems: 'center', gap: '0.875rem',
                     padding: '0.75rem 1.125rem',
-                    borderBottom: idx < timeline.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                    borderBottom: idx < timeline.length - 1 ? '1px solid var(--wis-border)' : 'none',
                   }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', width: '3.25rem', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--wis-text)', width: '3.25rem', flexShrink: 0 }}>
                       {formatTime(item.time)}
                     </span>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>{item.title}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--wis-text)' }}>{item.title}</span>
                   </div>
                 ))}
               </div>
@@ -352,9 +352,9 @@ function HeroContent({ event }: { event: Event }) {
         <span style={{
           fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
           borderRadius: '9999px', letterSpacing: '0.1em', textTransform: 'uppercase',
-          background: event.is_published ? 'rgba(110,231,183,0.2)' : 'rgba(255,255,255,0.08)',
-          color: event.is_published ? '#6ee7b7' : 'rgba(255,255,255,0.4)',
-          border: `1px solid ${event.is_published ? 'rgba(110,231,183,0.3)' : 'rgba(255,255,255,0.1)'}`,
+          background: event.is_published ? 'var(--wis-success-bg)' : 'var(--wis-surface-3)',
+          color: event.is_published ? 'var(--wis-success)' : 'var(--wis-text-3)',
+          border: `1px solid ${event.is_published ? '#bfe6d3' : 'var(--wis-border-strong)'}`,
         }}>
           {event.is_published ? 'Publicado' : 'Rascunho'}
         </span>
@@ -365,8 +365,8 @@ function HeroContent({ event }: { event: Event }) {
             <span style={{
               fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
               borderRadius: '9999px', letterSpacing: '0.06em', textTransform: 'uppercase',
-              background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
-              border: '1px solid rgba(165,180,252,0.25)',
+              background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
+              border: '1px solid var(--wis-blue-border)',
             }}>
               {p.emoji} {p.label}
             </span>
@@ -375,7 +375,7 @@ function HeroContent({ event }: { event: Event }) {
       </div>
       <h1 style={{
         fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em',
-        color: '#fff', lineHeight: 1.1, marginBottom: '0.75rem',
+        color: 'var(--wis-text)', lineHeight: 1.1, marginBottom: '0.75rem',
       }}>
         {event.name}
       </h1>
@@ -414,7 +414,7 @@ function MinistrySection({
 }) {
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const confirmSchedule = useConfirmSchedule();
-  const color = em.ministry.color ?? '#a5b4fc';
+  const color = em.ministry.color ?? 'var(--wis-blue-soft)';
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [attendanceTarget, setAttendanceTarget] = useState<EventSchedule | null>(null);
 
@@ -434,21 +434,21 @@ function MinistrySection({
   return (
     <>
     <div style={{
-      background: 'rgba(22,22,26,0.85)',
-      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'var(--wis-surface)',
+      border: '1px solid var(--wis-border)',
       borderRadius: '0.875rem', overflow: 'hidden',
     }}>
       {/* Ministry header */}
       <div style={{
         display: 'flex', alignItems: 'center',
         padding: '0.75rem 1.125rem',
-        borderBottom: schedules.length > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        borderBottom: schedules.length > 0 ? '1px solid var(--wis-border)' : 'none',
         borderLeft: `3px solid ${color}`,
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff' }}>{em.ministry.name}</p>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)' }}>{em.ministry.name}</p>
           {!isLoading && (
-            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.1rem' }}>
+            <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', marginTop: '0.1rem' }}>
               {schedules.length} pessoa{schedules.length !== 1 ? 's' : ''}
               {schedules.length > 0 && ` · ${confirmedCount} confirmad${confirmedCount !== 1 ? 'os' : 'o'}`}
             </p>
@@ -458,11 +458,11 @@ function MinistrySection({
 
       {/* People */}
       {isLoading ? (
-        <div style={{ padding: '0.875rem 1.125rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ padding: '0.875rem 1.125rem', fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
           A carregar…
         </div>
       ) : schedules.length === 0 ? (
-        <div style={{ padding: '0.875rem 1.125rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ padding: '0.875rem 1.125rem', fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
           Nenhuma pessoa escalada
         </div>
       ) : (
@@ -474,27 +474,27 @@ function MinistrySection({
             <div key={schedule.id} style={{
               display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.625rem 0.875rem',
               padding: '0.75rem 1.125rem',
-              borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)',
+              borderBottom: isLast ? 'none' : '1px solid var(--wis-border)',
             }}>
               <Avatar style={{ width: '2.25rem', height: '2.25rem', flexShrink: 0 }}>
-                <AvatarFallback style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                <AvatarFallback style={{ fontSize: '0.75rem', background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                   {getInitials(name)}
                 </AvatarFallback>
               </Avatar>
 
               <div style={{ flex: '1 1 8rem', minWidth: 0 }}>
-                <p style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--wis-text)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                   {name}
                   {isMe && (
-                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>(tu)</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--wis-text-3)', fontWeight: 400 }}>(tu)</span>
                   )}
                 </p>
                 {schedule.functions.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.25rem' }}>
                     {schedule.functions.map((fn) => (
                       <span key={fn} style={{
-                        fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)',
-                        background: 'rgba(255,255,255,0.07)', borderRadius: '0.3rem',
+                        fontSize: '0.68rem', color: 'var(--wis-text-2)',
+                        background: 'var(--wis-surface-3)', borderRadius: '0.3rem',
                         padding: '0.1rem 0.4rem',
                       }}>
                         {getFunctionLabel(fn)}
@@ -563,9 +563,9 @@ function ConfirmControl({
   // Quem NÃO é a pessoa escalada: só vê o estado, sem poder alterar.
   if (!isMe) {
     const label = confirmed === true ? 'Confirmado' : confirmed === false ? 'Recusou' : 'Por confirmar';
-    const fg = confirmed === true ? '#6ee7b7' : confirmed === false ? '#f87171' : 'rgba(255,255,255,0.35)';
-    const bg = confirmed === true ? 'rgba(110,231,183,0.12)' : confirmed === false ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.05)';
-    const border = confirmed === true ? 'rgba(110,231,183,0.25)' : confirmed === false ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.1)';
+    const fg = confirmed === true ? 'var(--wis-success-bg)' : confirmed === false ? 'var(--wis-danger-bg)' : 'var(--wis-surface-4)';
+    const bg = confirmed === true ? 'var(--wis-success-bg)' : confirmed === false ? 'var(--wis-danger-bg)' : 'var(--wis-surface-2)';
+    const border = confirmed === true ? 'var(--wis-success-bg)' : confirmed === false ? 'var(--wis-danger-bg)' : 'var(--wis-surface-4)';
     return (
       <span style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
@@ -586,9 +586,9 @@ function ConfirmControl({
   const isConfirmed = confirmed === true;
   const isDeclined = confirmed === false;
   const label = isConfirmed ? 'Confirmado' : isDeclined ? 'Declinado' : 'Confirmar';
-  const fg = isConfirmed ? '#6ee7b7' : isDeclined ? '#f87171' : '#0a0a0e';
-  const bg = isConfirmed ? 'rgba(110,231,183,0.15)' : isDeclined ? 'rgba(239,68,68,0.12)' : '#fff';
-  const border = isConfirmed ? 'rgba(110,231,183,0.3)' : isDeclined ? 'rgba(239,68,68,0.3)' : 'transparent';
+  const fg = isConfirmed ? 'var(--wis-success-bg)' : isDeclined ? 'var(--wis-danger-bg)' : 'var(--wis-surface)';
+  const bg = isConfirmed ? 'var(--wis-success-bg)' : isDeclined ? 'var(--wis-danger-bg)' : 'var(--wis-surface)';
+  const border = isConfirmed ? 'var(--wis-success-bg)' : isDeclined ? 'var(--wis-danger-bg)' : 'transparent';
 
   return (
     <div style={{
@@ -603,12 +603,12 @@ function ConfirmControl({
             display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
             padding: '0.45rem 0.7rem', borderRadius: '9999px',
             fontSize: '0.75rem', fontWeight: 600,
-            color: 'rgba(255,255,255,0.75)', background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.14)',
+            color: 'var(--wis-text)', background: 'var(--wis-surface-3)',
+            border: '1px solid var(--wis-border-strong)',
             cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.12s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--wis-surface-4)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--wis-surface-3)'; }}
         >
           <CalendarPlus style={{ width: '0.85rem', height: '0.85rem' }} />
           Adicionar ao calendário
@@ -663,7 +663,7 @@ function SortableSetlistRow({ id, song, index, onClick }: {
             aria-label="Arrastar para reordenar"
             onClick={(e) => e.stopPropagation()}
             style={{
-              display: 'flex', alignItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,0.3)',
+              display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--wis-text-3)',
               background: 'none', border: 'none', padding: '0.25rem 0', cursor: 'grab', touchAction: 'none',
             }}
           >
@@ -686,19 +686,19 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
       style={{
         display: 'flex', alignItems: 'center', gap: '0.875rem',
         padding: '0.75rem 1rem',
-        background: 'rgba(22,22,26,0.85)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'var(--wis-surface)',
+        border: '1px solid var(--wis-border)',
         borderRadius: '0.75rem',
         cursor: 'pointer',
         transition: 'background 0.12s, border-color 0.12s',
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.background = 'rgba(40,40,50,0.95)';
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.14)';
+        (e.currentTarget as HTMLDivElement).style.background = 'var(--wis-surface-2)';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--wis-surface-4)';
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.background = 'rgba(22,22,26,0.85)';
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
+        (e.currentTarget as HTMLDivElement).style.background = 'var(--wis-surface)';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--wis-surface-3)';
       }}
     >
       {dragHandle && (
@@ -706,7 +706,7 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
           {dragHandle}
           <span style={{
             width: '1.5rem', textAlign: 'right', flexShrink: 0,
-            fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
+            fontSize: '0.8rem', fontWeight: 700, color: 'var(--wis-text-4)',
           }}>
             {index}
           </span>
@@ -715,7 +715,7 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
       {!dragHandle && (
         <span style={{
           width: '1.75rem', textAlign: 'right', flexShrink: 0,
-          fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.18)',
+          fontSize: '0.8rem', fontWeight: 700, color: 'var(--wis-text-4)',
         }}>
           {index}
         </span>
@@ -723,22 +723,22 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
       <div style={{
         width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(252,211,77,0.1)',
+        background: 'var(--wis-warning-bg)',
       }}>
-        <Music2 style={{ width: '1rem', height: '1rem', color: '#fcd34d' }} />
+        <Music2 style={{ width: '1rem', height: '1rem', color: 'var(--wis-warning)' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {song.name}
         </p>
         {song.artist && (
-          <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {song.artist}
           </p>
         )}
         {song.event_note && (
           <p style={{
-            fontSize: '0.72rem', color: '#fcd34d', marginTop: '0.2rem', lineHeight: 1.4,
+            fontSize: '0.72rem', color: 'var(--wis-warning)', marginTop: '0.2rem', lineHeight: 1.4,
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
           }}>
             {song.event_note}
@@ -760,7 +760,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div>
       <p style={{
         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em',
-        textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+        textTransform: 'uppercase', color: 'var(--wis-text-3)',
         marginBottom: '0.75rem',
       }}>
         {label}
@@ -772,7 +772,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function MetaItem({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.825rem', color: 'rgba(255,255,255,0.5)' }}>
+    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.825rem', color: 'var(--wis-text-2)' }}>
       {icon}
       {children}
     </span>
@@ -783,8 +783,8 @@ function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span style={{
       fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.5rem',
-      borderRadius: '9999px', background: 'rgba(255,255,255,0.07)',
-      color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: '9999px', background: 'var(--wis-surface-3)',
+      color: 'var(--wis-text-2)', border: '1px solid var(--wis-border-strong)',
       whiteSpace: 'nowrap',
     }}>{children}</span>
   );
@@ -824,18 +824,18 @@ function YoutubePlaylistButton({ songs }: { songs: Song[] }) {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.625rem 1.125rem',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.12)',
+          background: 'var(--wis-surface-2)',
+          border: '1px solid var(--wis-border-strong)',
           borderRadius: '0.625rem',
-          color: 'rgba(255,255,255,0.85)',
+          color: 'var(--wis-text)',
           fontSize: '0.825rem', fontWeight: 600,
           textDecoration: 'none',
           transition: 'background 0.15s, transform 0.12s',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.transform = 'none'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--wis-surface-4)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--wis-surface-2)'; e.currentTarget.style.transform = 'none'; }}
       >
-        <Youtube style={{ width: '1rem', height: '1rem', color: '#f87171' }} />
+        <Youtube style={{ width: '1rem', height: '1rem', color: 'var(--wis-danger)' }} />
         Abrir playlist no YouTube
         <span style={{ fontSize: '0.72rem', opacity: 0.5 }}>({ids.length} música{ids.length !== 1 ? 's' : ''})</span>
         <ExternalLink style={{ width: '0.75rem', height: '0.75rem', opacity: 0.5 }} />
@@ -862,14 +862,14 @@ function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
           display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
           padding: '0.375rem 0.875rem',
           fontSize: '0.775rem', fontWeight: 500,
-          background: 'rgba(255,255,255,0.07)',
-          border: '1px solid rgba(255,255,255,0.12)',
+          background: 'var(--wis-surface-3)',
+          border: '1px solid var(--wis-border-strong)',
           borderRadius: '0.5rem',
-          color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+          color: 'var(--wis-text)', cursor: 'pointer',
           transition: 'background 0.12s',
         }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
         >
           <Printer style={{ width: '0.8rem', height: '0.8rem' }} />
           Exportar
@@ -877,7 +877,7 @@ function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64" style={{
-        background: '#16161a', border: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--wis-surface)', border: '1px solid var(--wis-border-strong)',
         borderRadius: '0.75rem', overflow: 'hidden', padding: '0.3rem',
       }}>
         <ExportMenuItem
@@ -897,12 +897,12 @@ function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
           />
         ) : (
           <div style={{ display: 'flex', gap: '0.6rem', padding: '0.6rem 0.7rem' }}>
-            <FileText style={{ width: '0.9rem', height: '0.9rem', color: 'rgba(255,255,255,0.2)', flexShrink: 0, marginTop: '0.1rem' }} />
+            <FileText style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-4)', flexShrink: 0, marginTop: '0.1rem' }} />
             <div>
-              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'rgba(255,255,255,0.35)' }}>
+              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text-3)' }}>
                 Roteiro do culto
               </p>
-              <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.1rem' }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-4)', marginTop: '0.1rem' }}>
                 Nenhum roteiro associado. Cria um em Roteiros e escolhe este evento.
               </p>
             </div>
@@ -925,15 +925,15 @@ function ExportMenuItem({ href, icon, title, subtitle, onNavigate }: {
       style={{
         display: 'flex', gap: '0.6rem', padding: '0.6rem 0.7rem',
         borderRadius: '0.5rem', textDecoration: 'none',
-        color: 'rgba(255,255,255,0.8)', transition: 'background 0.12s',
+        color: 'var(--wis-text)', transition: 'background 0.12s',
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
     >
-      <span style={{ flexShrink: 0, marginTop: '0.1rem', color: 'rgba(255,255,255,0.5)' }}>{icon}</span>
+      <span style={{ flexShrink: 0, marginTop: '0.1rem', color: 'var(--wis-text-2)' }}>{icon}</span>
       <span>
-        <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>{title}</span>
-        <span style={{ display: 'block', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem' }}>
+        <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)' }}>{title}</span>
+        <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--wis-text-3)', marginTop: '0.1rem' }}>
           {subtitle}
         </span>
       </span>

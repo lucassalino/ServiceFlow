@@ -67,7 +67,7 @@ const STEPS: { label: string; description: string; icon: React.ReactNode }[] = [
 const primaryBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
   padding: '0.55rem 1.375rem', borderRadius: '0.5rem',
-  background: '#fff', color: '#0a0a0f',
+  background: 'var(--wis-blue)', color: '#fff',
   fontSize: '0.875rem', fontWeight: 700,
   border: 'none', cursor: 'pointer', transition: 'opacity 0.12s',
 };
@@ -75,15 +75,15 @@ const primaryBtn: React.CSSProperties = {
 const ghostBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
   padding: '0.55rem 1rem', borderRadius: '0.5rem',
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: 'rgba(255,255,255,0.55)', fontSize: '0.875rem', fontWeight: 500,
+  background: 'var(--wis-surface-3)',
+  border: '1px solid var(--wis-border-strong)',
+  color: 'var(--wis-text-2)', fontSize: '0.875rem', fontWeight: 500,
   cursor: 'pointer', transition: 'background 0.12s',
 };
 
 const card: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
+  background: 'var(--wis-surface-2)',
+  border: '1px solid var(--wis-border)',
   borderRadius: '0.875rem', overflow: 'hidden',
 };
 
@@ -103,28 +103,28 @@ function Sidebar({ current, event, onBack, onStepClick }: {
       width: '260px', flexShrink: 0,
       flexDirection: 'column',
       padding: '2rem 1.5rem',
-      borderRight: '1px solid rgba(255,255,255,0.07)',
+      borderRight: '1px solid var(--wis-border)',
       background: 'rgba(0,0,0,0.15)',
     }}>
       <button
         onClick={onBack}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-          fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.45)',
+          fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
           marginBottom: '2.25rem', transition: 'color 0.12s',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
       >
         <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
         Voltar ao evento
       </button>
 
-      <h1 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', marginBottom: '0.25rem' }}>
+      <h1 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--wis-text)', marginBottom: '0.25rem' }}>
         Editar Evento
       </h1>
-      <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
+      <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', marginBottom: '2rem' }}>
         Passo {current} de {STEPS.length}
       </p>
 
@@ -140,29 +140,29 @@ function Sidebar({ current, event, onBack, onStepClick }: {
               style={{
                 display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
                 padding: '0.625rem 0.75rem', borderRadius: '0.625rem',
-                background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                background: active ? 'var(--wis-surface-3)' : 'transparent',
                 border: 'none', cursor: 'pointer', textAlign: 'left',
                 transition: 'background 0.12s',
               }}
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'var(--wis-surface-2)'; }}
               onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
             >
               <div style={{
                 width: '1.625rem', height: '1.625rem', borderRadius: '50%', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.65rem', fontWeight: 800,
-                border: `2px solid ${active ? '#fff' : done ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'}`,
-                background: active ? '#fff' : 'transparent',
-                color: active ? '#0a0a0f' : done ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
+                border: `2px solid ${active ? 'var(--wis-border)' : done ? 'var(--wis-border-strong)' : 'var(--wis-border-strong)'}`,
+                background: active ? 'var(--wis-blue)' : 'transparent',
+                color: active ? '#fff' : done ? 'var(--wis-text-2)' : 'var(--wis-text-4)',
                 transition: 'all 0.2s',
               }}>
                 {done ? <Check style={{ width: '0.7rem', height: '0.7rem' }} /> : num}
               </div>
               <div style={{ paddingTop: '0.05rem' }}>
-                <p style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 500, color: active ? '#fff' : done ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.22)', lineHeight: 1.3 }}>
+                <p style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 500, color: active ? '#fff' : done ? 'var(--wis-text-2)' : 'var(--wis-text-4)', lineHeight: 1.3 }}>
                   {s.label}
                 </p>
-                <p style={{ fontSize: '0.7rem', color: active ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.18)', marginTop: '0.1rem' }}>
+                <p style={{ fontSize: '0.7rem', color: active ? 'var(--wis-text-2)' : 'var(--wis-text-4)', marginTop: '0.1rem' }}>
                   {s.description}
                 </p>
               </div>
@@ -173,13 +173,13 @@ function Sidebar({ current, event, onBack, onStepClick }: {
 
       {/* Event name chip */}
       <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
-        <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '0.5rem' }}>
+        <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-text-4)', marginBottom: '0.5rem' }}>
           A editar
         </p>
-        <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--wis-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {event.name}
         </p>
-        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.2rem' }}>
+        <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-4)', marginTop: '0.2rem' }}>
           {event.date}
         </p>
       </div>
@@ -196,7 +196,7 @@ function SaveBar({ onCancel, onSave, saving }: {
     <div className="ep-savebar" style={{
       display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem',
       paddingTop: '1.5rem', marginTop: '2rem',
-      borderTop: '1px solid rgba(255,255,255,0.07)',
+      borderTop: '1px solid var(--wis-border)',
     }}>
       <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onCancel} disabled={saving}>
         Cancelar
@@ -523,9 +523,9 @@ export function EventEditPanel({ event, onBack }: Props) {
                   style={{
                     flexShrink: 0, padding: '0.4rem 0.8rem', borderRadius: '9999px',
                     fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: 'pointer',
-                    background: active ? '#fff' : 'rgba(255,255,255,0.06)',
-                    color: active ? '#0a0a0f' : 'rgba(255,255,255,0.55)',
-                    border: `1px solid ${active ? '#fff' : 'rgba(255,255,255,0.1)'}`,
+                    background: active ? 'var(--wis-blue)' : 'var(--wis-surface-3)',
+                    color: active ? '#fff' : 'var(--wis-text-2)',
+                    border: `1px solid ${active ? 'var(--wis-border)' : 'var(--wis-border-strong)'}`,
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -537,10 +537,10 @@ export function EventEditPanel({ event, onBack }: Props) {
 
           {/* Step title */}
           <div style={{ marginBottom: '1.75rem' }}>
-            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '0.375rem' }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--wis-text-3)', marginBottom: '0.375rem' }}>
               {STEPS[step - 1].description}
             </p>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--wis-text)', letterSpacing: '-0.02em' }}>
               {STEPS[step - 1].label}
             </h2>
           </div>
@@ -552,28 +552,28 @@ export function EventEditPanel({ event, onBack }: Props) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
                   <div className="space-y-1.5">
-                    <Label>Nome <span style={{ color: '#f87171' }}>*</span></Label>
+                    <Label>Nome <span style={{ color: 'var(--wis-danger)' }}>*</span></Label>
                     <Input placeholder="Nome do evento" {...register('name')} />
-                    {errors.name && <p style={{ fontSize: '0.75rem', color: '#fca5a5' }}>{errors.name.message}</p>}
+                    {errors.name && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)' }}>{errors.name.message}</p>}
                   </div>
 
                   <div className="ep-date-grid">
                     <div className="space-y-1.5">
-                      <Label>Data <span style={{ color: '#f87171' }}>*</span></Label>
+                      <Label>Data <span style={{ color: 'var(--wis-danger)' }}>*</span></Label>
                       <Input type="date" {...register('date')} />
-                      {errors.date && <p style={{ fontSize: '0.75rem', color: '#fca5a5' }}>{errors.date.message}</p>}
+                      {errors.date && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)' }}>{errors.date.message}</p>}
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Horário <span style={{ color: '#f87171' }}>*</span></Label>
+                      <Label>Horário <span style={{ color: 'var(--wis-danger)' }}>*</span></Label>
                       <Input type="time" {...register('time')} />
-                      {errors.time && <p style={{ fontSize: '0.75rem', color: '#fca5a5' }}>{errors.time.message}</p>}
+                      {errors.time && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)' }}>{errors.time.message}</p>}
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <Label>Hora de chegada da equipa</Label>
                     <Input type="time" {...register('arrival_time')} />
-                    <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                       Opcional — a que horas a equipa deve chegar (ensaio/passagem de som).
                     </p>
                   </div>
@@ -598,9 +598,9 @@ export function EventEditPanel({ event, onBack }: Props) {
                       id="is_published"
                       checked={isPublished}
                       onCheckedChange={(v) => setValue('is_published', v === true)}
-                      style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+                      style={{ borderColor: 'var(--wis-border-strong)' }}
                     />
-                    <Label htmlFor="is_published" style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem' }}>
+                    <Label htmlFor="is_published" style={{ cursor: 'pointer', color: 'var(--wis-text)', fontSize: '0.875rem' }}>
                       Publicar evento
                     </Label>
                   </div>
@@ -608,17 +608,17 @@ export function EventEditPanel({ event, onBack }: Props) {
 
                 {/* Cover image */}
                 <div className="space-y-1.5">
-                  <Label style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem' }}>Imagem de capa</Label>
+                  <Label style={{ color: 'var(--wis-text-2)', fontSize: '0.8rem' }}>Imagem de capa</Label>
                   {imagePreview ? (
                     <div className="relative rounded-xl overflow-hidden group" style={{ height: '16rem' }}>
                       <img src={imagePreview} alt="Capa" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
                       <button type="button" onClick={() => setLightboxOpen(true)}
                         className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
+                        <ZoomIn className="h-8 w-8 text-[color:var(--wis-text)] drop-shadow-lg" />
                       </button>
                       <button type="button" onClick={clearImage}
-                        className="absolute top-2 right-2 z-10 bg-black/60 text-white rounded-full p-1 hover:bg-black/80 transition-colors">
+                        className="absolute top-2 right-2 z-10 bg-black/60 text-[color:var(--wis-text)] rounded-full p-1 hover:bg-black/80 transition-colors">
                         <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -626,13 +626,13 @@ export function EventEditPanel({ event, onBack }: Props) {
                     <button type="button" onClick={() => fileInputRef.current?.click()}
                       style={{
                         width: '100%', height: '16rem',
-                        border: '2px dashed rgba(255,255,255,0.15)', borderRadius: '0.75rem',
+                        border: '2px dashed var(--wis-border-strong)', borderRadius: '0.75rem',
                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
-                        background: 'rgba(255,255,255,0.03)', cursor: 'pointer', color: 'rgba(255,255,255,0.3)',
+                        background: 'var(--wis-surface-2)', cursor: 'pointer', color: 'var(--wis-text-3)',
                         transition: 'border-color 0.15s, background 0.15s',
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.28)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--wis-surface-4)'; e.currentTarget.style.background = 'var(--wis-surface-3)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--wis-surface-4)'; e.currentTarget.style.background = 'var(--wis-surface-2)'; }}
                     >
                       <ImagePlus style={{ width: '2rem', height: '2rem' }} />
                       <span style={{ fontSize: '0.85rem' }}>Clica para adicionar imagem</span>
@@ -651,29 +651,29 @@ export function EventEditPanel({ event, onBack }: Props) {
               {loadingSetup ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="animate-pulse" style={{ height: '3.5rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.05)' }} />
+                    <div key={i} className="animate-pulse" style={{ height: '3.5rem', borderRadius: '0.75rem', background: 'var(--wis-surface-2)' }} />
                   ))}
                 </div>
               ) : activeMinistries.length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', ...card }}>
-                  <LayoutGrid style={{ width: '2.5rem', height: '2.5rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 1rem' }} />
-                  <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>Nenhum ministério activo.</p>
+                  <LayoutGrid style={{ width: '2.5rem', height: '2.5rem', color: 'var(--wis-text-4)', margin: '0 auto 1rem' }} />
+                  <p style={{ fontSize: '0.9rem', color: 'var(--wis-text-3)' }}>Nenhum ministério activo.</p>
                 </div>
               ) : (
                 <div className="ep-ministry-grid" style={{ ...card }}>
                   {activeMinistries.map((m, idx) => {
                     const checked = selectedMinistryIds.includes(m.id);
                     return (
-                      <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '1rem 1.125rem', cursor: 'pointer', background: checked ? 'rgba(255,255,255,0.07)' : 'transparent', borderBottom: idx < activeMinistries.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none', transition: 'background 0.1s' }}
-                        onMouseEnter={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
+                      <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '1rem 1.125rem', cursor: 'pointer', background: checked ? 'var(--wis-surface-3)' : 'transparent', borderBottom: idx < activeMinistries.length - 1 ? '1px solid var(--wis-border)' : 'none', transition: 'background 0.1s' }}
+                        onMouseEnter={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-2)'; }}
                         onMouseLeave={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                       >
                         <Checkbox checked={checked} onCheckedChange={() => toggleMinistry(m.id)} />
                         <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.625rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${m.color}18`, border: `1px solid ${m.color}30`, fontSize: '0.9rem', fontWeight: 800, color: m.color }}>
                           {m.name.charAt(0).toUpperCase()}
                         </div>
-                        <span style={{ flex: 1, fontSize: '0.875rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</span>
-                        {checked && <Check style={{ width: '0.875rem', height: '0.875rem', color: '#6ee7b7', flexShrink: 0 }} />}
+                        <span style={{ flex: 1, fontSize: '0.875rem', fontWeight: 500, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</span>
+                        {checked && <Check style={{ width: '0.875rem', height: '0.875rem', color: 'var(--wis-success)', flexShrink: 0 }} />}
                       </label>
                     );
                   })}
@@ -687,15 +687,15 @@ export function EventEditPanel({ event, onBack }: Props) {
             <div>
               {selectedMinistryIds.length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', ...card }}>
-                  <Users style={{ width: '2.5rem', height: '2.5rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 1rem' }} />
-                  <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem' }}>Nenhum ministério selecionado.</p>
+                  <Users style={{ width: '2.5rem', height: '2.5rem', color: 'var(--wis-text-4)', margin: '0 auto 1rem' }} />
+                  <p style={{ fontSize: '0.9rem', color: 'var(--wis-text-3)', marginBottom: '1rem' }}>Nenhum ministério selecionado.</p>
                   <button style={ghostBtn} onClick={() => setStep(2)}>← Seleccionar ministérios</button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {totalSelectedMembers > 0 && (
-                    <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)' }}>
-                      <span style={{ color: '#fff', fontWeight: 600 }}>{totalSelectedMembers}</span> membro{totalSelectedMembers !== 1 ? 's' : ''} selecionado{totalSelectedMembers !== 1 ? 's' : ''}
+                    <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
+                      <span style={{ color: 'var(--wis-text)', fontWeight: 600 }}>{totalSelectedMembers}</span> membro{totalSelectedMembers !== 1 ? 's' : ''} selecionado{totalSelectedMembers !== 1 ? 's' : ''}
                     </p>
                   )}
                   <div className="ep-member-grid">
@@ -706,17 +706,17 @@ export function EventEditPanel({ event, onBack }: Props) {
                       const roster = ministryRoster[ministryId] ?? [];
                       return (
                         <div key={ministryId} style={card}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div style={{ width: '1.625rem', height: '1.625rem', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${ministry.color ?? '#a5b4fc'}18`, fontSize: '0.65rem', fontWeight: 800, color: ministry.color ?? '#a5b4fc' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'var(--wis-surface-2)', borderBottom: '1px solid var(--wis-border)' }}>
+                            <div style={{ width: '1.625rem', height: '1.625rem', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${ministry.color ?? 'var(--wis-blue-soft)'}18`, fontSize: '0.65rem', fontWeight: 800, color: ministry.color ?? 'var(--wis-blue)' }}>
                               {ministry.name.charAt(0).toUpperCase()}
                             </div>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff', flex: 1 }}>{ministry.name}</span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--wis-text)', flex: 1 }}>{ministry.name}</span>
                             {selectedIds.length > 0 && (
-                              <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{selectedIds.length}</span>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>{selectedIds.length}</span>
                             )}
                           </div>
                           {roster.length === 0 ? (
-                            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', padding: '0.75rem 1rem' }}>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', padding: '0.75rem 1rem' }}>
                               Nenhum membro neste ministério. Adiciona pessoas ao ministério primeiro.
                             </p>
                           ) : (
@@ -730,33 +730,33 @@ export function EventEditPanel({ event, onBack }: Props) {
                                 : null;
                               const otherMinistries = checked ? otherMinistriesFor(ministryId, rm.userId) : [];
                               return (
-                                <div key={rm.userId} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', cursor: 'pointer', background: checked ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}>
+                                <div key={rm.userId} style={{ borderBottom: '1px solid var(--wis-border)' }}>
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 1rem', cursor: 'pointer', background: checked ? 'var(--wis-surface-2)' : 'transparent', transition: 'background 0.1s' }}>
                                     <Checkbox checked={checked} onCheckedChange={() => toggleMember(ministryId, rm.userId)} />
                                     <Avatar className="h-6 w-6 flex-shrink-0">
-                                      <AvatarFallback style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.1)', color: '#fff' }}>{getInitials(name)}</AvatarFallback>
+                                      <AvatarFallback style={{ fontSize: '0.6rem', background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>{getInitials(name)}</AvatarFallback>
                                     </Avatar>
-                                    <span style={{ flex: 1, fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                                    <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                                     {otherMinistries.length > 0 && (
                                       <span title={`Também escalado em: ${otherMinistries.join(', ')}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
-                                        <AlertTriangle style={{ width: '0.75rem', height: '0.75rem', color: '#fbbf24' }} />
+                                        <AlertTriangle style={{ width: '0.75rem', height: '0.75rem', color: 'var(--wis-warning)' }} />
                                       </span>
                                     )}
                                     {conflict && (
                                       <span title={describeUnavailability(conflict)} style={{ display: 'inline-flex', flexShrink: 0 }}>
-                                        <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: '#f87171' }} />
+                                        <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: 'var(--wis-danger)' }} />
                                       </span>
                                     )}
-                                    {checked && fns.length > 0 && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', flexShrink: 0 }}>{fns.length} fn</span>}
+                                    {checked && fns.length > 0 && <span style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', flexShrink: 0 }}>{fns.length} fn</span>}
                                   </label>
                                   {checked && (
-                                    <div style={{ margin: '0 1rem 0.625rem', padding: '0.625rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem' }}>
+                                    <div style={{ margin: '0 1rem 0.625rem', padding: '0.625rem', background: 'var(--wis-surface-2)', borderRadius: '0.5rem' }}>
                                       {personFunctions.length === 0 ? (
-                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>Esta pessoa não tem funções neste ministério.</p>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)' }}>Esta pessoa não tem funções neste ministério.</p>
                                       ) : (
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
                                           {personFunctions.map((f) => (
-                                            <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)' }}>
+                                            <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--wis-text-2)' }}>
                                               <Checkbox checked={fns.includes(f.key)} onCheckedChange={() => toggleMemberFunction(ministryId, rm.userId, f.key)} />
                                               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.emoji} {f.label}</span>
                                             </label>
@@ -786,7 +786,7 @@ export function EventEditPanel({ event, onBack }: Props) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <div style={{ position: 'relative', flex: 1 }} className="dark-inputs">
-                      <Search style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                      <Search style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: 'var(--wis-text-3)', pointerEvents: 'none' }} />
                       <Input placeholder="Pesquisar músicas…" className="pl-9" value={songSearch} onChange={(e) => setSongSearch(e.target.value)} />
                     </div>
                     <button
@@ -796,8 +796,8 @@ export function EventEditPanel({ event, onBack }: Props) {
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
                         padding: '0.5rem 0.85rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600,
-                        background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)',
-                        color: '#a5b4fc', cursor: 'pointer',
+                        background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
+                        color: 'var(--wis-blue)', cursor: 'pointer',
                       }}
                     >
                       <FileUp style={{ width: '0.9rem', height: '0.9rem' }} /> Importar CSV
@@ -806,24 +806,24 @@ export function EventEditPanel({ event, onBack }: Props) {
                   <div style={{ ...card, maxHeight: '22rem', overflowY: 'auto' }}>
                     {filteredSongs.length === 0 ? (
                       <div style={{ padding: '2.5rem', textAlign: 'center' }}>
-                        <ListMusic style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-                        <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)' }}>{songSearch ? 'Nenhuma música encontrada.' : 'Nenhuma música criada ainda.'}</p>
+                        <ListMusic style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+                        <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>{songSearch ? 'Nenhuma música encontrada.' : 'Nenhuma música criada ainda.'}</p>
                       </div>
                     ) : (
                       filteredSongs.map((song, idx) => {
                         const checked = selectedSongIds.includes(song.id);
                         return (
-                          <label key={song.id} style={{ ...rowBase, borderBottom: idx < filteredSongs.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none', background: checked ? 'rgba(255,255,255,0.06)' : 'transparent' }}
-                            onMouseEnter={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
-                            onMouseLeave={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = checked ? 'rgba(255,255,255,0.06)' : 'transparent'; }}
+                          <label key={song.id} style={{ ...rowBase, borderBottom: idx < filteredSongs.length - 1 ? '1px solid var(--wis-border)' : 'none', background: checked ? 'var(--wis-surface-3)' : 'transparent' }}
+                            onMouseEnter={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-2)'; }}
+                            onMouseLeave={(e) => { if (!checked) (e.currentTarget as HTMLElement).style.background = checked ? 'var(--wis-surface-3)' : 'transparent'; }}
                           >
                             <Checkbox checked={checked} onCheckedChange={() => toggleSong(song.id)} />
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
-                              {song.artist && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
+                              <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
+                              {song.artist && <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
                             </div>
                             {song.musical_key && (
-                              <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                              <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '9999px', background: 'var(--wis-surface-3)', color: 'var(--wis-text-2)', border: '1px solid var(--wis-border-strong)', flexShrink: 0 }}>
                                 {song.musical_key}
                               </span>
                             )}
@@ -836,12 +836,12 @@ export function EventEditPanel({ event, onBack }: Props) {
 
                 {/* Selected setlist */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+                  <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
                     Setlist seleccionado ({selectedSongIds.length}) {selectedSongIds.length > 1 && '· arrasta para ordenar'}
                   </p>
                   {selectedSongIds.length === 0 ? (
                     <div style={{ padding: '2rem', textAlign: 'center', ...card }}>
-                      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.25)' }}>Nenhuma música seleccionada</p>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-4)' }}>Nenhuma música seleccionada</p>
                     </div>
                   ) : (
                     <div style={card}>
@@ -853,10 +853,10 @@ export function EventEditPanel({ event, onBack }: Props) {
                             return (
                               <SortableSetlistRow key={id} id={id} isLast={idx === selectedSongIds.length - 1}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', minWidth: 0 }}>
-                                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', width: '1.25rem', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--wis-text-4)', width: '1.25rem', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
                                   <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
-                                    {song.artist && <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
+                                    <p style={{ fontSize: '0.82rem', fontWeight: 500, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.name}</p>
+                                    {song.artist && <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.artist}</p>}
                                   </div>
                                   <select
                                     value={songKeys[id] ?? ''}
@@ -865,18 +865,18 @@ export function EventEditPanel({ event, onBack }: Props) {
                                     style={{
                                       flexShrink: 0, fontSize: '0.72rem', fontWeight: 600,
                                       padding: '0.2rem 0.4rem', borderRadius: '0.4rem',
-                                      background: 'rgba(255,255,255,0.06)', color: '#fff',
-                                      border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer',
+                                      background: 'var(--wis-surface-3)', color: 'var(--wis-text)',
+                                      border: '1px solid var(--wis-border-strong)', cursor: 'pointer',
                                     }}
                                   >
-                                    <option value="" style={{ background: '#1a1a20' }}>Tom</option>
+                                    <option value="" style={{ background: 'var(--wis-surface-2)' }}>Tom</option>
                                     {SONG_KEYS.map((k) => (
-                                      <option key={k} value={k} style={{ background: '#1a1a20' }}>{k}</option>
+                                      <option key={k} value={k} style={{ background: 'var(--wis-surface-2)' }}>{k}</option>
                                     ))}
                                   </select>
-                                  <button type="button" onClick={() => toggleSong(id)} style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
-                                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                                  <button type="button" onClick={() => toggleSong(id)} style={{ color: 'var(--wis-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-danger-bg)')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
                                   >
                                     <X style={{ width: '0.75rem', height: '0.75rem' }} />
                                   </button>
@@ -888,8 +888,8 @@ export function EventEditPanel({ event, onBack }: Props) {
                                   style={{
                                     width: '100%', minWidth: 0, fontSize: '0.72rem',
                                     padding: '0.25rem 0.45rem', borderRadius: '0.375rem',
-                                    background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
-                                    border: '1px solid rgba(255,255,255,0.08)', boxSizing: 'border-box',
+                                    background: 'var(--wis-surface-2)', color: 'var(--wis-text)',
+                                    border: '1px solid var(--wis-border)', boxSizing: 'border-box',
                                   }}
                                 />
                               </SortableSetlistRow>
@@ -908,7 +908,7 @@ export function EventEditPanel({ event, onBack }: Props) {
           {/* ─── Step 5: Roteiro ──────────────────────────────────────── */}
           {step === 5 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="dark-inputs">
-              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
                 Opcional — os momentos do evento (chegada, ensaio, devocional, início do culto…), por ordem de hora.
               </p>
               <div className="ep-date-grid" style={{ alignItems: 'end' }}>
@@ -933,7 +933,7 @@ export function EventEditPanel({ event, onBack }: Props) {
 
               {timelineItems.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', ...card }}>
-                  <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.25)' }}>Nenhum momento adicionado</p>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-4)' }}>Nenhum momento adicionado</p>
                 </div>
               ) : (
                 <div style={card}>
@@ -941,18 +941,18 @@ export function EventEditPanel({ event, onBack }: Props) {
                     <div key={idx} style={{
                       display: 'flex', alignItems: 'center', gap: '0.75rem',
                       padding: '0.625rem 1rem',
-                      borderBottom: idx < timelineItems.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                      borderBottom: idx < timelineItems.length - 1 ? '1px solid var(--wis-border)' : 'none',
                     }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', width: '3rem', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--wis-text)', width: '3rem', flexShrink: 0 }}>
                         {item.time}
                       </span>
-                      <span style={{ flex: 1, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{item.title}</span>
+                      <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--wis-text)' }}>{item.title}</span>
                       <button
                         type="button"
                         onClick={() => removeTimelineItem(idx)}
-                        style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                        style={{ color: 'var(--wis-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-danger-bg)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
                       >
                         <X style={{ width: '0.75rem', height: '0.75rem' }} />
                       </button>
@@ -994,9 +994,9 @@ function SortableSetlistRow({ id, isLast, children }: { id: string; isLast: bool
       ref={setNodeRef}
       style={{
         display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.625rem 1rem',
-        borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.06)',
+        borderBottom: isLast ? 'none' : '1px solid var(--wis-border)',
         transform: CSS.Transform.toString(transform), transition,
-        background: isDragging ? 'rgba(255,255,255,0.06)' : 'transparent',
+        background: isDragging ? 'var(--wis-surface-3)' : 'transparent',
         opacity: isDragging ? 0.6 : 1, position: 'relative', zIndex: isDragging ? 1 : 'auto',
         minWidth: 0, maxWidth: '100%',
       }}
@@ -1007,7 +1007,7 @@ function SortableSetlistRow({ id, isLast, children }: { id: string; isLast: bool
         {...listeners}
         aria-label="Arrastar para reordenar"
         style={{
-          display: 'flex', alignItems: 'center', flexShrink: 0, color: 'rgba(255,255,255,0.25)',
+          display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--wis-text-4)',
           background: 'none', border: 'none', padding: '0.25rem', cursor: 'grab', touchAction: 'none',
           marginTop: '0.15rem',
         }}

@@ -23,9 +23,9 @@ export function FunctionChips({
               display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
               padding: '0.375rem 0.7rem', borderRadius: '9999px',
               fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer',
-              background: isSel ? 'rgba(110,231,183,0.13)' : 'rgba(255,255,255,0.05)',
-              color: isSel ? '#6ee7b7' : 'rgba(255,255,255,0.6)',
-              border: `1px solid ${isSel ? 'rgba(110,231,183,0.35)' : 'rgba(255,255,255,0.1)'}`,
+              background: isSel ? 'var(--wis-success-bg)' : 'var(--wis-surface-2)',
+              color: isSel ? 'var(--wis-success)' : 'var(--wis-text-2)',
+              border: `1px solid ${isSel ? '#bfe6d3' : 'var(--wis-border-strong)'}`,
               transition: 'background 0.12s, color 0.12s',
             }}
           >

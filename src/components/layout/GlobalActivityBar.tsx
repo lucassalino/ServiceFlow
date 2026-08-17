@@ -31,15 +31,15 @@ export function GlobalActivityBar() {
       style={{
         position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
         zIndex: 210, pointerEvents: 'none', overflow: 'hidden',
-        background: 'rgba(255,255,255,0.06)',
+        background: 'var(--wis-surface-3)',
         opacity: active ? 1 : 0, transition: 'opacity 0.3s ease-out',
       }}
     >
       <div
         style={{
           position: 'absolute', top: 0, height: '100%', width: '40%',
-          background: 'linear-gradient(90deg, transparent, #a5b4fc, #6ee7b7, transparent)',
-          boxShadow: '0 0 10px rgba(165,180,252,0.6)',
+          background: 'linear-gradient(90deg, transparent, var(--wis-blue-soft), var(--wis-success-bg), transparent)',
+          boxShadow: '0 0 10px var(--wis-blue-soft)',
           animation: 'wis-activity 1.1s ease-in-out infinite',
         }}
       />

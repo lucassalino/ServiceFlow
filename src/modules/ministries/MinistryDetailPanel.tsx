@@ -22,7 +22,7 @@ interface Props {
 export function MinistryDetailPanel({
   ministry, isAdmin, canManage = isAdmin, onBack, onEdit, onEditProperties, onToggle, onDelete, togglePending,
 }: Props) {
-  const color = ministry.color ?? '#a5b4fc';
+  const color = ministry.color ?? 'var(--wis-blue-soft)';
   const initial = ministry.name.charAt(0).toUpperCase();
   const { data: members = [], isLoading: loadingMembers } = useMinistryMembers(ministry.id);
 
@@ -47,12 +47,12 @@ export function MinistryDetailPanel({
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Ministérios
@@ -65,12 +65,12 @@ export function MinistryDetailPanel({
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                   padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                  borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                   transition: 'background 0.12s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
               >
                 <SlidersHorizontal style={{ width: '0.8rem', height: '0.8rem' }} />
                 Editar ministério
@@ -80,12 +80,12 @@ export function MinistryDetailPanel({
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                   padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: '0.5rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                  borderRadius: '0.5rem', color: 'var(--wis-text)', cursor: 'pointer',
                   transition: 'background 0.12s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
               >
                 <Pencil style={{ width: '0.8rem', height: '0.8rem' }} />
                 Gerir participantes
@@ -96,14 +96,14 @@ export function MinistryDetailPanel({
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                   padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
                   borderRadius: '0.5rem',
-                  color: ministry.is_active ? '#fcd34d' : '#6ee7b7',
+                  color: ministry.is_active ? 'var(--wis-warning)' : 'var(--wis-success)',
                   cursor: togglePending ? 'not-allowed' : 'pointer',
                   opacity: togglePending ? 0.6 : 1, transition: 'background 0.12s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
               >
                 {ministry.is_active
                   ? <PowerOff style={{ width: '0.8rem', height: '0.8rem' }} />
@@ -116,12 +116,12 @@ export function MinistryDetailPanel({
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.375rem 0.875rem', fontSize: '0.775rem', fontWeight: 500,
-                    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-                    borderRadius: '0.5rem', color: '#f87171', cursor: 'pointer',
+                    background: 'var(--wis-danger-bg)', border: '1px solid #f5c9cb',
+                    borderRadius: '0.5rem', color: 'var(--wis-danger)', cursor: 'pointer',
                     transition: 'background 0.12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-danger-bg)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-danger-bg)')}
                 >
                   <Trash2 style={{ width: '0.8rem', height: '0.8rem' }} />
                   Remover
@@ -134,8 +134,8 @@ export function MinistryDetailPanel({
         {/* ── Hero card ──────────────────────────────────────── */}
         <div style={{
           position: 'relative', padding: '1.75rem 2rem',
-          borderRadius: '1.25rem', background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.09)', marginBottom: '1.25rem', overflow: 'hidden',
+          borderRadius: '1.25rem', background: 'var(--wis-surface-2)',
+          border: '1px solid var(--wis-border)', marginBottom: '1.25rem', overflow: 'hidden',
         }}>
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
@@ -152,7 +152,7 @@ export function MinistryDetailPanel({
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{
-                fontSize: '1.5rem', fontWeight: 800, color: '#ffffff',
+                fontSize: '1.5rem', fontWeight: 800, color: 'var(--wis-text)',
                 letterSpacing: '-0.02em', margin: 0,
               }}>
                 {ministry.name}
@@ -162,18 +162,18 @@ export function MinistryDetailPanel({
                   <span style={{
                     fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
                     borderRadius: '9999px', letterSpacing: '0.04em',
-                    background: 'rgba(110,231,183,0.15)', color: '#6ee7b7',
-                    border: '1px solid rgba(110,231,183,0.25)',
+                    background: 'var(--wis-success-bg)', color: 'var(--wis-success)',
+                    border: '1px solid #bfe6d3',
                   }}>Activo</span>
                 ) : (
                   <span style={{
                     fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
                     borderRadius: '9999px', letterSpacing: '0.04em',
-                    background: 'rgba(248,113,113,0.12)', color: '#f87171',
-                    border: '1px solid rgba(248,113,113,0.2)',
+                    background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)',
+                    border: '1px solid #f5c9cb',
                   }}>Inactivo</span>
                 )}
-                <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)' }}>
                   Criado a {createdDate}
                 </span>
               </div>
@@ -187,12 +187,12 @@ export function MinistryDetailPanel({
           {/* Participants */}
           <div style={{
             padding: '1.5rem', borderRadius: '1rem',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <p style={{
                 fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', margin: 0,
+                textTransform: 'uppercase', color: 'var(--wis-text-3)', margin: 0,
               }}>
                 Participantes · {members.length}
               </p>
@@ -201,12 +201,12 @@ export function MinistryDetailPanel({
                   onClick={onEdit}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                    fontSize: '0.7rem', fontWeight: 500, color: 'rgba(255,255,255,0.4)',
+                    fontSize: '0.7rem', fontWeight: 500, color: 'var(--wis-text-3)',
                     background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                     transition: 'color 0.12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
                 >
                   <Pencil style={{ width: '0.7rem', height: '0.7rem' }} />
                   Editar
@@ -218,15 +218,15 @@ export function MinistryDetailPanel({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {[1, 2, 3].map((i) => (
                   <div key={i} style={{
-                    height: '3rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)',
+                    height: '3rem', borderRadius: '0.5rem', background: 'var(--wis-surface-2)',
                     animation: 'pulse 2s infinite',
                   }} />
                 ))}
               </div>
             ) : members.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-                <Users style={{ width: '1.75rem', height: '1.75rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.5rem' }} />
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                <Users style={{ width: '1.75rem', height: '1.75rem', color: 'var(--wis-text-4)', margin: '0 auto 0.5rem' }} />
+                <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', margin: 0 }}>
                   Nenhum participante ainda.
                 </p>
               </div>
@@ -241,7 +241,7 @@ export function MinistryDetailPanel({
                     <div key={m.user_id} style={{
                       display: 'flex', alignItems: 'flex-start', gap: '0.625rem',
                       padding: '0.625rem 0.75rem', borderRadius: '0.625rem',
-                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                      background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
                     }}>
                       <Avatar className="h-8 w-8 flex-shrink-0" style={{ marginTop: '0.05rem' }}>
                         {m.profile?.avatar_url && <AvatarImage src={m.profile.avatar_url} />}
@@ -254,7 +254,7 @@ export function MinistryDetailPanel({
                       </Avatar>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{
-                          fontSize: '0.8rem', fontWeight: 600, color: '#fff',
+                          fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)',
                           margin: '0 0 0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {name}
@@ -273,7 +273,7 @@ export function MinistryDetailPanel({
                             ))}
                           </div>
                         ) : (
-                          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+                          <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-4)', margin: 0 }}>
                             Sem função atribuída
                           </p>
                         )}
@@ -288,17 +288,17 @@ export function MinistryDetailPanel({
           {/* Functions catalog */}
           <div style={{
             padding: '1.5rem', borderRadius: '1rem',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
           }}>
             <p style={{
               fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
-              textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '1rem',
+              textTransform: 'uppercase', color: 'var(--wis-text-3)', marginBottom: '1rem',
             }}>
               Funções disponíveis · {ministry.functions.length}
             </p>
 
             {ministry.functions.length === 0 ? (
-              <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', margin: 0 }}>
                 Nenhuma função definida.
               </p>
             ) : (
@@ -307,12 +307,12 @@ export function MinistryDetailPanel({
                   <div key={fn} style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.5rem 0.625rem', borderRadius: '0.5rem',
-                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                    background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
                   }}>
                     <span style={{ fontSize: '0.85rem', lineHeight: 1, flexShrink: 0 }}>
                       {getFunctionEmoji(fn)}
                     </span>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'rgba(255,255,255,0.72)' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--wis-text)' }}>
                       {getFunctionLabel(fn)}
                     </span>
                   </div>

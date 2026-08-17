@@ -99,17 +99,17 @@ export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, tit
               disabled={parsing}
               style={{
                 width: '100%', padding: '2.5rem 1.5rem', borderRadius: '0.875rem',
-                border: '1.5px dashed rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.03)',
+                border: '1.5px dashed var(--wis-border-strong)', background: 'var(--wis-surface-2)',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
-                cursor: parsing ? 'wait' : 'pointer', color: 'rgba(255,255,255,0.7)',
+                cursor: parsing ? 'wait' : 'pointer', color: 'var(--wis-text)',
               }}
             >
               {parsing ? <Loader2 className="animate-spin" style={{ width: '2rem', height: '2rem' }} />
-                : <UploadCloud style={{ width: '2rem', height: '2rem', color: '#a5b4fc' }} />}
+                : <UploadCloud style={{ width: '2rem', height: '2rem', color: 'var(--wis-blue)' }} />}
               <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>
                 {parsing ? 'A ler…' : 'Clica para escolher um ficheiro CSV'}
               </span>
-              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--wis-text-3)' }}>
                 Nome, Artista, Tom, BPM, Duração, Referência bíblica, YouTube, Spotify, Cifra, Letra
               </span>
             </button>
@@ -119,7 +119,7 @@ export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, tit
             />
             <a
               href="/api/setlist-template" download
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#a5b4fc', textDecoration: 'none' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--wis-blue)', textDecoration: 'none' }}
             >
               <Download style={{ width: '0.85rem', height: '0.85rem' }} /> Descarregar CSV modelo
             </a>
@@ -128,34 +128,34 @@ export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, tit
 
         {step === 'map' && (
           <div className="space-y-5">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'rgba(255,255,255,0.55)' }}>
-              <FileSpreadsheet style={{ width: '0.95rem', height: '0.95rem', color: '#a5b4fc' }} />
-              <span style={{ fontWeight: 600, color: '#fff' }}>{fileName}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--wis-text-2)' }}>
+              <FileSpreadsheet style={{ width: '0.95rem', height: '0.95rem', color: 'var(--wis-blue)' }} />
+              <span style={{ fontWeight: 600, color: 'var(--wis-text)' }}>{fileName}</span>
               <span>· {rows.length} linha(s)</span>
             </div>
 
             {/* Mapeamento de colunas */}
             <div className="space-y-2.5">
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+              <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
                 Associar colunas
               </p>
               {TARGET_FIELDS.map((f) => (
                 <div key={f.key} style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '0.75rem', alignItems: 'center' }}>
-                  <label style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.7)' }}>
-                    {f.label} {f.required && <span style={{ color: '#f87171' }}>*</span>}
+                  <label style={{ fontSize: '0.83rem', color: 'var(--wis-text)' }}>
+                    {f.label} {f.required && <span style={{ color: 'var(--wis-danger)' }}>*</span>}
                   </label>
                   <select
                     value={mapping[f.key] ?? ''}
                     onChange={(e) => setMapping((m) => ({ ...m, [f.key]: e.target.value || null }))}
                     style={{
                       width: '100%', padding: '0.5rem 0.7rem', borderRadius: '0.5rem',
-                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
-                      color: '#fff', fontSize: '0.83rem',
+                      background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border-strong)',
+                      color: 'var(--wis-text)', fontSize: '0.83rem',
                     }}
                   >
-                    <option value="" style={{ background: '#1a1a20' }}>— ignorar —</option>
+                    <option value="" style={{ background: 'var(--wis-surface-2)' }}>— ignorar —</option>
                     {headers.map((h) => (
-                      <option key={h} value={h} style={{ background: '#1a1a20' }}>{h}</option>
+                      <option key={h} value={h} style={{ background: 'var(--wis-surface-2)' }}>{h}</option>
                     ))}
                   </select>
                 </div>
@@ -163,7 +163,7 @@ export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, tit
             </div>
 
             {!isMappingValid(mapping) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#fcd34d' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--wis-warning)' }}>
                 <AlertCircle style={{ width: '0.9rem', height: '0.9rem' }} /> Associa a coluna do nome da música para continuar.
               </div>
             )}
@@ -171,24 +171,24 @@ export function SongCsvImportDialog({ orgId, open, onOpenChange, onImported, tit
             {/* Pré-visualização */}
             {drafts.length > 0 && (
               <div className="space-y-2">
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
                   Pré-visualização ({drafts.length})
                 </p>
-                <div style={{ maxHeight: '14rem', overflowY: 'auto', borderRadius: '0.625rem', border: '1px solid rgba(255,255,255,0.09)' }}>
+                <div style={{ maxHeight: '14rem', overflowY: 'auto', borderRadius: '0.625rem', border: '1px solid var(--wis-border)' }}>
                   {drafts.slice(0, 50).map((d, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', borderBottom: i < Math.min(drafts.length, 50) - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', width: '1.5rem', textAlign: 'right' }}>{i + 1}</span>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', borderBottom: i < Math.min(drafts.length, 50) - 1 ? '1px solid var(--wis-border)' : 'none' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--wis-text-4)', width: '1.5rem', textAlign: 'right' }}>{i + 1}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</p>
-                        {d.artist && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>{d.artist}</p>}
+                        <p style={{ fontSize: '0.82rem', color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</p>
+                        {d.artist && <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>{d.artist}</p>}
                       </div>
-                      {d.musical_key && <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'rgba(165,180,252,0.15)', color: '#a5b4fc' }}>{d.musical_key}</span>}
-                      {d.bpm && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>{d.bpm} BPM</span>}
-                      {d.duration && <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>{d.duration}</span>}
+                      {d.musical_key && <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.1rem 0.45rem', borderRadius: '9999px', background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)' }}>{d.musical_key}</span>}
+                      {d.bpm && <span style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>{d.bpm} BPM</span>}
+                      {d.duration && <span style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>{d.duration}</span>}
                     </div>
                   ))}
                   {drafts.length > 50 && (
-                    <p style={{ padding: '0.5rem 0.75rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>+ {drafts.length - 50} mais…</p>
+                    <p style={{ padding: '0.5rem 0.75rem', fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>+ {drafts.length - 50} mais…</p>
                   )}
                 </div>
               </div>

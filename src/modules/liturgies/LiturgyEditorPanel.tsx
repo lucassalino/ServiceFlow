@@ -124,7 +124,7 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
           <button onClick={onClose} className="dark-icon-btn" aria-label="Voltar">
             <ArrowLeft style={{ width: '0.9rem', height: '0.9rem' }} />
           </button>
-          <h1 className="text-lg font-bold text-white flex-1 text-center">
+          <h1 className="text-lg font-bold text-[color:var(--wis-text)] flex-1 text-center">
             {liturgy ? 'Editar roteiro' : 'Novo roteiro'}
           </h1>
           <button onClick={handleSave} disabled={isPending} className="dark-primary-btn">
@@ -135,8 +135,8 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
 
         {/* ── Dados do culto ─────────────────────────────── */}
         <div style={{
-          background: 'rgba(22,22,26,0.85)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--wis-surface)',
+          border: '1px solid var(--wis-border)',
           borderRadius: '0.875rem', padding: '1.25rem',
         }} className="space-y-3.5">
           <div className="space-y-1.5">
@@ -154,7 +154,7 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
                 </option>
               ))}
             </select>
-            <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>
               Ao associar, o evento passa a exportar este roteiro em PDF.
             </p>
           </div>
@@ -183,7 +183,7 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
         <div className="flex items-center justify-between">
           <p style={{
             fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+            textTransform: 'uppercase', color: 'var(--wis-text-3)',
           }}>
             Momentos do culto
           </p>
@@ -194,8 +194,8 @@ export function LiturgyEditorPanel({ liturgy, onClose }: Props) {
 
         {moments.length === 0 ? (
           <div className="events-dark-empty">
-            <ClipboardList className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <ClipboardList className="h-10 w-10 mb-3" style={{ color: 'var(--wis-text-4)' }} />
+            <p className="text-sm" style={{ color: 'var(--wis-text-3)' }}>
               Ainda sem momentos. Toca em + para adicionar.
             </p>
           </div>
@@ -246,8 +246,8 @@ function SortableMomentRow({ id, moment, index, onEdit, onRemove }: {
     >
       <div style={{
         display: 'flex', alignItems: 'center', gap: '0.75rem',
-        background: 'rgba(22,22,26,0.85)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--wis-surface)',
+        border: '1px solid var(--wis-border)',
         borderRadius: '0.75rem', padding: '0.75rem 0.875rem',
       }}>
         <button
@@ -255,7 +255,7 @@ function SortableMomentRow({ id, moment, index, onEdit, onRemove }: {
           {...listeners}
           style={{
             background: 'none', border: 'none', cursor: 'grab',
-            color: 'rgba(255,255,255,0.25)', touchAction: 'none', padding: 0,
+            color: 'var(--wis-text-4)', touchAction: 'none', padding: 0,
           }}
           aria-label="Reordenar"
         >
@@ -265,7 +265,7 @@ function SortableMomentRow({ id, moment, index, onEdit, onRemove }: {
         <span style={{
           width: '1.5rem', height: '1.5rem', borderRadius: '0.375rem', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)',
+          background: 'var(--wis-surface-3)', color: 'var(--wis-text-2)',
           fontSize: '0.7rem', fontWeight: 700,
         }}>
           {index + 1}
@@ -279,7 +279,7 @@ function SortableMomentRow({ id, moment, index, onEdit, onRemove }: {
           }}
         >
           <p style={{
-            fontSize: '0.85rem', fontWeight: 600, color: '#fff',
+            fontSize: '0.85rem', fontWeight: 600, color: 'var(--wis-text)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {moment.nome}
@@ -307,7 +307,7 @@ function MomentSubtitle({ moment }: { moment: LiturgyMoment }) {
   if (parts.length === 0) return null;
   return (
     <p style={{
-      fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem',
+      fontSize: '0.7rem', color: 'var(--wis-text-3)', marginTop: '0.1rem',
       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
     }}>
       {parts.join(' · ')}
@@ -318,10 +318,10 @@ function MomentSubtitle({ moment }: { moment: LiturgyMoment }) {
 function MomentBadge({ moment }: { moment: LiturgyMoment }) {
   const label = moment.tipo === 'pessoa' ? (moment.responsavel || 'Pessoa')
     : moment.tipo === 'video' ? 'Vídeo' : 'Projeção';
-  const color = moment.tipo === 'pessoa' ? '#a5b4fc'
-    : moment.tipo === 'video' ? '#f9a8d4' : '#6ee7b7';
-  const bg = moment.tipo === 'pessoa' ? 'rgba(165,180,252,0.12)'
-    : moment.tipo === 'video' ? 'rgba(249,168,212,0.12)' : 'rgba(110,231,183,0.12)';
+  const color = moment.tipo === 'pessoa' ? 'var(--wis-blue-soft)'
+    : moment.tipo === 'video' ? '#fbe8f3' : 'var(--wis-success-bg)';
+  const bg = moment.tipo === 'pessoa' ? 'var(--wis-blue-soft)'
+    : moment.tipo === 'video' ? 'rgba(249,168,212,0.12)' : 'var(--wis-success-bg)';
   return (
     <span style={{
       flexShrink: 0, maxWidth: '7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',

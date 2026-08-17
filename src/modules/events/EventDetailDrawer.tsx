@@ -41,7 +41,7 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(open ? event?.id ?? null : null);
   const { data: setlist = [], isLoading: setlistLoading } = useEventSetlist(open ? event?.id ?? null : null);
 
-  const color = event?.color ?? '#a5b4fc';
+  const color = event?.color ?? 'var(--wis-blue-soft)';
 
   return (
     <>
@@ -62,9 +62,9 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
         style={{
           position: 'fixed', right: 0, top: 0, height: '100dvh',
           width: 'min(540px, 100vw)',
-          background: 'rgba(10,10,14,0.98)',
+          background: 'var(--wis-surface)',
           backdropFilter: 'blur(40px)',
-          borderLeft: '1px solid rgba(255,255,255,0.08)',
+          borderLeft: '1px solid var(--wis-border)',
           zIndex: 49,
           display: 'flex', flexDirection: 'column',
           transform: open ? 'translateX(0)' : 'translateX(100%)',
@@ -85,13 +85,13 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                   />
                   <div style={{
                     position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(10,10,14,0.92) 100%)',
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, var(--wis-surface) 100%)',
                   }} />
                 </div>
               ) : (
                 <div style={{
                   height: '8rem',
-                  background: `linear-gradient(135deg, ${color}33 0%, rgba(10,10,14,0) 70%)`,
+                  background: `linear-gradient(135deg, ${color}33 0%, var(--wis-surface) 70%)`,
                   borderBottom: `1px solid ${color}22`,
                 }} />
               )}
@@ -102,8 +102,8 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                 style={{
                   position: 'absolute', top: '1rem', right: '1rem',
                   width: '2rem', height: '2rem', borderRadius: '50%',
-                  background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.12)',
-                  color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  background: 'rgba(0,0,0,0.5)', border: '1px solid var(--wis-border-strong)',
+                  color: 'var(--wis-text)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   backdropFilter: 'blur(8px)',
                 }}
@@ -123,9 +123,9 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                   <span style={{
                     fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem',
                     borderRadius: '9999px', letterSpacing: '0.1em', textTransform: 'uppercase',
-                    background: event.is_published ? 'rgba(110,231,183,0.2)' : 'rgba(255,255,255,0.08)',
-                    color: event.is_published ? '#6ee7b7' : 'rgba(255,255,255,0.4)',
-                    border: `1px solid ${event.is_published ? 'rgba(110,231,183,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                    background: event.is_published ? 'var(--wis-success-bg)' : 'var(--wis-surface-3)',
+                    color: event.is_published ? 'var(--wis-success)' : 'var(--wis-text-3)',
+                    border: `1px solid ${event.is_published ? '#bfe6d3' : 'var(--wis-border-strong)'}`,
                   }}>
                     {event.is_published ? 'Publicado' : 'Rascunho'}
                   </span>
@@ -133,7 +133,7 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
 
                 <h1 style={{
                   fontSize: '1.625rem', fontWeight: 800, letterSpacing: '-0.02em',
-                  color: '#fff', lineHeight: 1.1, marginBottom: '0.625rem',
+                  color: 'var(--wis-text)', lineHeight: 1.1, marginBottom: '0.625rem',
                 }}>
                   {event.name}
                 </h1>
@@ -164,14 +164,14 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {event.description && (
                     <Section label="Descrição">
-                      <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                         {event.description}
                       </p>
                     </Section>
                   )}
                   {event.observations && (
                     <Section label="Observações">
-                      <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                         {event.observations}
                       </p>
                     </Section>
@@ -184,11 +184,11 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                 {ministriesLoading ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                     {[1, 2].map((i) => (
-                      <div key={i} style={{ height: '5rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                      <div key={i} style={{ height: '5rem', borderRadius: '0.75rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                     ))}
                   </div>
                 ) : eventMinistries.length === 0 ? (
-                  <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
                     Nenhum ministério atribuído.
                   </p>
                 ) : (
@@ -206,7 +206,7 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
                   {setlistLoading ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       {[1, 2, 3].map((i) => (
-                        <div key={i} style={{ height: '2.75rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.04)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                        <div key={i} style={{ height: '2.75rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                       ))}
                     </div>
                   ) : (
@@ -236,7 +236,7 @@ function MinistrySection({
 }) {
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const confirmSchedule = useConfirmSchedule();
-  const color = em.ministry.color ?? '#a5b4fc';
+  const color = em.ministry.color ?? 'var(--wis-blue-soft)';
 
   async function handleConfirm(schedule: EventSchedule) {
     if (schedule.user_id !== currentUserId) return;
@@ -256,8 +256,8 @@ function MinistrySection({
 
   return (
     <div style={{
-      background: 'rgba(22,22,26,0.85)',
-      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'var(--wis-surface)',
+      border: '1px solid var(--wis-border)',
       borderRadius: '0.875rem',
       overflow: 'hidden',
     }}>
@@ -265,14 +265,14 @@ function MinistrySection({
       <div style={{
         display: 'flex', alignItems: 'center', gap: '0.75rem',
         padding: '0.875rem 1rem',
-        borderBottom: schedules.length > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        borderBottom: schedules.length > 0 ? '1px solid var(--wis-border)' : 'none',
         borderLeft: `3px solid ${color}`,
       }}>
         <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{em.ministry.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff' }}>{em.ministry.name}</p>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)' }}>{em.ministry.name}</p>
           {!isLoading && (
-            <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem' }}>
+            <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', marginTop: '0.1rem' }}>
               {schedules.length} pessoa{schedules.length !== 1 ? 's' : ''}
               {schedules.length > 0 && ` · ${confirmedCount} confirmad${confirmedCount !== 1 ? 'os' : 'o'}`}
             </p>
@@ -282,11 +282,11 @@ function MinistrySection({
 
       {/* People */}
       {isLoading ? (
-        <div style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
           A carregar…
         </div>
       ) : schedules.length === 0 ? (
-        <div style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
           Nenhuma pessoa escalada
         </div>
       ) : (
@@ -298,26 +298,26 @@ function MinistrySection({
             <div key={schedule.id} style={{
               display: 'flex', alignItems: 'center', gap: '0.75rem',
               padding: '0.625rem 1rem',
-              borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)',
+              borderBottom: isLast ? 'none' : '1px solid var(--wis-border)',
             }}>
               <Avatar style={{ width: '2rem', height: '2rem', flexShrink: 0 }}>
-                <AvatarFallback style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                <AvatarFallback style={{ fontSize: '0.7rem', background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                   {getInitials(name)}
                 </AvatarFallback>
               </Avatar>
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
-                  <p style={{ fontSize: '0.8rem', fontWeight: 500, color: isMe ? '#fff' : 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {name}{isMe && <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginLeft: '0.25rem' }}>(tu)</span>}
+                  <p style={{ fontSize: '0.8rem', fontWeight: 500, color: isMe ? 'var(--wis-text)' : 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {name}{isMe && <span style={{ fontSize: '0.65rem', color: 'var(--wis-text-3)', marginLeft: '0.25rem' }}>(tu)</span>}
                   </p>
                 </div>
                 {schedule.functions.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.2rem' }}>
                     {schedule.functions.map((fn) => (
                       <span key={fn} style={{
-                        fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)',
-                        background: 'rgba(255,255,255,0.06)', borderRadius: '0.25rem',
+                        fontSize: '0.65rem', color: 'var(--wis-text-3)',
+                        background: 'var(--wis-surface-3)', borderRadius: '0.25rem',
                         padding: '0.1rem 0.35rem',
                       }}>
                         {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
@@ -341,15 +341,15 @@ function MinistrySection({
                   border: 'none', flexShrink: 0,
                   cursor: isMe ? 'pointer' : 'default',
                   background: schedule.confirmed === true
-                    ? 'rgba(110,231,183,0.2)'
+                    ? 'var(--wis-success-bg)'
                     : schedule.confirmed === false
-                    ? 'rgba(239,68,68,0.18)'
-                    : 'rgba(255,255,255,0.06)',
+                    ? 'var(--wis-danger-bg)'
+                    : 'var(--wis-surface-3)',
                   color: schedule.confirmed === true
-                    ? '#6ee7b7'
+                    ? 'var(--wis-success-bg)'
                     : schedule.confirmed === false
-                    ? '#f87171'
-                    : 'rgba(255,255,255,0.25)',
+                    ? 'var(--wis-danger-bg)'
+                    : 'var(--wis-surface-4)',
                   transition: 'background 0.12s',
                 }}
               >
@@ -377,35 +377,35 @@ function SetlistRow({ song, index }: { song: Song & { order_index: number; event
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.875rem',
       padding: '0.625rem 0.75rem',
-      background: 'rgba(22,22,26,0.85)',
-      border: '1px solid rgba(255,255,255,0.07)',
+      background: 'var(--wis-surface)',
+      border: '1px solid var(--wis-border)',
       borderRadius: '0.625rem',
     }}>
       <span style={{
         width: '1.5rem', textAlign: 'right', flexShrink: 0,
-        fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)',
+        fontSize: '0.75rem', fontWeight: 700, color: 'var(--wis-text-4)',
       }}>
         {index}
       </span>
       <div style={{
         width: '2rem', height: '2rem', borderRadius: '0.5rem', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(252,211,77,0.1)',
+        background: 'var(--wis-warning-bg)',
       }}>
-        <Music2 style={{ width: '0.875rem', height: '0.875rem', color: '#fcd34d' }} />
+        <Music2 style={{ width: '0.875rem', height: '0.875rem', color: 'var(--wis-warning)' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '0.825rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {song.name}
         </p>
         {song.artist && (
-          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {song.artist}
           </p>
         )}
         {song.event_note && (
           <p style={{
-            fontSize: '0.68rem', color: '#fcd34d', marginTop: '0.15rem', lineHeight: 1.4,
+            fontSize: '0.68rem', color: 'var(--wis-warning)', marginTop: '0.15rem', lineHeight: 1.4,
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
           }}>
             {song.event_note}
@@ -416,15 +416,15 @@ function SetlistRow({ song, index }: { song: Song & { order_index: number; event
         {key && (
           <span style={{
             fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.45rem',
-            borderRadius: '9999px', background: 'rgba(255,255,255,0.07)',
-            color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '9999px', background: 'var(--wis-surface-3)',
+            color: 'var(--wis-text-2)', border: '1px solid var(--wis-border-strong)',
           }}>{key}</span>
         )}
         {song.bpm && (
           <span style={{
             fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.45rem',
-            borderRadius: '9999px', background: 'rgba(255,255,255,0.07)',
-            color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '9999px', background: 'var(--wis-surface-3)',
+            color: 'var(--wis-text-2)', border: '1px solid var(--wis-border-strong)',
           }}>{song.bpm} BPM</span>
         )}
       </div>
@@ -439,7 +439,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div>
       <p style={{
         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em',
-        textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+        textTransform: 'uppercase', color: 'var(--wis-text-3)',
         marginBottom: '0.75rem',
       }}>
         {label}
@@ -451,7 +451,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function MetaItem({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)' }}>
+    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
       {icon}
       {children}
     </span>

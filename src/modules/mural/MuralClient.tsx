@@ -53,13 +53,13 @@ export function MuralClient() {
         {/* ── Header ────────────────────────────────────── */}
         <div className="flex items-start justify-between gap-4 pt-2">
           <div>
-            <p className="text-xs font-semibold tracking-[0.16em] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-xs font-semibold tracking-[0.16em] uppercase" style={{ color: 'var(--wis-text-3)' }}>
               Organização
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
               Mural de recados
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
               Avisos e informações gerais do ministério
             </p>
           </div>
@@ -75,13 +75,13 @@ export function MuralClient() {
         {isLoading ? (
           <div className="space-y-2.5">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-24 animate-pulse rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }} />
+              <div key={i} className="h-24 animate-pulse rounded-xl" style={{ background: 'var(--wis-surface-2)' }} />
             ))}
           </div>
         ) : announcements.length === 0 ? (
           <div className="events-dark-empty">
-            <Megaphone className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <Megaphone className="h-10 w-10 mb-3" style={{ color: 'var(--wis-text-4)' }} />
+            <p className="text-sm" style={{ color: 'var(--wis-text-3)' }}>
               Nenhum recado por aqui ainda.
             </p>
           </div>
@@ -89,8 +89,8 @@ export function MuralClient() {
           <div className="space-y-3">
             {announcements.map((a) => (
               <div key={a.id} style={{
-                background: 'rgba(22,22,26,0.85)',
-                border: a.pinned ? '1px solid rgba(252,211,77,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--wis-surface)',
+                border: a.pinned ? '1px solid #f3ddb6' : '1px solid var(--wis-border)',
                 borderRadius: '0.875rem', padding: '1.25rem 1.375rem',
               }}>
                 <div className="flex items-start justify-between gap-3">
@@ -100,14 +100,14 @@ export function MuralClient() {
                         display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.04em',
                         padding: '0.15rem 0.5rem', borderRadius: '9999px',
-                        background: 'rgba(252,211,77,0.12)', color: '#fcd34d',
-                        border: '1px solid rgba(252,211,77,0.25)',
+                        background: 'var(--wis-warning-bg)', color: 'var(--wis-warning)',
+                        border: '1px solid #f3ddb6',
                       }}>
                         <Pin className="h-2.5 w-2.5" />
                         FIXADO
                       </span>
                     )}
-                    <h2 className="font-bold text-white" style={{ fontSize: '1.05rem' }}>{a.title}</h2>
+                    <h2 className="font-bold text-[color:var(--wis-text)]" style={{ fontSize: '1.05rem' }}>{a.title}</h2>
                   </div>
                   {canManage && (
                     <div className="flex items-center gap-1 shrink-0">
@@ -120,16 +120,16 @@ export function MuralClient() {
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginTop: '0.5rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--wis-text)', marginTop: '0.5rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                   {a.body}
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <Avatar style={{ width: '1.25rem', height: '1.25rem' }}>
-                    <AvatarFallback style={{ fontSize: '0.55rem', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+                    <AvatarFallback style={{ fontSize: '0.55rem', background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                       {getInitials(a.profile?.full_name ?? '?')}
                     </AvatarFallback>
                   </Avatar>
-                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                     {a.profile?.full_name ?? 'Alguém'} · {formatDateTime(a.created_at)}
                   </span>
                 </div>

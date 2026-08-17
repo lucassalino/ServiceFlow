@@ -207,13 +207,13 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
 
           {/* Links */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--wis-text-3)' }}>
               Links
             </p>
 
             <div className="space-y-1.5">
               <Label htmlFor="youtube_url" className="flex items-center gap-2">
-                <Youtube className="h-3.5 w-3.5" style={{ color: '#f87171' }} />
+                <Youtube className="h-3.5 w-3.5" style={{ color: 'var(--wis-danger)' }} />
                 YouTube
               </Label>
               <Input
@@ -241,7 +241,7 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
 
             <div className="space-y-1.5">
               <Label htmlFor="chords" className="flex items-center gap-2">
-                <Guitar className="h-3.5 w-3.5" style={{ color: '#fcd34d' }} />
+                <Guitar className="h-3.5 w-3.5" style={{ color: 'var(--wis-warning)' }} />
                 Cifra
               </Label>
               <Input
@@ -255,7 +255,7 @@ export function SongDialog({ song, open, onOpenChange }: SongDialogProps) {
 
             <div className="space-y-1.5">
               <Label htmlFor="lyrics" className="flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5" style={{ color: '#a5b4fc' }} />
+                <FileText className="h-3.5 w-3.5" style={{ color: 'var(--wis-blue)' }} />
                 Letra
               </Label>
               <Input

@@ -27,9 +27,9 @@ export function ConfirmAttendanceDialog({
         <div style={{
           width: '3rem', height: '3rem', borderRadius: '9999px', margin: '0 auto',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(165,180,252,0.15)',
+          background: 'var(--wis-blue-soft)',
         }}>
-          <CalendarCheck2 style={{ width: '1.4rem', height: '1.4rem', color: '#a5b4fc' }} />
+          <CalendarCheck2 style={{ width: '1.4rem', height: '1.4rem', color: 'var(--wis-blue)' }} />
         </div>
 
         <AlertDialogHeader style={{ textAlign: 'center', alignItems: 'center' }}>
@@ -58,8 +58,8 @@ export function ConfirmAttendanceDialog({
               flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
               padding: '0.6rem 0.75rem', borderRadius: '9999px',
               fontSize: '0.85rem', fontWeight: 600,
-              background: 'transparent', color: '#f87171',
-              border: '1px solid rgba(239,68,68,0.35)',
+              background: 'transparent', color: 'var(--wis-danger)',
+              border: '1px solid #f5c9cb',
               cursor: isPending ? 'wait' : 'pointer', opacity: isPending ? 0.6 : 1,
             }}
           >
@@ -74,7 +74,7 @@ export function ConfirmAttendanceDialog({
               flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
               padding: '0.6rem 0.75rem', borderRadius: '9999px',
               fontSize: '0.85rem', fontWeight: 700,
-              background: '#fff', color: '#0a0a0e',
+              background: 'var(--wis-surface)', color: 'var(--wis-text)',
               border: '1px solid transparent',
               cursor: isPending ? 'wait' : 'pointer', opacity: isPending ? 0.6 : 1,
             }}

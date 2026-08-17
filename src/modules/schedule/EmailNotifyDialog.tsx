@@ -81,10 +81,10 @@ export function EmailNotifyDialog({ eventId, open, onOpenChange }: Props) {
         {!configured ? (
           <div style={{
             display: 'flex', gap: '0.625rem', padding: '0.875rem 1rem', borderRadius: '0.75rem',
-            background: 'rgba(252,211,77,0.08)', border: '1px solid rgba(252,211,77,0.22)',
+            background: 'var(--wis-warning-bg)', border: '1px solid #f3ddb6',
           }}>
-            <AlertTriangle style={{ width: '1rem', height: '1rem', color: '#fcd34d', flexShrink: 0, marginTop: '0.1rem' }} />
-            <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: 1.6 }}>
+            <AlertTriangle style={{ width: '1rem', height: '1rem', color: 'var(--wis-warning)', flexShrink: 0, marginTop: '0.1rem' }} />
+            <p style={{ fontSize: '0.82rem', color: 'var(--wis-text)', margin: 0, lineHeight: 1.6 }}>
               O envio de emails ainda não está configurado. Assim que a chave do
               serviço de email for adicionada, este botão passa a funcionar — a
               notificação na app continua a funcionar normalmente.
@@ -96,13 +96,13 @@ export function EmailNotifyDialog({ eventId, open, onOpenChange }: Props) {
           <p className="text-sm text-muted-foreground py-2">Ninguém está escalado neste evento.</p>
         ) : (
           <div className="space-y-3">
-            <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', lineHeight: 1.6, margin: 0 }}>
               Escolhe quem recebe o email com os detalhes do evento.
             </p>
 
             <div style={{
               maxHeight: '18rem', overflowY: 'auto', borderRadius: '0.625rem',
-              border: '1px solid rgba(255,255,255,0.09)',
+              border: '1px solid var(--wis-border)',
             }}>
               {candidates.map((c, i) => {
                 const ok = canReceive(c);
@@ -112,7 +112,7 @@ export function EmailNotifyDialog({ eventId, open, onOpenChange }: Props) {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '0.75rem',
                       padding: '0.625rem 0.75rem',
-                      borderBottom: i < candidates.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                      borderBottom: i < candidates.length - 1 ? '1px solid var(--wis-border)' : 'none',
                       cursor: ok ? 'pointer' : 'not-allowed',
                       opacity: ok ? 1 : 0.45,
                     }}
@@ -123,24 +123,24 @@ export function EmailNotifyDialog({ eventId, open, onOpenChange }: Props) {
                       onCheckedChange={() => ok && toggle(c.userId)}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '0.85rem', color: '#fff', margin: 0,
+                      <p style={{ fontSize: '0.85rem', color: 'var(--wis-text)', margin: 0,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {c.name}
                       </p>
-                      <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', margin: 0,
+                      <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', margin: 0,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {reason(c)}
                       </p>
                     </div>
-                    {c.alreadySent && <Check style={{ width: '0.85rem', height: '0.85rem', color: '#6ee7b7', flexShrink: 0 }} />}
-                    {c.optedOut && <BellOff style={{ width: '0.85rem', height: '0.85rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />}
+                    {c.alreadySent && <Check style={{ width: '0.85rem', height: '0.85rem', color: 'var(--wis-success)', flexShrink: 0 }} />}
+                    {c.optedOut && <BellOff style={{ width: '0.85rem', height: '0.85rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />}
                   </label>
                 );
               })}
             </div>
 
             {eligible.length === 0 && (
-              <p style={{ fontSize: '0.78rem', color: '#fcd34d', margin: 0 }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--wis-warning)', margin: 0 }}>
                 Ninguém pode receber: já receberam, desativaram os emails, ou não têm email.
               </p>
             )}

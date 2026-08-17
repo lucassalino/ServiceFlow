@@ -16,7 +16,7 @@ function Card({ title, icon, accent, children }: {
         {icon}
         <h3 style={{
           fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-          color: accent ? '#a5b4fc' : 'rgba(255,255,255,0.55)',
+          color: accent ? 'var(--wis-blue)' : 'var(--wis-text-2)',
         }}>{title}</h3>
       </div>
       {children}
@@ -26,10 +26,10 @@ function Card({ title, icon, accent, children }: {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', height: '2.4rem', borderRadius: '0.5rem', padding: '0 0.75rem',
-  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff',
+  background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border-strong)', color: 'var(--wis-text)',
 };
 
-const labelStyle: React.CSSProperties = { fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: '0.35rem' };
+const labelStyle: React.CSSProperties = { fontSize: '0.75rem', color: 'var(--wis-text-2)', display: 'block', marginBottom: '0.35rem' };
 
 interface Props { orgId: string; isAdmin: boolean }
 
@@ -52,7 +52,7 @@ export function CouponsSection({ orgId, isAdmin }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <Card title="Tenho um código" icon={<Ticket style={{ width: '1rem', height: '1rem', color: '#a5b4fc' }} />}>
+      <Card title="Tenho um código" icon={<Ticket style={{ width: '1rem', height: '1rem', color: 'var(--wis-blue)' }} />}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '10rem' }}>
             <label style={labelStyle}>Código promocional</label>
@@ -62,7 +62,7 @@ export function CouponsSection({ orgId, isAdmin }: Props) {
           <button onClick={handleRedeem} disabled={redeem.isPending}
             style={{
               height: '2.4rem', padding: '0 1.1rem', borderRadius: '0.5rem', border: 'none',
-              background: '#a5b4fc', color: '#0a0a0f', fontWeight: 700, fontSize: '0.82rem',
+              background: 'var(--wis-blue-soft)', color: 'var(--wis-text)', fontWeight: 700, fontSize: '0.82rem',
               cursor: 'pointer', opacity: redeem.isPending ? 0.6 : 1,
             }}>
             {redeem.isPending ? 'A aplicar…' : 'Aplicar'}

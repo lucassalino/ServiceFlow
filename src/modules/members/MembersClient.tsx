@@ -32,15 +32,15 @@ const ROLE_LABEL: Record<OrgRole, string> = {
 };
 
 const ROLE_COLOR: Record<OrgRole, string> = {
-  admin:  'rgba(196,181,253,0.18)',
+  admin:  'var(--wis-blue-soft)',
   leader: 'rgba(147,197,253,0.15)',
-  member: 'rgba(255,255,255,0.07)',
+  member: 'var(--wis-surface-3)',
 };
 
 const ROLE_TEXT: Record<OrgRole, string> = {
-  admin:  '#c4b5fd',
-  leader: '#93c5fd',
-  member: 'rgba(255,255,255,0.45)',
+  admin:  'var(--wis-blue-soft)',
+  leader: 'var(--wis-blue-soft)',
+  member: 'var(--wis-surface-4)',
 };
 
 function RoleBadge({ role }: { role: OrgRole }) {
@@ -209,13 +209,13 @@ export function MembersClient() {
         <div className="flex items-start justify-between gap-4 pt-2">
           <div>
             <p className="text-xs font-semibold tracking-[0.16em] uppercase"
-              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              style={{ color: 'var(--wis-text-3)' }}>
               Organização
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
               Pessoas
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
               {typedMembers.length > 0
                 ? `${active.length} activo${active.length !== 1 ? 's' : ''} · ${inactive.length} inactivo${inactive.length !== 1 ? 's' : ''}`
                 : 'Membros da organização'}
@@ -234,13 +234,13 @@ export function MembersClient() {
           <div className="space-y-2.5">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-[4.5rem] animate-pulse rounded-xl"
-                style={{ background: 'rgba(255,255,255,0.05)' }} />
+                style={{ background: 'var(--wis-surface-2)' }} />
             ))}
           </div>
         ) : typedMembers.length === 0 ? (
           <div className="events-dark-empty">
-            <Users className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <Users className="h-10 w-10 mb-3" style={{ color: 'var(--wis-text-4)' }} />
+            <p className="text-sm" style={{ color: 'var(--wis-text-3)' }}>
               Nenhum membro encontrado.
             </p>
             <button onClick={() => setInviteOpen(true)} className="dark-primary-btn mt-4">
@@ -268,7 +268,7 @@ export function MembersClient() {
                   <Avatar className="h-10 w-10 shrink-0">
                     {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={name} />}
                     <AvatarFallback className="text-sm font-semibold"
-                      style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                      style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                       {getInitials(name)}
                     </AvatarFallback>
                   </Avatar>
@@ -276,14 +276,14 @@ export function MembersClient() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-white truncate">{name}</span>
+                      <span className="font-semibold text-sm text-[color:var(--wis-text)] truncate">{name}</span>
                       <RoleBadge role={role} />
                       {!member.is_active && (
                         <span style={{
                           fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.55rem',
                           borderRadius: '9999px',
-                          background: 'rgba(239,68,68,0.12)', color: '#f87171',
-                          border: '1px solid rgba(248,113,113,0.25)',
+                          background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)',
+                          border: '1px solid #f5c9cb',
                         }}>
                           Inactivo
                         </span>
@@ -291,7 +291,7 @@ export function MembersClient() {
                     </div>
                     {isAdmin && (
                       <p className="text-xs mt-0.5 truncate"
-                        style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        style={{ color: 'var(--wis-text-3)' }}>
                         {profile?.email}
                       </p>
                     )}
@@ -311,7 +311,7 @@ export function MembersClient() {
                       </Select>
                     ) : (
                       <span className="text-xs w-32 text-center"
-                        style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        style={{ color: 'var(--wis-text-3)' }}>
                         {ROLE_LABEL[role]}
                       </span>
                     )}
@@ -336,31 +336,31 @@ export function MembersClient() {
         {canInvite && pendingInvites.length > 0 && (
           <div className="space-y-2.5">
             <div className="flex items-center gap-2 pt-2">
-              <Mail className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <Mail className="h-4 w-4" style={{ color: 'var(--wis-text-3)' }} />
               <p className="text-xs font-semibold tracking-[0.16em] uppercase"
-                style={{ color: 'rgba(255,255,255,0.4)' }}>
+                style={{ color: 'var(--wis-text-3)' }}>
                 Convites pendentes ({pendingInvites.length})
               </p>
             </div>
             {pendingInvites.map((inv) => (
               <div key={inv.id} className="events-dark-card" style={{ cursor: 'default' }}>
                 <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(252,211,77,0.12)', border: '1px solid rgba(252,211,77,0.25)' }}>
-                  <Mail className="h-4 w-4" style={{ color: '#fcd34d' }} />
+                  style={{ background: 'var(--wis-warning-bg)', border: '1px solid #f3ddb6' }}>
+                  <Mail className="h-4 w-4" style={{ color: 'var(--wis-warning)' }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-white truncate">{inv.name}</span>
+                    <span className="font-semibold text-sm text-[color:var(--wis-text)] truncate">{inv.name}</span>
                     <span style={{
                       fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.55rem',
                       borderRadius: '9999px',
-                      background: 'rgba(252,211,77,0.12)', color: '#fcd34d',
-                      border: '1px solid rgba(252,211,77,0.25)',
+                      background: 'var(--wis-warning-bg)', color: 'var(--wis-warning)',
+                      border: '1px solid #f3ddb6',
                     }}>
                       Aguarda entrada
                     </span>
                   </div>
-                  <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--wis-text-3)' }}>
                     {inv.email}
                   </p>
                 </div>
@@ -389,7 +389,7 @@ export function MembersClient() {
           {/* Convidar por nome + email */}
           <div className="dark-inputs space-y-3">
             <p className="text-[11px] font-semibold tracking-[0.16em] uppercase"
-              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              style={{ color: 'var(--wis-text-3)' }}>
               Convidar por email
             </p>
             <div className="space-y-1.5">
@@ -409,7 +409,7 @@ export function MembersClient() {
               <Mail className="h-4 w-4" />
               {createInvite.isPending ? 'A convidar…' : 'Convidar'}
             </Button>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-xs" style={{ color: 'var(--wis-text-3)' }}>
               É enviado um email de convite. Ao aceitar e definir a password, a pessoa entra
               automaticamente na organização e o nome fica guardado.
             </p>
@@ -417,15 +417,15 @@ export function MembersClient() {
             {pendingInvites.length > 0 && (
               <div className="space-y-1.5 pt-1">
                 <p className="text-[11px] font-semibold tracking-[0.16em] uppercase"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  style={{ color: 'var(--wis-text-3)' }}>
                   Convites pendentes ({pendingInvites.length})
                 </p>
                 {pendingInvites.map((inv) => (
                   <div key={inv.id} className="flex items-center gap-2 rounded-lg px-3 py-2"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    style={{ background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{inv.name}</p>
-                      <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{inv.email}</p>
+                      <p className="text-sm font-medium text-[color:var(--wis-text)] truncate">{inv.name}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--wis-text-3)' }}>{inv.email}</p>
                     </div>
                     <button
                       type="button"
@@ -442,14 +442,14 @@ export function MembersClient() {
             )}
           </div>
 
-          <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0.25rem 0' }} />
+          <div style={{ height: '1px', background: 'var(--wis-surface-3)', margin: '0.25rem 0' }} />
 
           <div>
             <p className="text-[11px] font-semibold tracking-[0.16em] uppercase mb-1.5"
-              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              style={{ color: 'var(--wis-text-3)' }}>
               Ou partilha o código
             </p>
-            <p className="text-2xl font-bold font-mono tracking-[0.12em] text-white mb-4">
+            <p className="text-2xl font-bold font-mono tracking-[0.12em] text-[color:var(--wis-text)] mb-4">
               {activeOrg?.invite_code ?? '—'}
             </p>
 
@@ -466,7 +466,7 @@ export function MembersClient() {
               </Button>
             </div>
 
-            <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <p className="text-xs mt-3" style={{ color: 'var(--wis-text-3)' }}>
               Partilha o código ou o link de convite para adicionar pessoas.
             </p>
           </div>

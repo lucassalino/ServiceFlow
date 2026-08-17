@@ -380,10 +380,10 @@ export function EventDialog({ event, open, onOpenChange }: Props) {
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
                       <button type="button" onClick={() => setLightboxOpen(true)}
                         className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ZoomIn className="h-8 w-8 text-white drop-shadow-lg" />
+                        <ZoomIn className="h-8 w-8 text-[color:var(--wis-text)] drop-shadow-lg" />
                       </button>
                       <button type="button" onClick={clearImage}
-                        className="absolute top-2 right-2 z-10 bg-black/60 text-white rounded-full p-1 hover:bg-black/80 transition-colors">
+                        className="absolute top-2 right-2 z-10 bg-black/60 text-[color:var(--wis-text)] rounded-full p-1 hover:bg-black/80 transition-colors">
                         <X className="h-3.5 w-3.5" />
                       </button>
                     </div>

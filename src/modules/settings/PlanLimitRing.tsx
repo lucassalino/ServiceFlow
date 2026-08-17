@@ -46,7 +46,7 @@ function Ring({ resource, used, limit }: { resource: PlanResource; used: number;
   const atLimit = limit !== null && used >= limit;
   const nearLimit = limit !== null && !atLimit && pct >= 80;
 
-  const color = atLimit ? '#f87171' : nearLimit ? '#fcd34d' : '#6ee7b7';
+  const color = atLimit ? 'var(--wis-danger-bg)' : nearLimit ? 'var(--wis-warning-bg)' : 'var(--wis-success-bg)';
   const size = 56;
   const stroke = 5;
   const radius = (size - stroke) / 2;
@@ -60,7 +60,7 @@ function Ring({ resource, used, limit }: { resource: PlanResource; used: number;
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
           <circle
             cx={size / 2} cy={size / 2} r={radius}
-            fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={stroke}
+            fill="none" stroke="var(--wis-surface-4)" strokeWidth={stroke}
           />
           <circle
             cx={size / 2} cy={size / 2} r={radius}
@@ -73,14 +73,14 @@ function Ring({ resource, used, limit }: { resource: PlanResource; used: number;
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon style={{ width: '1.05rem', height: '1.05rem', color: 'rgba(255,255,255,0.55)' }} />
+          <Icon style={{ width: '1.05rem', height: '1.05rem', color: 'var(--wis-text-2)' }} />
         </div>
       </div>
       <div>
-        <p style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+        <p style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--wis-text)', margin: 0 }}>
           {used}{limit === null ? '' : `/${limit}`}
         </p>
-        <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', margin: 0, textTransform: 'capitalize' }}>
+        <p style={{ fontSize: '0.68rem', color: 'var(--wis-text-3)', margin: 0, textTransform: 'capitalize' }}>
           {label.many}
         </p>
       </div>

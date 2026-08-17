@@ -93,13 +93,13 @@ export function UnavailabilitySection() {
 
   return (
     <div className="dark-inputs" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+      <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
         Marca aqui os períodos em que não podes servir — férias, viagens, ou um dia da semana que nunca te dá jeito.
         Fica visível para quem escala, como aviso.
       </p>
 
       {/* Toggle Pontual / Recorrente */}
-      <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', alignSelf: 'flex-start' }}>
+      <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)', alignSelf: 'flex-start' }}>
         {([
           { key: 'date_range', label: 'Pontual' },
           { key: 'weekly', label: 'Semanal' },
@@ -113,8 +113,8 @@ export function UnavailabilitySection() {
             style={{
               padding: '0.4rem 0.875rem', borderRadius: '0.5rem',
               fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', border: 'none',
-              background: kind === key ? '#fff' : 'transparent',
-              color: kind === key ? '#0a0a0f' : 'rgba(255,255,255,0.5)',
+              background: kind === key ? 'var(--wis-blue)' : 'transparent',
+              color: kind === key ? '#fff' : 'var(--wis-text-2)',
               transition: 'background 0.12s, color 0.12s',
             }}
           >
@@ -142,12 +142,12 @@ export function UnavailabilitySection() {
             <Label>Dia da semana</Label>
             <DatePicker value={recurringDate} onChange={setRecurringDate} placeholder="Escolhe uma data" />
             {recurringDate && kind === 'weekly' && (
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                 Repete todas as {WEEKDAY_LABELS[weekdayFromDateStr(recurringDate)]}s
               </p>
             )}
             {recurringDate && kind === 'monthly_nth' && (
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                 Repete na {nthLabel(effectiveNth).toLowerCase()}{' '}
                 {WEEKDAY_LABELS[weekdayFromDateStr(recurringDate)].toLowerCase()} de cada mês
               </p>
@@ -200,9 +200,9 @@ export function UnavailabilitySection() {
 
       {/* List */}
       {isLoading ? (
-        <div style={{ height: '3rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)', animation: 'pulse 2s infinite' }} />
+        <div style={{ height: '3rem', borderRadius: '0.5rem', background: 'var(--wis-surface-2)', animation: 'pulse 2s infinite' }} />
       ) : entries.length === 0 ? (
-        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
           Sem indisponibilidades registadas.
         </p>
       ) : (
@@ -211,16 +211,16 @@ export function UnavailabilitySection() {
             <div key={e.id} style={{
               display: 'flex', alignItems: 'center', gap: '0.75rem',
               padding: '0.625rem 0.75rem', borderRadius: '0.5rem',
-              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+              background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
             }}>
-              <CalendarOff style={{ width: '0.9rem', height: '0.9rem', color: '#f87171', flexShrink: 0 }} />
-              <p style={{ flex: 1, fontSize: '0.82rem', color: '#fff' }}>{describeUnavailability(e)}</p>
+              <CalendarOff style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-danger)', flexShrink: 0 }} />
+              <p style={{ flex: 1, fontSize: '0.82rem', color: 'var(--wis-text)' }}>{describeUnavailability(e)}</p>
               <button
                 type="button"
                 onClick={() => handleRemove(e.id)}
-                style={{ color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                onMouseEnter={(ev) => (ev.currentTarget.style.color = '#f87171')}
-                onMouseLeave={(ev) => (ev.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+                style={{ color: 'var(--wis-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
+                onMouseEnter={(ev) => (ev.currentTarget.style.color = 'var(--wis-danger-bg)')}
+                onMouseLeave={(ev) => (ev.currentTarget.style.color = 'var(--wis-surface-4)')}
               >
                 <X style={{ width: '0.75rem', height: '0.75rem' }} />
               </button>

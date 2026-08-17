@@ -66,15 +66,15 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
   return (
     <FeatureGate feature="calendar_sync">
     <div className="space-y-4">
-      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', lineHeight: 1.6 }}>
         Subscreve as tuas escalas no Google Calendar ou no Calendário da Apple.
         Ao contrário de guardar um evento de cada vez, este link{' '}
-        <strong style={{ color: 'rgba(255,255,255,0.75)' }}>mantém-se atualizado</strong>:
+        <strong style={{ color: 'var(--wis-text)' }}>mantém-se atualizado</strong>:
         se a escala mudar, o teu calendário acompanha.
       </p>
 
       {isLoading ? (
-        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)' }}>A carregar…</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)' }}>A carregar…</p>
       ) : !feed ? (
         <Button onClick={() => create.mutate()} disabled={create.isPending}>
           <CalendarSync className="h-4 w-4" />
@@ -86,10 +86,10 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
           <div style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.625rem 0.75rem', borderRadius: '0.625rem',
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border-strong)',
           }}>
             <code style={{
-              flex: 1, minWidth: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)',
+              flex: 1, minWidth: 0, fontSize: '0.72rem', color: 'var(--wis-text-2)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {feed.url}
@@ -100,8 +100,8 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
                 padding: '0.3rem 0.6rem', borderRadius: '0.4rem', cursor: 'pointer',
-                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-                color: copied ? '#6ee7b7' : 'rgba(255,255,255,0.7)', fontSize: '0.72rem', fontWeight: 600,
+                background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                color: copied ? 'var(--wis-success)' : 'var(--wis-text)', fontSize: '0.72rem', fontWeight: 600,
               }}
             >
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -112,10 +112,10 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
           {/* Aviso de privacidade — consentimento informado */}
           <div style={{
             display: 'flex', gap: '0.625rem', padding: '0.75rem 0.875rem', borderRadius: '0.625rem',
-            background: 'rgba(252,211,77,0.07)', border: '1px solid rgba(252,211,77,0.2)',
+            background: 'var(--wis-warning-bg)', border: '1px solid #f3ddb6',
           }}>
-            <ShieldAlert style={{ width: '0.9rem', height: '0.9rem', color: '#fcd34d', flexShrink: 0, marginTop: '0.1rem' }} />
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
+            <ShieldAlert style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-warning)', flexShrink: 0, marginTop: '0.1rem' }} />
+            <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-2)', margin: 0, lineHeight: 1.6 }}>
               Trata este link como uma palavra-passe: <strong>quem o tiver consegue ver
               as tuas escalas</strong>, sem precisar de entrar na app. Se o partilhares
               por engano, gera um link novo — o antigo deixa de funcionar.
@@ -124,16 +124,16 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
 
           {/* Como usar */}
           <details>
-            <summary style={{ fontSize: '0.8rem', color: '#a5b4fc', cursor: 'pointer' }}>
+            <summary style={{ fontSize: '0.8rem', color: 'var(--wis-blue)', cursor: 'pointer' }}>
               Como adicionar ao meu calendário
             </summary>
-            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginTop: '0.5rem' }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--wis-text-2)', lineHeight: 1.7, marginTop: '0.5rem' }}>
               <p style={{ margin: '0 0 0.5rem' }}>
-                <strong style={{ color: 'rgba(255,255,255,0.65)' }}>Google Calendar:</strong>{' '}
+                <strong style={{ color: 'var(--wis-text-2)' }}>Google Calendar:</strong>{' '}
                 no computador, Outros calendários → + → A partir de URL → cola o link.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: 'rgba(255,255,255,0.65)' }}>iPhone / Apple:</strong>{' '}
+                <strong style={{ color: 'var(--wis-text-2)' }}>iPhone / Apple:</strong>{' '}
                 Definições → Aplicações → Calendário → Contas → Adicionar Conta →
                 Outra → toca em <strong>&quot;Calendário Assinado&quot;</strong> (não
                 &quot;Conta CalDAV&quot;) → cola o link → Seguinte → Guardar.
@@ -141,7 +141,7 @@ export function CalendarSyncSection({ orgId }: { orgId: string }) {
             </div>
           </details>
 
-          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', margin: 0 }}>
             Criado a {formatDate(feed.createdAt)}
             {feed.lastUsedAt
               ? ` · última leitura a ${formatDate(feed.lastUsedAt)}`

@@ -13,8 +13,8 @@ import { DateRangePicker } from '@/components/ui/date-picker';
 import { FeatureGate } from '@/components/FeatureGate';
 
 const card: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
+  background: 'var(--wis-surface-2)',
+  border: '1px solid var(--wis-border)',
   borderRadius: '0.875rem',
 };
 
@@ -57,7 +57,7 @@ export function ReportsClient({ orgId }: { orgId: string }) {
     return (
       <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
         <div className="p-5 md:p-8">
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>
+          <p style={{ color: 'var(--wis-text-2)', fontSize: '0.9rem' }}>
             Os relatórios só estão disponíveis para administradores e líderes.
           </p>
         </div>
@@ -71,13 +71,13 @@ export function ReportsClient({ orgId }: { orgId: string }) {
 
         {/* ── Cabeçalho ─────────────────────────────── */}
         <div className="pt-2">
-          <p className="text-xs font-semibold tracking-[0.16em] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-xs font-semibold tracking-[0.16em] uppercase" style={{ color: 'var(--wis-text-3)' }}>
             Organização
           </p>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
             Relatórios
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
             Engajamento da equipa no período escolhido
           </p>
         </div>
@@ -86,7 +86,7 @@ export function ReportsClient({ orgId }: { orgId: string }) {
         {/* ── Filtros ───────────────────────────────── */}
         <div className="dark-inputs" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 16rem', minWidth: 0 }}>
-            <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', display: 'block', marginBottom: '0.35rem' }}>
+            <label style={{ fontSize: '0.75rem', color: 'var(--wis-text-2)', display: 'block', marginBottom: '0.35rem' }}>
               Período
             </label>
             <DateRangePicker
@@ -98,7 +98,7 @@ export function ReportsClient({ orgId }: { orgId: string }) {
           </div>
 
           <div style={{ flex: '1 1 12rem', minWidth: 0 }}>
-            <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', display: 'block', marginBottom: '0.35rem' }}>
+            <label style={{ fontSize: '0.75rem', color: 'var(--wis-text-2)', display: 'block', marginBottom: '0.35rem' }}>
               Ministério
             </label>
             <Select value={ministryId} onValueChange={setMinistryId}>
@@ -120,8 +120,8 @@ export function ReportsClient({ orgId }: { orgId: string }) {
                 style={{
                   padding: '0.5rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.78rem',
                   fontWeight: 600, cursor: 'pointer',
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap',
+                  background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                  color: 'var(--wis-text-2)', whiteSpace: 'nowrap',
                 }}
               >
                 {l}
@@ -131,15 +131,15 @@ export function ReportsClient({ orgId }: { orgId: string }) {
         </div>
 
         {error ? (
-          <p style={{ color: '#f87171', fontSize: '0.875rem' }}>
+          <p style={{ color: 'var(--wis-danger)', fontSize: '0.875rem' }}>
             {error instanceof Error ? error.message : 'Erro ao carregar o relatório'}
           </p>
         ) : isLoading ? (
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem' }}>A calcular…</p>
+          <p style={{ color: 'var(--wis-text-3)', fontSize: '0.875rem' }}>A calcular…</p>
         ) : !s || s.assignments === 0 ? (
           <div style={{ ...card, padding: '2.5rem', textAlign: 'center' }}>
-            <TrendingUp style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', margin: 0 }}>
+            <TrendingUp style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+            <p style={{ color: 'var(--wis-text-3)', fontSize: '0.9rem', margin: 0 }}>
               Não há escalas neste período.
             </p>
           </div>
@@ -151,18 +151,18 @@ export function ReportsClient({ orgId }: { orgId: string }) {
               <Stat label="Escalações" value={String(s.assignments)} />
               <Stat label="Pessoas envolvidas" value={String(s.people)} />
               <Stat label="Taxa de resposta" value={responseRate !== null ? `${responseRate}%` : '—'}
-                accent={responseRate !== null && responseRate < 50 ? '#fcd34d' : '#6ee7b7'} />
-              <Stat label="Confirmações" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="#6ee7b7" />
+                accent={responseRate !== null && responseRate < 50 ? 'var(--wis-warning-bg)' : 'var(--wis-success-bg)'} />
+              <Stat label="Confirmações" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="var(--wis-success-bg)" />
             </div>
 
             {/* Nota honesta sobre faltas */}
             <div style={{
               display: 'flex', gap: '0.625rem', padding: '0.75rem 1rem', borderRadius: '0.75rem',
-              background: 'rgba(165,180,252,0.06)', border: '1px solid rgba(165,180,252,0.16)',
+              background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
             }}>
-              <Info style={{ width: '0.95rem', height: '0.95rem', color: '#a5b4fc', flexShrink: 0, marginTop: '0.1rem' }} />
-              <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
-                <strong style={{ color: 'rgba(255,255,255,0.75)' }}>{s.pending}</strong> escalações ficaram
+              <Info style={{ width: '0.95rem', height: '0.95rem', color: 'var(--wis-blue)', flexShrink: 0, marginTop: '0.1rem' }} />
+              <p style={{ fontSize: '0.78rem', color: 'var(--wis-text-2)', margin: 0, lineHeight: 1.6 }}>
+                <strong style={{ color: 'var(--wis-text)' }}>{s.pending}</strong> escalações ficaram
                 sem resposta. Isto não significa falta — a app regista a resposta à escala, não a presença
                 no evento.
               </p>
@@ -177,13 +177,13 @@ export function ReportsClient({ orgId }: { orgId: string }) {
                     <div key={m.ministry_id} style={{ ...card, padding: '0.75rem 1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
                         <span style={{ fontSize: '0.95rem' }}>{m.icon}</span>
-                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', flex: 1 }}>{m.name}</span>
-                        <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)', flex: 1 }}>{m.name}</span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--wis-text-2)' }}>
                           {m.assignments} · {m.people} {m.people === 1 ? 'pessoa' : 'pessoas'}
                         </span>
                       </div>
-                      <div style={{ height: '0.375rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                        <div style={{ width: `${pct}%`, height: '100%', background: m.color || '#a5b4fc' }} />
+                      <div style={{ height: '0.375rem', borderRadius: '9999px', background: 'var(--wis-surface-3)', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: m.color || 'var(--wis-blue-soft)' }} />
                       </div>
                     </div>
                   );
@@ -211,13 +211,13 @@ export function ReportsClient({ orgId }: { orgId: string }) {
                     <span key={p.user_id} style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                       padding: '0.25rem 0.6rem 0.25rem 0.25rem', borderRadius: '9999px',
-                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                      background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
                     }}>
                       <Avatar className="h-5 w-5">
                         {p.avatar_url && <AvatarImage src={p.avatar_url} />}
                         <AvatarFallback style={{ fontSize: '0.55rem' }}>{getInitials(p.name)}</AvatarFallback>
                       </Avatar>
-                      <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>{p.name}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--wis-text-2)' }}>{p.name}</span>
                     </span>
                   ))}
                 </div>
@@ -239,7 +239,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
       <p style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
         fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em',
-        textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', margin: 0,
+        textTransform: 'uppercase', color: 'var(--wis-text-3)', margin: 0,
       }}>
         {icon} {title}
       </p>
@@ -251,10 +251,10 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div style={{ ...card, padding: '0.875rem 1rem' }}>
-      <p style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.02em', color: accent ?? '#fff', margin: 0, lineHeight: 1.2 }}>
+      <p style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.02em', color: accent ?? 'var(--wis-text)', margin: 0, lineHeight: 1.2 }}>
         {value}
       </p>
-      <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.38)', margin: '0.15rem 0 0' }}>{label}</p>
+      <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', margin: '0.15rem 0 0' }}>{label}</p>
     </div>
   );
 }
@@ -264,7 +264,7 @@ function PersonRow({ p, max, last }: { p: EngagementPerson; max: number; last: b
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem',
-      borderBottom: last ? 'none' : '1px solid rgba(255,255,255,0.05)',
+      borderBottom: last ? 'none' : '1px solid var(--wis-border)',
     }}>
       <Avatar className="h-8 w-8 flex-shrink-0">
         {p.avatar_url && <AvatarImage src={p.avatar_url} />}
@@ -272,21 +272,21 @@ function PersonRow({ p, max, last }: { p: EngagementPerson; max: number; last: b
       </Avatar>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', margin: 0,
+        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {p.name}
         </p>
-        <div style={{ height: '0.25rem', borderRadius: '9999px', background: 'rgba(255,255,255,0.07)', marginTop: '0.3rem', overflow: 'hidden' }}>
-          <div style={{ width: `${pct}%`, height: '100%', background: '#a5b4fc' }} />
+        <div style={{ height: '0.25rem', borderRadius: '9999px', background: 'var(--wis-surface-3)', marginTop: '0.3rem', overflow: 'hidden' }}>
+          <div style={{ width: `${pct}%`, height: '100%', background: 'var(--wis-blue-soft)' }} />
         </div>
-        <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', margin: '0.25rem 0 0' }}>
+        <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', margin: '0.25rem 0 0' }}>
           {p.confirmed} confirmadas · {p.pending} sem resposta
           {p.declined > 0 && ` · ${p.declined} recusadas`}
           {p.last_served && ` · última: ${formatDate(p.last_served)}`}
         </p>
       </div>
 
-      <span style={{ fontSize: '1rem', fontWeight: 800, color: '#fff', flexShrink: 0 }}>
+      <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--wis-text)', flexShrink: 0 }}>
         {p.assignments}
       </span>
     </div>

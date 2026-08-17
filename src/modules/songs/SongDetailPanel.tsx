@@ -19,10 +19,10 @@ interface Props {
 
 export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, onBack, isAdmin, canManage = isAdmin, onEdit, onDelete }: Props) {
   const links = [
-    { label: 'YouTube', url: song.youtube_url, icon: <Youtube style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#f87171' },
+    { label: 'YouTube', url: song.youtube_url, icon: <Youtube style={{ width: '1.1rem', height: '1.1rem' }} />, color: 'var(--wis-danger)' },
     { label: 'Spotify',  url: song.spotify_url, icon: <Music   style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#1db954' },
-    { label: 'Cifra',   url: song.chords,       icon: <Guitar  style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#fcd34d' },
-    { label: 'Letra',   url: song.lyrics,        icon: <FileText style={{ width: '1.1rem', height: '1.1rem' }} />, color: '#a5b4fc' },
+    { label: 'Cifra',   url: song.chords,       icon: <Guitar  style={{ width: '1.1rem', height: '1.1rem' }} />, color: 'var(--wis-warning)' },
+    { label: 'Letra',   url: song.lyrics,        icon: <FileText style={{ width: '1.1rem', height: '1.1rem' }} />, color: 'var(--wis-blue)' },
   ];
 
   const activeLinks = links.filter((l) => !!l.url);
@@ -39,12 +39,12 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Repertório
@@ -58,14 +58,14 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
                   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                   padding: '0.375rem 0.875rem',
                   fontSize: '0.775rem', fontWeight: 500,
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'var(--wis-surface-3)',
+                  border: '1px solid var(--wis-border-strong)',
                   borderRadius: '0.5rem',
-                  color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  color: 'var(--wis-text)', cursor: 'pointer',
                   transition: 'background 0.12s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
               >
                 <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
                 Editar
@@ -77,14 +77,14 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
                     display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                     padding: '0.375rem 0.875rem',
                     fontSize: '0.775rem', fontWeight: 500,
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.2)',
+                    background: 'var(--wis-danger-bg)',
+                    border: '1px solid #f5c9cb',
                     borderRadius: '0.5rem',
-                    color: '#f87171', cursor: 'pointer',
+                    color: 'var(--wis-danger)', cursor: 'pointer',
                     transition: 'background 0.12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.18)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-danger-bg)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-danger-bg)')}
                 >
                   <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
                   Remover
@@ -96,8 +96,8 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
 
         {/* ── Hero ─────────────────────────────────── */}
         <div style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.09)',
+          background: 'var(--wis-surface-2)',
+          border: '1px solid var(--wis-border)',
           borderRadius: '1rem',
           padding: '1.75rem 1.5rem',
           marginBottom: '1.75rem',
@@ -110,27 +110,27 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
                 alt={song.name}
                 style={{
                   width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
-                  objectFit: 'cover', background: 'rgba(255,255,255,0.08)',
+                  objectFit: 'cover', background: 'var(--wis-surface-3)',
                 }}
               />
             ) : (
               <div style={{
                 width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(255,255,255,0.08)',
+                background: 'var(--wis-surface-3)',
               }}>
-                <Music style={{ width: '1.5rem', height: '1.5rem', color: 'rgba(255,255,255,0.5)' }} />
+                <Music style={{ width: '1.5rem', height: '1.5rem', color: 'var(--wis-text-2)' }} />
               </div>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{
                 fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em',
-                color: '#fff', lineHeight: 1.15, marginBottom: '0.375rem',
+                color: 'var(--wis-text)', lineHeight: 1.15, marginBottom: '0.375rem',
               }}>
                 {song.name}
               </h1>
               {song.artist && (
-                <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.875rem' }}>
+                <p style={{ fontSize: '0.95rem', color: 'var(--wis-text-2)', marginBottom: '0.875rem' }}>
                   {song.artist}
                 </p>
               )}
@@ -150,13 +150,13 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
         {/* ── Observação deste evento ──────────────── */}
         {eventNote && (
           <div style={{
-            background: 'rgba(252,211,77,0.08)', border: '1px solid rgba(252,211,77,0.25)',
+            background: 'var(--wis-warning-bg)', border: '1px solid #f3ddb6',
             borderRadius: '0.875rem', padding: '1rem 1.25rem', marginBottom: '1.75rem',
           }}>
-            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fcd34d', marginBottom: '0.4rem' }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-warning)', marginBottom: '0.4rem' }}>
               Observação para este evento
             </p>
-            <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--wis-text)', lineHeight: 1.5 }}>
               {eventNote}
             </p>
           </div>
@@ -175,20 +175,20 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.625rem',
                     padding: '0.875rem 1rem',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.09)',
+                    background: 'var(--wis-surface-2)',
+                    border: '1px solid var(--wis-border)',
                     borderRadius: '0.75rem',
                     textDecoration: 'none',
                     fontWeight: 600,
                     fontSize: '0.875rem',
                     transition: 'background 0.12s, transform 0.12s',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.transform = 'none'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--wis-surface-3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--wis-surface-2)'; e.currentTarget.style.transform = 'none'; }}
                 >
                   <span style={{ color }}>{icon}</span>
-                  <span style={{ flex: 1, color: 'rgba(255,255,255,0.8)' }}>{label}</span>
-                  <ExternalLink style={{ width: '0.75rem', height: '0.75rem', color: 'rgba(255,255,255,0.25)' }} />
+                  <span style={{ flex: 1, color: 'var(--wis-text)' }}>{label}</span>
+                  <ExternalLink style={{ width: '0.75rem', height: '0.75rem', color: 'var(--wis-text-4)' }} />
                 </a>
               ))}
             </div>
@@ -196,11 +196,11 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
         ) : (
           <div style={{
             padding: '2rem', textAlign: 'center',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px dashed rgba(255,255,255,0.1)',
+            background: 'var(--wis-surface-2)',
+            border: '1px dashed var(--wis-border-strong)',
             borderRadius: '0.875rem',
           }}>
-            <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
               Nenhum link adicionado.
             </p>
             {canManage && (
@@ -211,10 +211,10 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
                   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                   padding: '0.5rem 1rem',
                   fontSize: '0.8rem', fontWeight: 600,
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'var(--wis-surface-3)',
+                  border: '1px solid var(--wis-border-strong)',
                   borderRadius: '0.5rem',
-                  color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                  color: 'var(--wis-text)', cursor: 'pointer',
                 }}
               >
                 <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
@@ -234,7 +234,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div>
       <p style={{
         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em',
-        textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+        textTransform: 'uppercase', color: 'var(--wis-text-3)',
         marginBottom: '0.75rem',
       }}>
         {label}
@@ -248,8 +248,8 @@ function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span style={{
       fontSize: '0.72rem', fontWeight: 600, padding: '0.2rem 0.6rem',
-      borderRadius: '9999px', background: 'rgba(255,255,255,0.08)',
-      color: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: '9999px', background: 'var(--wis-surface-3)',
+      color: 'var(--wis-text-2)', border: '1px solid var(--wis-border-strong)',
       whiteSpace: 'nowrap',
     }}>
       {children}

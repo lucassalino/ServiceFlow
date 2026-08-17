@@ -54,9 +54,9 @@ function DarkBadge({ children, color }: { children: React.ReactNode; color?: str
       display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
       fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
       borderRadius: '9999px', letterSpacing: '0.04em',
-      background: color ? `${color}22` : 'rgba(255,255,255,0.08)',
-      color: color ?? 'rgba(255,255,255,0.55)',
-      border: `1px solid ${color ? `${color}44` : 'rgba(255,255,255,0.1)'}`,
+      background: color ? `${color}22` : 'var(--wis-surface-3)',
+      color: color ?? 'var(--wis-text-2)',
+      border: `1px solid ${color ? `${color}44` : 'var(--wis-border-strong)'}`,
     }}>{children}</span>
   );
 }
@@ -238,12 +238,12 @@ function PersonDialog({
                         <span className="flex-1">{name}</span>
                         {scheduleConflicts.length > 0 && (
                           <span title={`Já escalado em: ${scheduleConflicts.join(', ')}`} className="shrink-0">
-                            <AlertTriangle className="h-3.5 w-3.5" style={{ color: '#fbbf24' }} />
+                            <AlertTriangle className="h-3.5 w-3.5" style={{ color: 'var(--wis-warning)' }} />
                           </span>
                         )}
                         {conflict && (
                           <span title={describeUnavailability(conflict)} className="shrink-0">
-                            <CalendarOff className="h-3.5 w-3.5" style={{ color: '#f87171' }} />
+                            <CalendarOff className="h-3.5 w-3.5" style={{ color: 'var(--wis-danger)' }} />
                           </span>
                         )}
                       </button>
@@ -258,7 +258,7 @@ function PersonDialog({
           )}
           {selectedUserId && conflictMinistries(selectedUserId).length > 0 && (
             <div className="flex items-start gap-2 rounded-md p-2.5 text-xs"
-              style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24' }}>
+              style={{ background: 'var(--wis-warning-bg)', border: '1px solid #f3ddb6', color: 'var(--wis-warning)' }}>
               <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
               <span>Esta pessoa já está escalada em <strong>{conflictMinistries(selectedUserId).join(', ')}</strong> neste mesmo evento.</span>
             </div>
@@ -369,28 +369,28 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
 
   return (
     <div style={{
-      background: 'rgba(22,22,26,0.85)',
-      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'var(--wis-surface)',
+      border: '1px solid var(--wis-border)',
       borderRadius: '0.875rem',
       overflow: 'hidden',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--wis-shadow-md)',
     }}>
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '0.5rem',
         padding: '0.875rem 1rem',
-        borderBottom: expanded ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        borderBottom: expanded ? '1px solid var(--wis-border)' : 'none',
       }}>
         {/* Left colour accent */}
         <div style={{ width: 3, alignSelf: 'stretch', borderRadius: 9999, background: color, flexShrink: 0 }} />
 
         <button
           onClick={() => setExpanded((v) => !v)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wis-text)' }}
         >
           {expanded
-            ? <ChevronDown style={{ width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />
-            : <ChevronRight style={{ width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }} />}
+            ? <ChevronDown style={{ width: '1rem', height: '1rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />
+            : <ChevronRight style={{ width: '1rem', height: '1rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />}
           <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{em.ministry.name}</span>
           <DarkBadge color={color}>
             <Users style={{ width: '0.65rem', height: '0.65rem' }} />
@@ -415,11 +415,11 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
       {expanded && (
         <div>
           {isLoading ? (
-            <div style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.35)' }}>
+            <div style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
               A carregar…
             </div>
           ) : schedules.length === 0 ? (
-            <div style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'rgba(255,255,255,0.35)' }}>
+            <div style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
               Nenhuma pessoa escalada.
             </div>
           ) : (
@@ -432,36 +432,36 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                 <div key={schedule.id} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                   padding: '0.75rem 1rem',
-                  borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                  borderBottom: isLast ? 'none' : '1px solid var(--wis-border)',
                   transition: 'background 0.12s',
                 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-2)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarFallback className="text-xs" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                    <AvatarFallback className="text-xs" style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                       {getInitials(name)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       {name}
                       {otherMinistries.length > 0 && (
                         <span title={`Também escalado em: ${otherMinistries.join(', ')}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
-                          <AlertTriangle style={{ width: '0.75rem', height: '0.75rem', color: '#fbbf24' }} />
+                          <AlertTriangle style={{ width: '0.75rem', height: '0.75rem', color: 'var(--wis-warning)' }} />
                         </span>
                       )}
                       {conflict && (
                         <span title={describeUnavailability(conflict)} style={{ display: 'inline-flex', flexShrink: 0 }}>
-                          <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: '#f87171' }} />
+                          <CalendarOff style={{ width: '0.75rem', height: '0.75rem', color: 'var(--wis-danger)' }} />
                         </span>
                       )}
                     </p>
                     {schedule.functions.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.25rem' }}>
                         {schedule.functions.map((fn) => (
-                          <span key={fn} style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.38)' }}>
+                          <span key={fn} style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>
                             {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
                           </span>
                         ))}
@@ -477,15 +477,15 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       border: 'none', flexShrink: 0,
                       background: schedule.confirmed === true
-                        ? 'rgba(110,231,183,0.18)'
+                        ? 'var(--wis-success-bg)'
                         : schedule.confirmed === false
-                        ? 'rgba(239,68,68,0.18)'
-                        : 'rgba(255,255,255,0.07)',
+                        ? 'var(--wis-danger-bg)'
+                        : 'var(--wis-surface-3)',
                       color: schedule.confirmed === true
-                        ? '#6ee7b7'
+                        ? 'var(--wis-success-bg)'
                         : schedule.confirmed === false
-                        ? '#f87171'
-                        : 'rgba(255,255,255,0.3)',
+                        ? 'var(--wis-danger-bg)'
+                        : 'var(--wis-surface-4)',
                       transition: 'background 0.12s',
                     };
                     const icon = schedule.confirmed === true
@@ -519,8 +519,8 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                         width: '1.75rem', height: '1.75rem', borderRadius: '50%',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         border: 'none', flexShrink: 0, cursor: 'pointer',
-                        background: schedule.checked_in_at ? 'rgba(165,180,252,0.18)' : 'rgba(255,255,255,0.07)',
-                        color: schedule.checked_in_at ? '#a5b4fc' : 'rgba(255,255,255,0.3)',
+                        background: schedule.checked_in_at ? 'var(--wis-blue-soft)' : 'var(--wis-surface-3)',
+                        color: schedule.checked_in_at ? 'var(--wis-blue)' : 'var(--wis-text-3)',
                         transition: 'background 0.12s',
                       }}
                     >
@@ -707,22 +707,22 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
   return (
     <div style={{
       display: 'flex', height: '100%', minHeight: 0, overflow: 'hidden',
-      position: 'relative', background: '#000000', color: '#ffffff',
+      position: 'relative', background: 'var(--wis-canvas)', color: 'var(--wis-text)',
     }}>
       {/* Spotlight */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
         backgroundImage: `
           radial-gradient(ellipse 65% 55% at 80% -5%, rgba(210,210,235,0.10) 0%, transparent 65%),
-          radial-gradient(ellipse 35% 40% at 78% -2%, rgba(255,255,255,0.06) 0%, transparent 50%)
+          radial-gradient(ellipse 35% 40% at 78% -2%, var(--wis-surface-3) 0%, transparent 50%)
         `,
       }} />
 
       {/* ── Left: event list ──────────────────────────── */}
       <aside className={`schedule-aside scrollbar-none${mobileShowDetail ? ' mobile-hidden' : ''}`}>
         {/* Header */}
-        <div style={{ padding: '1.25rem 1rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+        <div style={{ padding: '1.25rem 1rem 0.75rem', borderBottom: '1px solid var(--wis-border)' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
             Escalas
           </p>
         </div>
@@ -730,13 +730,13 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
         {eventsLoading ? (
           <div style={{ padding: '0.75rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ height: '4.5rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div key={i} style={{ height: '4.5rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
             ))}
           </div>
         ) : sortedEvents.length === 0 ? (
           <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
-            <CalendarDays style={{ width: '1.75rem', height: '1.75rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.5rem' }} />
-            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>Sem eventos</p>
+            <CalendarDays style={{ width: '1.75rem', height: '1.75rem', color: 'var(--wis-text-4)', margin: '0 auto 0.5rem' }} />
+            <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', margin: 0 }}>Sem eventos</p>
           </div>
         ) : (
           <ul style={{ padding: '0.625rem 0.5rem', margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
@@ -748,24 +748,24 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     onClick={() => handleSelectEvent(event.id)}
                     style={{
                       width: '100%', textAlign: 'left', padding: '0.625rem 0.75rem',
-                      borderRadius: '0.625rem', border: `1px solid ${isSelected ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)'}`,
+                      borderRadius: '0.625rem', border: `1px solid ${isSelected ? 'var(--wis-border-strong)' : 'var(--wis-border)'}`,
                       cursor: 'pointer',
-                      background: isSelected ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
-                      color: '#fff',
+                      background: isSelected ? 'var(--wis-surface-4)' : 'var(--wis-surface-2)',
+                      color: 'var(--wis-text)',
                       transition: 'background 0.12s, border-color 0.12s',
                       display: 'flex', flexDirection: 'column', gap: '0.25rem',
                       position: 'relative', overflow: 'hidden',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.12)';
+                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-3)';
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-surface-4)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.07)';
+                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-2)';
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-surface-3)';
                       }
                     }}
                   >
@@ -774,21 +774,21 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                       <div style={{
                         position: 'absolute', left: 0, top: 0, bottom: 0,
                         width: '3px', borderRadius: '0 2px 2px 0',
-                        background: 'rgba(255,255,255,0.6)',
+                        background: 'var(--wis-surface-4)',
                       }} />
                     )}
 
                     {/* Name + status */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.375rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
-                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, flex: 1, minWidth: 0 }}>
                         {event.name}
                       </p>
                       <span style={{
                         fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.35rem',
                         borderRadius: '9999px', flexShrink: 0, letterSpacing: '0.04em',
-                        background: event.is_published ? 'rgba(110,231,183,0.15)' : 'rgba(255,255,255,0.07)',
-                        color: event.is_published ? '#6ee7b7' : 'rgba(255,255,255,0.38)',
-                        border: `1px solid ${event.is_published ? 'rgba(110,231,183,0.25)' : 'rgba(255,255,255,0.1)'}`,
+                        background: event.is_published ? 'var(--wis-success-bg)' : 'var(--wis-surface-3)',
+                        color: event.is_published ? 'var(--wis-success)' : 'var(--wis-text-3)',
+                        border: `1px solid ${event.is_published ? '#bfe6d3' : 'var(--wis-border-strong)'}`,
                       }}>
                         {event.is_published ? 'Pub' : 'Rascunho'}
                       </span>
@@ -796,12 +796,12 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
 
                     {/* Date + time */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.38)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>
                         <CalendarDays style={{ width: '0.65rem', height: '0.65rem', flexShrink: 0 }} />
                         {formatDate(event.date)}
                       </span>
                       {event.time && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>
                           <Clock style={{ width: '0.6rem', height: '0.6rem', flexShrink: 0 }} />
                           {formatTime(event.time)}
                         </span>
@@ -811,8 +811,8 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     {/* Location */}
                     {event.location && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
-                        <MapPin style={{ width: '0.6rem', height: '0.6rem', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
-                        <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.28)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                        <MapPin style={{ width: '0.6rem', height: '0.6rem', color: 'var(--wis-text-4)', flexShrink: 0 }} />
+                        <p style={{ fontSize: '0.68rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
                           {event.location}
                         </p>
                       </div>
@@ -830,11 +830,11 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
         {!selectedEvent ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <div style={{ textAlign: 'center' }}>
-              <CalendarDays style={{ width: '2.5rem', height: '2.5rem', margin: '0 auto 0.75rem', color: 'rgba(255,255,255,0.15)' }} />
-              <p style={{ fontSize: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+              <CalendarDays style={{ width: '2.5rem', height: '2.5rem', margin: '0 auto 0.75rem', color: 'var(--wis-text-4)' }} />
+              <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--wis-text-2)' }}>
                 Seleciona um evento
               </p>
-              <p style={{ fontSize: '0.875rem', marginTop: '0.25rem', color: 'rgba(255,255,255,0.25)' }}>
+              <p style={{ fontSize: '0.875rem', marginTop: '0.25rem', color: 'var(--wis-text-4)' }}>
                 Escolhe um evento na lista à esquerda
               </p>
             </div>
@@ -851,7 +851,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                 marginBottom: '1rem',
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontSize: '0.8rem', fontWeight: 600,
-                color: 'rgba(255,255,255,0.5)',
+                color: 'var(--wis-text-2)',
                 padding: '0.25rem 0',
               }}
               className="schedule-back-btn"
@@ -864,16 +864,16 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             <div className="schedule-event-header" style={{
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem',
               paddingBottom: '1.25rem', marginBottom: '1.5rem',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              borderBottom: '1px solid var(--wis-border)',
             }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '0.25rem' }}>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--wis-text-3)', marginBottom: '0.25rem' }}>
                   Escala
                 </p>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', lineHeight: 1.1 }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--wis-text)', lineHeight: 1.1 }}>
                   {selectedEvent.name}
                 </h1>
-                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.38)', marginTop: '0.375rem' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)', marginTop: '0.375rem' }}>
                   {formatDate(selectedEvent.date)}
                   {selectedEvent.time && ` · ${selectedEvent.time.slice(0, 5)}`}
                   {selectedEvent.location && ` · ${selectedEvent.location}`}
@@ -881,7 +881,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
               </div>
 
               <div className="schedule-event-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <DarkBadge color={selectedEvent.is_published ? '#6ee7b7' : undefined}>
+                <DarkBadge color={selectedEvent.is_published ? 'var(--wis-success-bg)' : undefined}>
                   {selectedEvent.is_published ? 'Publicado' : 'Rascunho'}
                 </DarkBadge>
 
@@ -892,14 +892,14 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                       padding: '0.4rem 0.875rem',
-                      background: 'rgba(255,255,255,0.07)',
-                      border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'var(--wis-surface-3)',
+                      border: '1px solid var(--wis-border-strong)',
                       borderRadius: '0.5rem',
-                      fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.75)',
+                      fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text)',
                       cursor: 'pointer', transition: 'background 0.12s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-4)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
                   >
                     <Send style={{ width: '0.875rem', height: '0.875rem' }} />
                     {publishEvent.isPending
@@ -914,16 +914,16 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
             {emLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {Array.from({ length: 2 }).map((_, i) => (
-                  <div key={i} style={{ height: '5rem', borderRadius: '0.875rem', background: 'rgba(255,255,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div key={i} style={{ height: '5rem', borderRadius: '0.875rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 ))}
               </div>
             ) : eventMinistries.length === 0 ? (
               <div className="events-dark-empty">
-                <Users style={{ width: '2.5rem', height: '2.5rem', margin: '0 auto 0.75rem', color: 'rgba(255,255,255,0.2)' }} />
-                <p style={{ fontSize: '0.9rem', fontWeight: 500, color: 'rgba(255,255,255,0.4)' }}>
+                <Users style={{ width: '2.5rem', height: '2.5rem', margin: '0 auto 0.75rem', color: 'var(--wis-text-4)' }} />
+                <p style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--wis-text-3)' }}>
                   Nenhum ministério neste evento
                 </p>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.25rem', marginBottom: '1rem' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-4)', marginTop: '0.25rem', marginBottom: '1rem' }}>
                   Adiciona ministérios para começar a escalar pessoas
                 </p>
                 {isAdmin && (
@@ -993,7 +993,7 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
           {(whatsappContacts?.length ?? 0) > 0 && (
             <button type="button" onClick={toggleAllContacts}
               className="self-start text-xs font-medium"
-              style={{ color: 'rgba(255,255,255,0.55)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ color: 'var(--wis-text-2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               {selectedIds.size === (whatsappContacts ?? []).filter((c) => c.phone).length ? 'Desmarcar todos' : 'Selecionar todos'}
             </button>
           )}
@@ -1007,23 +1007,23 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                 <div key={c.userId} onClick={() => toggleContact(c.userId)}
                   className="flex items-center gap-3 rounded-lg border p-2.5"
                   style={{
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    background: checked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+                    borderColor: 'var(--wis-border-strong)',
+                    background: checked ? 'var(--wis-surface-3)' : 'var(--wis-surface-2)',
                     cursor: hasPhone ? 'pointer' : 'not-allowed',
                     opacity: hasPhone ? 1 : 0.55,
                   }}>
                   <Checkbox checked={checked} disabled={!hasPhone} style={{ pointerEvents: 'none' }} />
                   <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarFallback className="text-xs" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
+                    <AvatarFallback className="text-xs" style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                       {getInitials(c.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate flex items-center gap-1.5">
+                    <p className="text-sm font-medium text-[color:var(--wis-text)] truncate flex items-center gap-1.5">
                       {c.name}
-                      {sent && <Check className="h-3.5 w-3.5" style={{ color: '#6ee7b7' }} />}
+                      {sent && <Check className="h-3.5 w-3.5" style={{ color: 'var(--wis-success)' }} />}
                     </p>
-                    <p className="text-xs" style={{ color: hasPhone ? 'rgba(255,255,255,0.4)' : '#f59e0b' }}>
+                    <p className="text-xs" style={{ color: hasPhone ? 'var(--wis-text-3)' : 'var(--wis-warning)' }}>
                       {c.phone || 'Sem telemóvel no perfil'}
                     </p>
                   </div>
@@ -1049,8 +1049,8 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                   disabled={remaining.length === 0}
                   className="gap-1.5"
                   style={remaining.length === 0
-                    ? { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }
-                    : { background: '#25D366', color: '#0a0a0e' }}
+                    ? { background: 'var(--wis-surface-4)', color: 'var(--wis-text-2)' }
+                    : { background: '#25D366', color: 'var(--wis-text)' }}
                 >
                   <Send className="h-3.5 w-3.5" />
                   {label}

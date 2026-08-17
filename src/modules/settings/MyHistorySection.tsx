@@ -15,7 +15,7 @@ export function MyHistorySection() {
 
   return (
     <div className="space-y-3">
-      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', lineHeight: 1.6 }}>
         As tuas participações em eventos que já aconteceram.
       </p>
       <FeatureGate feature="member_history">

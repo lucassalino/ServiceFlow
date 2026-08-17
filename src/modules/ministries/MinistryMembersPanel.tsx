@@ -23,7 +23,7 @@ interface Props {
 }
 
 export function MinistryMembersPanel({ ministry, onBack }: Props) {
-  const color = ministry.color ?? '#a5b4fc';
+  const color = ministry.color ?? 'var(--wis-blue-soft)';
   const { data: orgMembers = [] } = useOrgMembers();
   const { data: existingData } = useMinistryMembers(ministry.id);
   const [members, setMembers] = useState<MemberEntry[]>([]);
@@ -88,18 +88,18 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             {ministry.name}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--wis-text)', margin: 0 }}>
               Participantes
             </h1>
             <button
@@ -109,8 +109,8 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
               style={{
                 padding: '0.5rem 1rem', borderRadius: '0.5rem',
                 fontSize: '0.8rem', fontWeight: 500,
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                color: 'var(--wis-text)', cursor: 'pointer',
               }}
             >
               Cancelar
@@ -140,8 +140,8 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
             {ministry.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', margin: 0 }}>{ministry.name}</p>
-            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', margin: 0 }}>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0 }}>{ministry.name}</p>
+            <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', margin: 0 }}>
               Seleciona os membros e as funções de cada um
             </p>
           </div>
@@ -149,14 +149,14 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
 
         {/* ── Members list ─────────────────────────────────── */}
         <div style={{
-          borderRadius: '1rem', background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden',
+          borderRadius: '1rem', background: 'var(--wis-surface-2)',
+          border: '1px solid var(--wis-border)', overflow: 'hidden',
           marginBottom: '1.5rem',
         }}>
           {activeMembers.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-              <Users style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.15)', margin: '0 auto 0.75rem' }} />
-              <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.35)', margin: 0 }}>
+              <Users style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+              <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', margin: 0 }}>
                 Nenhum membro activo na organização.
               </p>
             </div>
@@ -166,7 +166,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
             const fns = getFns(member.user_id);
             return (
               <div key={member.user_id} style={{
-                borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                borderTop: i === 0 ? 'none' : '1px solid var(--wis-border)',
               }}>
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -177,11 +177,11 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
                   <Checkbox checked={selected} onCheckedChange={() => toggleMember(member.user_id)} />
                   <Avatar className="h-8 w-8 flex-shrink-0">
                     {member.profile?.avatar_url && <AvatarImage src={member.profile.avatar_url} />}
-                    <AvatarFallback style={{ fontSize: '0.65rem', fontWeight: 700, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+                    <AvatarFallback style={{ fontSize: '0.65rem', fontWeight: 700, background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                       {getInitials(name)}
                     </AvatarFallback>
                   </Avatar>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#fff', flex: 1 }}>{name}</span>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--wis-text)', flex: 1 }}>{name}</span>
                   {selected && fns.length > 0 && (
                     <span style={{ fontSize: '0.7rem', color: color, fontWeight: 500 }}>
                       {fns.length} {fns.length !== 1 ? 'funções' : 'função'}
@@ -195,7 +195,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
                       <label key={f.key} style={{
                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                         padding: '0.375rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer',
-                        fontSize: '0.78rem', color: fns.includes(f.key) ? '#fff' : 'rgba(255,255,255,0.5)',
+                        fontSize: '0.78rem', color: fns.includes(f.key) ? 'var(--wis-text)' : 'var(--wis-text-2)',
                         background: fns.includes(f.key) ? `${color}18` : 'transparent',
                         transition: 'background 0.1s, color 0.1s',
                       }}>

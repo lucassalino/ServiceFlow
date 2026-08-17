@@ -100,7 +100,7 @@ export function LoginForm({ className, forgotPasswordHref }: LoginFormProps) {
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? 'Ocultar password' : 'Ver password'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--wis-text-3)] hover:text-[color:var(--wis-text)] transition-colors"
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>

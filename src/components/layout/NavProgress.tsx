@@ -28,17 +28,17 @@ export function NavProgress() {
       style={{
         position: 'fixed', top: 0, left: 0, right: 0, height: '2px',
         zIndex: 200, pointerEvents: 'none',
-        background: 'rgba(255,255,255,0.06)',
+        background: 'var(--wis-surface-3)',
       }}
     >
       <div
         style={{
           height: '100%',
           width: phase === 'loading' ? '85%' : '100%',
-          background: 'linear-gradient(90deg, #a5b4fc, #6ee7b7)',
+          background: 'linear-gradient(90deg, var(--wis-blue-soft), var(--wis-success-bg))',
           transition: phase === 'loading' ? 'width 0.45s ease-out' : 'width 0.2s ease-out, opacity 0.3s ease-out',
           opacity: phase === 'done' ? 0 : 1,
-          boxShadow: '0 0 8px rgba(165,180,252,0.6)',
+          boxShadow: '0 0 8px var(--wis-blue-soft)',
         }}
       />
     </div>

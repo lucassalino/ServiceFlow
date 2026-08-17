@@ -20,9 +20,9 @@ function Chip({ children }: { children: React.ReactNode }) {
     <span style={{
       fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.55rem',
       borderRadius: '9999px', letterSpacing: '0.04em',
-      background: 'rgba(255,255,255,0.08)',
-      color: 'rgba(255,255,255,0.5)',
-      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'var(--wis-surface-3)',
+      color: 'var(--wis-text-2)',
+      border: '1px solid var(--wis-border-strong)',
       whiteSpace: 'nowrap',
     }}>
       {children}
@@ -144,13 +144,13 @@ export function SongsClient() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 pt-2">
           <div>
             <p className="text-xs font-semibold tracking-[0.16em] uppercase"
-              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              style={{ color: 'var(--wis-text-3)' }}>
               Organização
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
               Repertório
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
               {songs.length > 0
                 ? `${songs.length} música${songs.length !== 1 ? 's' : ''} no repertório`
                 : 'Músicas da organização'}
@@ -165,8 +165,8 @@ export function SongsClient() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                   padding: '0.55rem 0.95rem', borderRadius: '0.6rem', fontSize: '0.85rem', fontWeight: 600,
-                  background: 'rgba(165,180,252,0.12)', border: '1px solid rgba(165,180,252,0.25)',
-                  color: '#a5b4fc', cursor: 'pointer',
+                  background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
+                  color: 'var(--wis-blue)', cursor: 'pointer',
                 }}
               >
                 <FileUp className="h-4 w-4 flex-shrink-0" />
@@ -181,7 +181,7 @@ export function SongsClient() {
         </div>
 
         {/* ── View toggle ─────────────────────────────────── */}
-        <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
           {([
             { key: 'list', label: 'Lista', icon: ListMusic },
             { key: 'ranking', label: 'Ranking', icon: Trophy },
@@ -193,8 +193,8 @@ export function SongsClient() {
                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                 padding: '0.4rem 0.875rem', borderRadius: '0.5rem',
                 fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', border: 'none',
-                background: view === key ? '#fff' : 'transparent',
-                color: view === key ? '#0a0a0f' : 'rgba(255,255,255,0.5)',
+                background: view === key ? 'var(--wis-blue)' : 'transparent',
+                color: view === key ? '#fff' : 'var(--wis-text-2)',
                 transition: 'background 0.12s, color 0.12s',
               }}
             >
@@ -210,7 +210,7 @@ export function SongsClient() {
             <div className="dark-inputs">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none"
-                  style={{ color: 'rgba(255,255,255,0.3)' }} />
+                  style={{ color: 'var(--wis-text-3)' }} />
                 <Input
                   placeholder="Pesquisar por nome ou artista…"
                   className="pl-9"
@@ -225,13 +225,13 @@ export function SongsClient() {
               <div className="space-y-2.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="h-[4.5rem] animate-pulse rounded-xl"
-                    style={{ background: 'rgba(255,255,255,0.05)' }} />
+                    style={{ background: 'var(--wis-surface-2)' }} />
                 ))}
               </div>
             ) : filtered.length === 0 ? (
               <div className="events-dark-empty">
-                <Music className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <Music className="h-10 w-10 mb-3" style={{ color: 'var(--wis-text-4)' }} />
+                <p className="text-sm" style={{ color: 'var(--wis-text-3)' }}>
                   {search ? 'Nenhuma música encontrada.' : 'Nenhuma música adicionada.'}
                 </p>
                 {canManage && !search && (
@@ -266,13 +266,13 @@ export function SongsClient() {
             <div className="space-y-2.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="h-[4.5rem] animate-pulse rounded-xl"
-                  style={{ background: 'rgba(255,255,255,0.05)' }} />
+                  style={{ background: 'var(--wis-surface-2)' }} />
               ))}
             </div>
           ) : ranking.length === 0 ? (
             <div className="events-dark-empty">
-              <Trophy className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <Trophy className="h-10 w-10 mb-3" style={{ color: 'var(--wis-text-4)' }} />
+              <p className="text-sm" style={{ color: 'var(--wis-text-3)' }}>
                 Ainda nenhuma música foi tocada em eventos.
               </p>
             </div>
@@ -331,7 +331,7 @@ export function SongsClient() {
 
 // ── Ranking row ──────────────────────────────────────────────────────────────
 
-const MEDAL_COLORS: Record<number, string> = { 1: '#fcd34d', 2: '#d1d5db', 3: '#d97706' };
+const MEDAL_COLORS: Record<number, string> = { 1: 'var(--wis-warning-bg)', 2: '#d1d5db', 3: 'var(--wis-warning-bg)' };
 
 function RankingRow({
   rank, entry, ministryName, onClick,
@@ -352,20 +352,20 @@ function RankingRow({
       style={{
         display: 'flex', alignItems: 'center', gap: '1rem',
         padding: '0.875rem 1rem',
-        background: hovered ? 'rgba(35,35,40,0.9)' : 'rgba(22,22,26,0.85)',
-        border: `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)'}`,
+        background: hovered ? 'var(--wis-surface-2)' : 'var(--wis-surface)',
+        border: `1px solid ${hovered ? 'var(--wis-border-strong)' : 'var(--wis-border)'}`,
         borderRadius: '0.875rem',
         cursor: 'pointer',
         transition: 'background 0.15s, border-color 0.15s, transform 0.12s',
         transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        boxShadow: 'var(--wis-shadow-md)',
       }}
     >
       {/* Rank */}
       <div style={{
         width: '2.25rem', textAlign: 'center', flexShrink: 0,
         fontSize: medal ? '1.1rem' : '0.95rem', fontWeight: 800,
-        color: medal ?? 'rgba(255,255,255,0.3)',
+        color: medal ?? 'var(--wis-text-3)',
       }}>
         {rank}º
       </div>
@@ -373,12 +373,12 @@ function RankingRow({
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: '0.875rem', fontWeight: 600, color: '#ffffff',
+          fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {entry.name}
         </p>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
           {entry.artist ?? '—'}
           {entry.lastPlayedDate && ` · última vez ${formatDate(entry.lastPlayedDate)}`}
         </p>
@@ -394,8 +394,8 @@ function RankingRow({
         <span style={{
           fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.6rem',
           borderRadius: '9999px', letterSpacing: '0.02em', whiteSpace: 'nowrap',
-          background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
-          border: '1px solid rgba(165,180,252,0.25)',
+          background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
+          border: '1px solid var(--wis-blue-border)',
         }}>
           {entry.timesPlayed}× tocada
         </span>
@@ -420,10 +420,10 @@ function SongRow({
   const [hovered, setHovered] = useState(false);
 
   const linkIcons = [
-    song.youtube_url && <Youtube key="yt" style={{ width: '0.8rem', height: '0.8rem', color: '#f87171' }} />,
+    song.youtube_url && <Youtube key="yt" style={{ width: '0.8rem', height: '0.8rem', color: 'var(--wis-danger)' }} />,
     song.spotify_url && <Music key="sp" style={{ width: '0.8rem', height: '0.8rem', color: '#1db954' }} />,
-    song.chords     && <Guitar key="ch" style={{ width: '0.8rem', height: '0.8rem', color: '#fcd34d' }} />,
-    song.lyrics     && <FileText key="ly" style={{ width: '0.8rem', height: '0.8rem', color: '#a5b4fc' }} />,
+    song.chords     && <Guitar key="ch" style={{ width: '0.8rem', height: '0.8rem', color: 'var(--wis-warning)' }} />,
+    song.lyrics     && <FileText key="ly" style={{ width: '0.8rem', height: '0.8rem', color: 'var(--wis-blue)' }} />,
   ].filter(Boolean);
 
   const coverUrl = youtubeThumbnail(song.youtube_url);
@@ -436,13 +436,13 @@ function SongRow({
       style={{
         display: 'flex', alignItems: 'center', gap: '1rem',
         padding: '0.875rem 1rem',
-        background: hovered ? 'rgba(35,35,40,0.9)' : 'rgba(22,22,26,0.85)',
-        border: `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)'}`,
+        background: hovered ? 'var(--wis-surface-2)' : 'var(--wis-surface)',
+        border: `1px solid ${hovered ? 'var(--wis-border-strong)' : 'var(--wis-border)'}`,
         borderRadius: '0.875rem',
         cursor: 'pointer',
         transition: 'background 0.15s, border-color 0.15s, transform 0.12s',
         transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        boxShadow: 'var(--wis-shadow-md)',
       }}
     >
       {/* Icon / capa */}
@@ -453,29 +453,29 @@ function SongRow({
           alt={song.name}
           style={{
             width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem', flexShrink: 0,
-            objectFit: 'cover', background: 'rgba(255,255,255,0.06)',
+            objectFit: 'cover', background: 'var(--wis-surface-3)',
           }}
         />
       ) : (
         <div style={{
           width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          background: 'rgba(255,255,255,0.06)',
+          background: 'var(--wis-surface-3)',
         }}>
-          <Music style={{ width: '1.1rem', height: '1.1rem', color: 'rgba(255,255,255,0.35)' }} />
+          <Music style={{ width: '1.1rem', height: '1.1rem', color: 'var(--wis-text-3)' }} />
         </div>
       )}
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
-          fontSize: '0.875rem', fontWeight: 600, color: '#ffffff',
+          fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)',
           overflow: 'hidden', display: '-webkit-box',
           WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3,
         }}>
           {song.name}
         </p>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
           {song.artist ?? '—'}
         </p>
       </div>

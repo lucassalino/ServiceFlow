@@ -13,7 +13,7 @@ export function RouteLoading() {
         padding: '5rem 1rem',
       }}
     >
-      <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'rgba(255,255,255,0.5)' }} />
+      <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-2)' }} />
     </div>
   );
 }

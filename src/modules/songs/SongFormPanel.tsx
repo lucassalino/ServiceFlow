@@ -164,19 +164,19 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             {isEditing ? 'Música' : 'Repertório'}
           </button>
 
           <h1 style={{
-            fontSize: '1rem', fontWeight: 700, color: '#fff',
+            fontSize: '1rem', fontWeight: 700, color: 'var(--wis-text)',
             letterSpacing: '-0.01em', margin: 0,
           }}>
             {isEditing ? 'Editar Música' : 'Nova Música'}
@@ -187,12 +187,12 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div style={{
             padding: '1.75rem 2rem', borderRadius: '1.25rem',
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
             marginBottom: '1rem',
           }}>
             <p style={{
               fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
-              textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '1.25rem',
+              textTransform: 'uppercase', color: 'var(--wis-text-3)', marginBottom: '1.25rem',
             }}>
               Informação
             </p>
@@ -203,8 +203,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                 className="sf-two-col">
                 <style>{`@media(max-width:560px){.sf-two-col{grid-template-columns:1fr!important}}`}</style>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', position: 'relative' }}>
-                  <Label htmlFor="sf-name" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
-                    Nome <span style={{ color: '#f87171' }}>*</span>
+                  <Label htmlFor="sf-name" style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
+                    Nome <span style={{ color: 'var(--wis-danger)' }}>*</span>
                   </Label>
                   <Input
                     id="sf-name"
@@ -214,23 +214,23 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                     onFocus={() => setNameFocused(true)}
                     onBlur={(e) => { nameField.onBlur(e); setTimeout(() => setNameFocused(false), 150); }}
                   />
-                  {errors.name && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
+                  {errors.name && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)', margin: 0 }}>{errors.name.message}</p>}
 
                   {/* Dropdown de resultados do catálogo (banco de dados global) */}
                   {nameFocused && showSuggestions && (searchingSongs || (nameValue ?? '').trim().length >= 2) && (
                     <div style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 40, marginTop: '0.25rem',
-                      background: 'rgba(20,20,26,0.98)', border: '1px solid rgba(255,255,255,0.12)',
-                      borderRadius: '0.625rem', boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+                      background: 'rgba(20,20,26,0.98)', border: '1px solid var(--wis-border-strong)',
+                      borderRadius: '0.625rem', boxShadow: 'var(--wis-shadow-md)',
                       overflow: 'hidden', maxHeight: '17rem', overflowY: 'auto',
                     }}>
                       {searchingSongs && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
                           <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar no catálogo…
                         </div>
                       )}
                       {!searchingSongs && catalogResults.length === 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
                           <Search style={{ width: '0.8rem', height: '0.8rem' }} /> Não está no catálogo — escreve os dados manualmente.
                         </div>
                       )}
@@ -244,17 +244,17 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                           style={{
                             display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', textAlign: 'left',
                             padding: '0.5rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer',
-                            borderBottom: i < catalogResults.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                            borderBottom: i < catalogResults.length - 1 ? '1px solid var(--wis-border)' : 'none',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(165,180,252,0.1)')}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-blue-soft)')}
                           onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                         >
-                          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(165,180,252,0.15)' }}>
-                            <Music style={{ width: '1rem', height: '1rem', color: '#a5b4fc' }} />
+                          <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--wis-blue-soft)' }}>
+                            <Music style={{ width: '1rem', height: '1rem', color: 'var(--wis-blue)' }} />
                           </div>
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <p style={{ fontSize: '0.82rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</p>
-                            <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.artist || 'Sem artista'}</p>
+                            <p style={{ fontSize: '0.82rem', color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</p>
+                            <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.artist || 'Sem artista'}</p>
                           </div>
                         </button>
                       ))}
@@ -262,7 +262,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label htmlFor="sf-artist" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
+                  <Label htmlFor="sf-artist" style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
                     Artista
                   </Label>
                   <Input id="sf-artist" placeholder="Nome do artista" {...register('artist')} />
@@ -272,7 +272,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
               {/* Tom + BPM */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Tom</Label>
+                  <Label style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>Tom</Label>
                   <Select value={selectedKey ?? ''} onValueChange={(v) => setValue('musical_key', v || null)}>
                     <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                     <SelectContent>
@@ -282,20 +282,20 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   </Select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label htmlFor="sf-bpm" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>BPM</Label>
+                  <Label htmlFor="sf-bpm" style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>BPM</Label>
                   <Input id="sf-bpm" type="number" placeholder="120" min={1} max={300} {...register('bpm')} />
-                  {errors.bpm && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors.bpm.message}</p>}
+                  {errors.bpm && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)', margin: 0 }}>{errors.bpm.message}</p>}
                 </div>
               </div>
 
               {/* Duração + Referência bíblica */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label htmlFor="sf-duration" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Duração</Label>
+                  <Label htmlFor="sf-duration" style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>Duração</Label>
                   <Input id="sf-duration" placeholder="4:32" {...register('duration')} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label htmlFor="sf-bible" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>Referência bíblica</Label>
+                  <Label htmlFor="sf-bible" style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>Referência bíblica</Label>
                   <Input id="sf-bible" placeholder="Salmos 34:1" {...register('bible_reference')} />
                 </div>
               </div>
@@ -305,28 +305,28 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
           {/* Links */}
           <div style={{
             padding: '1.75rem 2rem', borderRadius: '1.25rem',
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
             marginBottom: '1.5rem',
           }}>
             <p style={{
               fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
-              textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '1.25rem',
+              textTransform: 'uppercase', color: 'var(--wis-text-3)', marginBottom: '1.25rem',
             }}>
               Links
             </p>
             <div className="dark-inputs" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {[
-                { id: 'sf-yt', key: 'youtube_url' as const, label: 'YouTube', icon: <Youtube style={{ width: '0.9rem', height: '0.9rem', color: '#f87171' }} />, placeholder: 'https://youtube.com/watch?v=…' },
+                { id: 'sf-yt', key: 'youtube_url' as const, label: 'YouTube', icon: <Youtube style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-danger)' }} />, placeholder: 'https://youtube.com/watch?v=…' },
                 { id: 'sf-sp', key: 'spotify_url' as const, label: 'Spotify',  icon: <Music   style={{ width: '0.9rem', height: '0.9rem', color: '#1db954' }} />, placeholder: 'https://open.spotify.com/track/…' },
-                { id: 'sf-ch', key: 'chords'      as const, label: 'Cifra',   icon: <Guitar  style={{ width: '0.9rem', height: '0.9rem', color: '#fcd34d' }} />, placeholder: 'https://cifraclub.com.br/…' },
-                { id: 'sf-ly', key: 'lyrics'      as const, label: 'Letra',   icon: <FileText style={{ width: '0.9rem', height: '0.9rem', color: '#a5b4fc' }} />, placeholder: 'https://letras.mus.br/…' },
+                { id: 'sf-ch', key: 'chords'      as const, label: 'Cifra',   icon: <Guitar  style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-warning)' }} />, placeholder: 'https://cifraclub.com.br/…' },
+                { id: 'sf-ly', key: 'lyrics'      as const, label: 'Letra',   icon: <FileText style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-blue)' }} />, placeholder: 'https://letras.mus.br/…' },
               ].map(({ id, key, label, icon, placeholder }) => (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <Label htmlFor={id} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
+                  <Label htmlFor={id} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
                     {icon} {label}
                   </Label>
                   <Input id={id} type="url" placeholder={placeholder} {...register(key)} />
-                  {errors[key] && <p style={{ fontSize: '0.75rem', color: '#f87171', margin: 0 }}>{errors[key]?.message}</p>}
+                  {errors[key] && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)', margin: 0 }}>{errors[key]?.message}</p>}
                 </div>
               ))}
             </div>
@@ -341,8 +341,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
               style={{
                 padding: '0.625rem 1.25rem', borderRadius: '0.625rem',
                 fontSize: '0.875rem', fontWeight: 500,
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.7)', cursor: isPending ? 'not-allowed' : 'pointer',
+                background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                color: 'var(--wis-text)', cursor: isPending ? 'not-allowed' : 'pointer',
               }}
             >
               Cancelar

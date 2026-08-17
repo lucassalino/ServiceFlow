@@ -21,10 +21,10 @@ export function BottomNav({ orgId }: { orgId: string }) {
     <nav
       className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex"
       style={{
-        background: 'rgba(5,5,5,0.94)',
+        background: 'var(--wis-surface)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
+        borderTop: '1px solid var(--wis-border)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
@@ -38,10 +38,10 @@ export function BottomNav({ orgId }: { orgId: string }) {
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors',
               isActive
-                ? 'text-white'
-                : 'hover:text-white/70',
+                ? 'text-[color:var(--wis-text)]'
+                : 'hover:text-[color:var(--wis-text)]',
             )}
-            style={{ color: isActive ? '#ffffff' : 'rgba(255,255,255,0.35)' }}
+            style={{ color: isActive ? 'var(--wis-text)' : 'var(--wis-text-3)' }}
           >
             <Icon className="h-5 w-5" />
             <span>{label}</span>

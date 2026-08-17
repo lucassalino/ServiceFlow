@@ -85,7 +85,7 @@ export function MemberMinistriesDialog({ userId, memberName, open, onOpenChange 
           <ScrollArea className="max-h-[55vh] rounded-md border">
             <div className="p-2 space-y-1">
               {activeMinistries.map((ministry) => {
-                const color = ministry.color ?? '#a5b4fc';
+                const color = ministry.color ?? 'var(--wis-blue-soft)';
                 const selected = isIn(ministry.id);
                 const fns = getFns(ministry.id);
                 const availableFunctions = ministry.functions?.length

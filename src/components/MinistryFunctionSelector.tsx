@@ -40,9 +40,9 @@ export function MinistryFunctionSelector({
                 display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                 padding: '0.4rem 0.75rem', borderRadius: '9999px',
                 fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                background: sel ? 'rgba(165,180,252,0.16)' : 'rgba(255,255,255,0.05)',
-                color: sel ? '#a5b4fc' : 'rgba(255,255,255,0.65)',
-                border: `1px solid ${sel ? 'rgba(165,180,252,0.45)' : 'rgba(255,255,255,0.1)'}`,
+                background: sel ? 'var(--wis-blue-soft)' : 'var(--wis-surface-2)',
+                color: sel ? 'var(--wis-blue)' : 'var(--wis-text-2)',
+                border: `1px solid ${sel ? 'var(--wis-blue-border)' : 'var(--wis-border-strong)'}`,
               }}>
               <span>{m.icon}</span>
               <span>{m.name}</span>
@@ -59,13 +59,13 @@ export function MinistryFunctionSelector({
         return (
           <div key={m.id} style={{
             padding: '0.85rem', borderRadius: '0.75rem',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
           }}>
-            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff', marginBottom: '0.6rem' }}>
+            <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text)', marginBottom: '0.6rem' }}>
               <span style={{ marginRight: '0.35rem' }}>{m.icon}</span>{m.name} — funções
             </p>
             {available.length === 0 ? (
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                 Este ministério não tem funções definidas.
               </p>
             ) : (
@@ -78,9 +78,9 @@ export function MinistryFunctionSelector({
                         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                         padding: '0.35rem 0.65rem', borderRadius: '9999px',
                         fontSize: '0.76rem', fontWeight: 500, cursor: 'pointer',
-                        background: isSel ? 'rgba(110,231,183,0.13)' : 'rgba(255,255,255,0.05)',
-                        color: isSel ? '#6ee7b7' : 'rgba(255,255,255,0.6)',
-                        border: `1px solid ${isSel ? 'rgba(110,231,183,0.35)' : 'rgba(255,255,255,0.1)'}`,
+                        background: isSel ? 'var(--wis-success-bg)' : 'var(--wis-surface-2)',
+                        color: isSel ? 'var(--wis-success)' : 'var(--wis-text-2)',
+                        border: `1px solid ${isSel ? '#bfe6d3' : 'var(--wis-border-strong)'}`,
                       }}>
                       <span>{f.emoji}</span><span>{f.label}</span>
                       {isSel && <Check style={{ width: '0.66rem', height: '0.66rem' }} />}

@@ -29,21 +29,21 @@ export function PlanLimitDialog({ error, onClose, isAdmin }: Props) {
           <div style={{
             width: '2.75rem', height: '2.75rem', borderRadius: '0.75rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(252,211,77,0.12)', border: '1px solid rgba(252,211,77,0.25)',
+            background: 'var(--wis-warning-bg)', border: '1px solid #f3ddb6',
             marginBottom: '0.875rem',
           }}>
-            <Lock style={{ width: '1.25rem', height: '1.25rem', color: '#fcd34d' }} />
+            <Lock style={{ width: '1.25rem', height: '1.25rem', color: 'var(--wis-warning)' }} />
           </div>
           <DialogTitle>Limite do plano atingido</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <p style={{ fontSize: '0.875rem', lineHeight: 1.6, color: 'rgba(255,255,255,0.7)' }}>
+          <p style={{ fontSize: '0.875rem', lineHeight: 1.6, color: 'var(--wis-text)' }}>
             {isAdmin ? (
               <>
-                O plano <strong style={{ color: '#fff' }}>{error.planName}</strong> permite{' '}
-                <strong style={{ color: '#fff' }}>{limitText}</strong> {label.many} e já estás a
-                usar <strong style={{ color: '#fff' }}>{error.used}</strong>.
+                O plano <strong style={{ color: 'var(--wis-text)' }}>{error.planName}</strong> permite{' '}
+                <strong style={{ color: 'var(--wis-text)' }}>{limitText}</strong> {label.many} e já estás a
+                usar <strong style={{ color: 'var(--wis-text)' }}>{error.used}</strong>.
               </>
             ) : (
               <>
@@ -58,14 +58,14 @@ export function PlanLimitDialog({ error, onClose, isAdmin }: Props) {
             <div>
               <div style={{
                 height: '0.5rem', borderRadius: '9999px', overflow: 'hidden',
-                background: 'rgba(255,255,255,0.08)',
+                background: 'var(--wis-surface-3)',
               }}>
                 <div style={{
                   width: '100%', height: '100%',
-                  background: 'linear-gradient(90deg, #fcd34d, #f87171)',
+                  background: 'linear-gradient(90deg, var(--wis-warning-bg), var(--wis-danger-bg))',
                 }} />
               </div>
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.4rem' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', marginTop: '0.4rem' }}>
                 {error.used} de {limitText} {label.many}
               </p>
             </div>

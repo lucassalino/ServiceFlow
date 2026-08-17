@@ -55,17 +55,17 @@ const MAX_AVATAR_SIZE_MB = 2;
 function Section({ title, danger, children }: { title: string; danger?: boolean; children: React.ReactNode }) {
   return (
     <div style={{
-      background: 'rgba(22,22,26,0.85)',
-      border: `1px solid ${danger ? 'rgba(239,68,68,0.22)' : 'rgba(255,255,255,0.08)'}`,
+      background: 'var(--wis-surface)',
+      border: `1px solid ${danger ? '#f5c9cb' : 'var(--wis-border)'}`,
       borderRadius: '0.875rem',
       overflow: 'hidden',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+      boxShadow: 'var(--wis-shadow-md)',
     }}>
       <div style={{
         padding: '0.9rem 1.25rem',
-        borderBottom: `1px solid ${danger ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.07)'}`,
+        borderBottom: `1px solid ${danger ? '#f5c9cb' : 'var(--wis-border)'}`,
       }}>
-        <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: danger ? '#f87171' : '#ffffff', letterSpacing: '0.01em' }}>
+        <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: danger ? 'var(--wis-danger)' : 'var(--wis-text)', letterSpacing: '0.01em' }}>
           {title}
         </h2>
       </div>
@@ -75,7 +75,7 @@ function Section({ title, danger, children }: { title: string; danger?: boolean;
 }
 
 function Divider() {
-  return <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)', margin: '1rem 0' }} />;
+  return <div style={{ height: '1px', background: 'var(--wis-surface-3)', margin: '1rem 0' }} />;
 }
 
 export function SettingsClient({ orgId }: Props) {
@@ -355,13 +355,13 @@ export function SettingsClient({ orgId }: Props) {
         {/* ── Header ──────────────────────────────────── */}
         <div className="pt-2">
           <p className="text-xs font-semibold tracking-[0.16em] uppercase"
-            style={{ color: 'rgba(255,255,255,0.4)' }}>
+            style={{ color: 'var(--wis-text-3)' }}>
             Conta
           </p>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
             Definições
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
             Perfil e preferências da conta
           </p>
         </div>
@@ -383,7 +383,7 @@ export function SettingsClient({ orgId }: Props) {
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={displayAvatar} />
                   <AvatarFallback className="text-base font-semibold"
-                    style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }}>
+                    style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
                     {getInitials(profile?.full_name || 'U')}
                   </AvatarFallback>
                 </Avatar>
@@ -399,9 +399,9 @@ export function SettingsClient({ orgId }: Props) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: '50%',
                   background: 'rgba(30,30,36,0.95)',
-                  border: '1.5px solid rgba(255,255,255,0.18)',
+                  border: '1.5px solid var(--wis-border-strong)',
                   cursor: 'pointer',
-                  color: 'rgba(255,255,255,0.7)',
+                  color: 'var(--wis-text)',
                 }}
               >
                 <Camera style={{ width: '0.7rem', height: '0.7rem' }} />
@@ -409,7 +409,7 @@ export function SettingsClient({ orgId }: Props) {
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
                 className="hidden" onChange={handleAvatarChange} />
             </div>
-            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.38)', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--wis-text-3)', lineHeight: 1.6 }}>
               {uploadAvatar.isPending
                 ? 'A enviar foto…'
                 : `Clica na foto para ver o perfil.\nJPEG, PNG ou WebP, até ${MAX_AVATAR_SIZE_MB}MB.`}
@@ -437,7 +437,7 @@ export function SettingsClient({ orgId }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="birthday">Data de aniversário</Label>
               <Input id="birthday" type="date" {...profileForm.register('birthday')} />
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                 Aparece nos aniversariantes do mês no painel da organização.
               </p>
             </div>
@@ -491,13 +491,13 @@ export function SettingsClient({ orgId }: Props) {
                   <div style={{
                     width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', flexShrink: 0, overflow: 'hidden',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
                   }}>
                     {activeOrg.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={activeOrg.logo_url} alt="Logótipo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>
+                      <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--wis-text-2)' }}>
                         {activeOrg.name.charAt(0).toUpperCase()}
                       </span>
                     )}
@@ -509,8 +509,8 @@ export function SettingsClient({ orgId }: Props) {
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                       padding: '0.5rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
-                      background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
-                      borderRadius: '0.5rem', color: 'rgba(255,255,255,0.85)',
+                      background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                      borderRadius: '0.5rem', color: 'var(--wis-text)',
                       cursor: orgLogoUploading ? 'wait' : 'pointer', opacity: orgLogoUploading ? 0.6 : 1,
                     }}
                   >
@@ -525,7 +525,7 @@ export function SettingsClient({ orgId }: Props) {
                     onChange={handleOrgLogoChange}
                   />
                 </div>
-                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)' }}>
                   JPEG, PNG ou WebP, até {MAX_AVATAR_SIZE_MB}MB.
                 </p>
               </div>
@@ -548,14 +548,14 @@ export function SettingsClient({ orgId }: Props) {
                       style={{
                         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                         padding: '0.6rem',
-                        background: 'rgba(255,255,255,0.07)',
-                        border: '1px solid rgba(255,255,255,0.12)',
+                        background: 'var(--wis-surface-3)',
+                        border: '1px solid var(--wis-border-strong)',
                         borderRadius: '0.5rem',
-                        color: accent ? '#6ee7b7' : 'rgba(255,255,255,0.85)',
+                        color: accent ? 'var(--wis-success)' : 'var(--wis-text)',
                         fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s',
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-4)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-3)'; }}
                     >
                       <Icon style={{ width: '0.9rem', height: '0.9rem' }} />
                       {label}
@@ -563,7 +563,7 @@ export function SettingsClient({ orgId }: Props) {
                   ))}
                 </div>
 
-                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)' }}>
                   Partilha este código para convidar pessoas
                 </p>
               </div>
@@ -585,7 +585,7 @@ export function SettingsClient({ orgId }: Props) {
 
         {/* ── Sessão ──────────────────────────────────── */}
         <Section title="Sessão">
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
             Termina a sessão neste dispositivo. Podes voltar a entrar com o teu email e password.
           </p>
           <button
@@ -594,12 +594,12 @@ export function SettingsClient({ orgId }: Props) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
-              background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.85)',
-              border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+              background: 'var(--wis-surface-3)', color: 'var(--wis-text)',
+              border: '1px solid var(--wis-border-strong)', borderRadius: '0.5rem', cursor: 'pointer',
               transition: 'background 0.15s',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-4)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-3)'; }}
           >
             <LogOut style={{ width: '0.9rem', height: '0.9rem' }} />
             Terminar sessão
@@ -610,7 +610,7 @@ export function SettingsClient({ orgId }: Props) {
         <Section title="Esta organização">
           {isAdmin && (
             <>
-              <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
                 Só pode existir um administrador por organização. Passa o cargo a outra pessoa —
                 tu passas a líder e ela passa a administradora.
               </p>
@@ -620,13 +620,13 @@ export function SettingsClient({ orgId }: Props) {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
-                  background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.85)',
-                  border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+                  background: 'var(--wis-surface-3)', color: 'var(--wis-text)',
+                  border: '1px solid var(--wis-border-strong)', borderRadius: '0.5rem', cursor: 'pointer',
                   marginBottom: '1.25rem',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-4)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-surface-3)'; }}
               >
                 Transferir administração
               </button>
@@ -635,8 +635,8 @@ export function SettingsClient({ orgId }: Props) {
             </>
           )}
 
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
-            Deixa de pertencer a <span style={{ color: 'rgba(255,255,255,0.65)' }}>{activeOrg?.name ?? 'esta organização'}</span>.
+          <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+            Deixa de pertencer a <span style={{ color: 'var(--wis-text-2)' }}>{activeOrg?.name ?? 'esta organização'}</span>.
             Podes voltar a entrar mais tarde com o código de convite.
           </p>
           <button
@@ -645,17 +645,17 @@ export function SettingsClient({ orgId }: Props) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
-              background: 'rgba(239,68,68,0.08)', color: '#f87171',
-              border: '1px solid rgba(239,68,68,0.2)', borderRadius: '0.5rem', cursor: 'pointer',
+              background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)',
+              border: '1px solid #f5c9cb', borderRadius: '0.5rem', cursor: 'pointer',
               transition: 'background 0.15s, border-color 0.15s',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.15)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.35)';
+              (e.currentTarget as HTMLElement).style.background = 'var(--wis-danger-bg)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--wis-danger-bg)';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.2)';
+              (e.currentTarget as HTMLElement).style.background = 'var(--wis-danger-bg)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--wis-danger-bg)';
             }}
           >
             <LogOut style={{ width: '0.9rem', height: '0.9rem' }} />
@@ -665,7 +665,7 @@ export function SettingsClient({ orgId }: Props) {
 
         {/* ── Danger zone ─────────────────────────────── */}
         <Section title="Zona de perigo" danger>
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
             Elimina permanentemente a tua conta e todos os dados associados — perfil,
             participação em organizações, escalas e notificações. Esta ação não pode ser desfeita.
           </p>
@@ -675,12 +675,12 @@ export function SettingsClient({ orgId }: Props) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.5rem 1.125rem', fontSize: '0.85rem', fontWeight: 600,
-              background: 'rgba(239,68,68,0.15)', color: '#fca5a5',
-              border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', cursor: 'pointer',
+              background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)',
+              border: '1px solid #f5c9cb', borderRadius: '0.5rem', cursor: 'pointer',
               transition: 'background 0.15s',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.25)'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.15)'; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-danger-bg)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--wis-danger-bg)'; }}
           >
             <Trash2 style={{ width: '0.9rem', height: '0.9rem' }} />
             Eliminar conta
@@ -729,7 +729,7 @@ export function SettingsClient({ orgId }: Props) {
           <DialogHeader>
             <DialogTitle>Transferir administração</DialogTitle>
           </DialogHeader>
-          <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '0.75rem', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', marginBottom: '0.75rem', lineHeight: 1.6 }}>
             Escolhe quem passa a administrador(a) de {activeOrg?.name}. Tu passas a líder.
           </p>
           <Select value={transferTargetId} onValueChange={setTransferTargetId}>
@@ -752,8 +752,8 @@ export function SettingsClient({ orgId }: Props) {
               onClick={() => setTransferOpen(false)}
               style={{
                 padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600,
-                background: 'transparent', color: 'rgba(255,255,255,0.6)',
-                border: '1px solid rgba(255,255,255,0.14)', borderRadius: '0.5rem', cursor: 'pointer',
+                background: 'transparent', color: 'var(--wis-text-2)',
+                border: '1px solid var(--wis-border-strong)', borderRadius: '0.5rem', cursor: 'pointer',
               }}
             >
               Cancelar

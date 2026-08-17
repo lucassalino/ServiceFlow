@@ -82,18 +82,18 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
             onClick={onBack}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+              fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Voltar
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--wis-text)', margin: 0 }}>
               Ministérios
             </h1>
             <button
@@ -102,8 +102,8 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
               style={{
                 padding: '0.5rem 1rem', borderRadius: '0.5rem',
                 fontSize: '0.8rem', fontWeight: 500,
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                color: 'var(--wis-text)', cursor: 'pointer',
               }}
             >
               Cancelar
@@ -123,17 +123,17 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.875rem',
           padding: '1rem 1.25rem', borderRadius: '0.875rem', marginBottom: '1.5rem',
-          background: 'rgba(165,180,252,0.07)', border: '1px solid rgba(165,180,252,0.14)',
+          background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
         }}>
           <Avatar className="h-10 w-10 flex-shrink-0">
             {memberAvatar && <AvatarImage src={memberAvatar} />}
-            <AvatarFallback style={{ fontSize: '0.75rem', fontWeight: 700, background: 'rgba(165,180,252,0.2)', color: '#a5b4fc' }}>
+            <AvatarFallback style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)' }}>
               {getInitials(memberName)}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', margin: 0 }}>{memberName}</p>
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.38)', margin: '0.1rem 0 0' }}>
+            <p style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--wis-text)', margin: 0 }}>{memberName}</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', margin: '0.1rem 0 0' }}>
               Seleciona os ministérios e as funções de cada um
             </p>
           </div>
@@ -141,13 +141,13 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
 
         {/* ── Ministries grid ──────────────────────────────── */}
         {activeMinistries.length === 0 ? (
-          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', padding: '3rem 0', margin: 0 }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)', textAlign: 'center', padding: '3rem 0', margin: 0 }}>
             Nenhum ministério activo na organização.
           </p>
         ) : (
           <div className="mmp-grid">
             {activeMinistries.map((ministry) => {
-              const color = ministry.color ?? '#a5b4fc';
+              const color = ministry.color ?? 'var(--wis-blue-soft)';
               const selected = isIn(ministry.id);
               const fns = getFns(ministry.id);
               const availableFunctions = ministry.functions?.length
@@ -157,8 +157,8 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
               return (
                 <div key={ministry.id} style={{
                   borderRadius: '1rem',
-                  background: selected ? `${color}08` : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${selected ? color + '30' : 'rgba(255,255,255,0.07)'}`,
+                  background: selected ? `${color}08` : 'var(--wis-surface-2)',
+                  border: `1px solid ${selected ? color + '30' : 'var(--wis-border)'}`,
                   overflow: 'hidden',
                   transition: 'background 0.15s, border-color 0.15s',
                 }}>
@@ -176,7 +176,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
                     }}>
                       {ministry.name.charAt(0).toUpperCase()}
                     </div>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff', flex: 1 }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--wis-text)', flex: 1 }}>
                       {ministry.name}
                     </span>
                     {selected && fns.length > 0 && (
@@ -198,7 +198,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
                             display: 'flex', alignItems: 'center', gap: '0.5rem',
                             padding: '0.375rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer',
                             fontSize: '0.78rem',
-                            color: fns.includes(f.key) ? '#fff' : 'rgba(255,255,255,0.45)',
+                            color: fns.includes(f.key) ? 'var(--wis-text)' : 'var(--wis-text-2)',
                             background: fns.includes(f.key) ? `${color}18` : 'transparent',
                             transition: 'background 0.1s, color 0.1s',
                           }}>

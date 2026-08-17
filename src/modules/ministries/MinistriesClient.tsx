@@ -142,13 +142,13 @@ export function MinistriesClient() {
         <div className="flex items-start justify-between gap-4 pt-2">
           <div>
             <p className="text-xs font-semibold tracking-[0.16em] uppercase"
-              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              style={{ color: 'var(--wis-text-3)' }}>
               Organização
             </p>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
               Ministérios
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
               {ministries.length > 0
                 ? `${activeCount} activo${activeCount !== 1 ? 's' : ''} · ${inactiveCount} inactivo${inactiveCount !== 1 ? 's' : ''}`
                 : 'Grupos e equipas da organização'}
@@ -166,8 +166,8 @@ export function MinistriesClient() {
         <div style={{
           display: 'inline-flex', gap: '0.25rem', padding: '0.25rem',
           borderRadius: '0.625rem',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--wis-surface-2)',
+          border: '1px solid var(--wis-border)',
         }}>
           {TABS.map(({ value, label }) => {
             const isActive = tab === value;
@@ -181,20 +181,20 @@ export function MinistriesClient() {
                   padding: '0.375rem 0.875rem',
                   borderRadius: '0.375rem', border: 'none', cursor: 'pointer',
                   fontSize: '0.8rem', fontWeight: isActive ? 600 : 500,
-                  background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.38)',
+                  background: isActive ? 'var(--wis-surface-4)' : 'transparent',
+                  color: isActive ? 'var(--wis-text)' : 'var(--wis-text-3)',
                   transition: 'background 0.12s, color 0.12s',
                 }}
-                onMouseEnter={(e) => { if (!isActive) (e.currentTarget.style.color = 'rgba(255,255,255,0.65)'); }}
-                onMouseLeave={(e) => { if (!isActive) (e.currentTarget.style.color = 'rgba(255,255,255,0.38)'); }}
+                onMouseEnter={(e) => { if (!isActive) (e.currentTarget.style.color = 'var(--wis-surface-4)'); }}
+                onMouseLeave={(e) => { if (!isActive) (e.currentTarget.style.color = 'var(--wis-surface-4)'); }}
               >
                 {label}
                 {count > 0 && (
                   <span style={{
                     fontSize: '0.65rem', fontWeight: 700,
                     padding: '0.1rem 0.4rem', borderRadius: '9999px',
-                    background: isActive ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)',
-                    color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                    background: isActive ? 'var(--wis-surface-4)' : 'var(--wis-surface-3)',
+                    color: isActive ? 'var(--wis-text)' : 'var(--wis-text-3)',
                   }}>
                     {count}
                   </span>
@@ -209,13 +209,13 @@ export function MinistriesClient() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-44 animate-pulse rounded-xl"
-                style={{ background: 'rgba(255,255,255,0.05)' }} />
+                style={{ background: 'var(--wis-surface-2)' }} />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="events-dark-empty">
-            <LayoutGrid className="h-10 w-10 mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <LayoutGrid className="h-10 w-10 mb-3" style={{ color: 'var(--wis-text-4)' }} />
+            <p className="text-sm" style={{ color: 'var(--wis-text-3)' }}>
               {tab === 'inactive' ? 'Nenhum ministério inactivo.' :
                tab === 'active'   ? 'Nenhum ministério activo.' :
                'Nenhum ministério carregado.'}
@@ -275,7 +275,7 @@ function MinistryCard({
 }) {
   const [hovered, setHovered] = useState(false);
 
-  const color = ministry.color ?? '#a5b4fc';
+  const color = ministry.color ?? 'var(--wis-blue-soft)';
 
   return (
     <div
@@ -291,9 +291,9 @@ function MinistryCard({
         gap: '0.5rem',
         padding: '1.25rem 1rem',
         borderRadius: '0.875rem',
-        background: hovered ? 'rgba(35,35,40,0.9)' : 'rgba(22,22,26,0.85)',
-        border: `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)'}`,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        background: hovered ? 'var(--wis-surface-2)' : 'var(--wis-surface)',
+        border: `1px solid ${hovered ? 'var(--wis-border-strong)' : 'var(--wis-border)'}`,
+        boxShadow: 'var(--wis-shadow-md)',
         transition: 'background 0.15s, border-color 0.15s, transform 0.15s',
         transform: hovered ? 'translateY(-2px)' : 'none',
         opacity: ministry.is_active ? (locked ? 0.55 : 1) : 0.5,
@@ -306,9 +306,9 @@ function MinistryCard({
           position: 'absolute', top: '0.5rem', right: '0.5rem',
           width: '1.25rem', height: '1.25rem', borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)',
+          background: 'rgba(0,0,0,0.5)', border: '1px solid var(--wis-border-strong)',
         }}>
-          <Lock style={{ width: '0.65rem', height: '0.65rem', color: 'rgba(255,255,255,0.6)' }} />
+          <Lock style={{ width: '0.65rem', height: '0.65rem', color: 'var(--wis-text-2)' }} />
         </div>
       )}
       {/* Top colour accent bar */}
@@ -325,7 +325,7 @@ function MinistryCard({
           position: 'absolute', top: '0.625rem', right: '0.625rem',
           width: '0.5rem', height: '0.5rem',
           borderRadius: '50%',
-          background: ministry.is_active ? color : 'rgba(255,255,255,0.2)',
+          background: ministry.is_active ? color : 'var(--wis-text-4)',
           boxShadow: ministry.is_active ? `0 0 6px ${color}88` : 'none',
         }} />
       )}
@@ -336,8 +336,8 @@ function MinistryCard({
           position: 'absolute', top: '0.5rem', left: '0.5rem',
           fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem',
           borderRadius: '9999px', letterSpacing: '0.04em',
-          background: 'rgba(239,68,68,0.12)', color: '#f87171',
-          border: '1px solid rgba(248,113,113,0.2)',
+          background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)',
+          border: '1px solid #f5c9cb',
         }}>
           INACTIVO
         </span>
@@ -358,7 +358,7 @@ function MinistryCard({
 
       {/* Name */}
       <span style={{
-        fontSize: '0.8rem', fontWeight: 600, color: '#ffffff',
+        fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)',
         textAlign: 'center', lineHeight: 1.3,
       }}>
         {ministry.name}
@@ -367,7 +367,7 @@ function MinistryCard({
       {/* Function count */}
       {ministry.functions.length > 0 && (
         <span style={{
-          fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)',
+          fontSize: '0.65rem', color: 'var(--wis-text-3)',
           fontWeight: 500,
         }}>
           {ministry.functions.length} {ministry.functions.length !== 1 ? 'funções' : 'função'}

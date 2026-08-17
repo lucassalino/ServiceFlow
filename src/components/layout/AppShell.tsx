@@ -24,7 +24,7 @@ export function AppShell({ orgId, children }: Props) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <MobileHeader orgId={orgId} onMenuOpen={() => setMobileOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden app-main" style={{ background: '#000000' }}>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden app-main" style={{ background: 'var(--wis-canvas)' }}>
           {children}
         </main>
 

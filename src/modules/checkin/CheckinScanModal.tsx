@@ -138,14 +138,14 @@ export function CheckinScanModal({ open, onOpenChange, onScan }: Props) {
         <DialogHeader style={{ padding: '1.25rem 1.25rem 0' }}>
           <DialogTitle>Ler QR code</DialogTitle>
         </DialogHeader>
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '1', background: '#000', marginTop: '1rem' }}>
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '1', background: 'var(--wis-surface)', marginTop: '1rem' }}>
           {error && (
             <div style={{
               position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1.5rem', textAlign: 'center',
             }}>
-              <CameraOff style={{ width: '2rem', height: '2rem', color: 'rgba(255,255,255,0.3)' }} />
-              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>{error}</p>
+              <CameraOff style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-3)' }} />
+              <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>{error}</p>
             </div>
           )}
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
@@ -155,7 +155,7 @@ export function CheckinScanModal({ open, onOpenChange, onScan }: Props) {
             muted autoPlay playsInline
           />
         </div>
-        <p style={{ padding: '0.9rem 1.25rem 1.25rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
+        <p style={{ padding: '0.9rem 1.25rem 1.25rem', fontSize: '0.78rem', color: 'var(--wis-text-3)', textAlign: 'center' }}>
           Aponta para o QR code à entrada da igreja
         </p>
       </DialogContent>

@@ -82,8 +82,8 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
           <button onClick={onBack} style={backBtnStyle}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}>
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}>
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Ministérios
           </button>
@@ -93,7 +93,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
           </button>
         </div>
 
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', marginBottom: '1.75rem' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--wis-text)', marginBottom: '1.75rem' }}>
           {isEdit ? 'Editar ministério' : 'Novo ministério'}
         </h1>
 
@@ -127,7 +127,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
                 style={{
                   width: '2rem', height: '2rem', borderRadius: '50%', cursor: 'pointer',
                   background: c,
-                  border: color === c ? '2px solid #fff' : '2px solid transparent',
+                  border: color === c ? '2px solid var(--wis-border)' : '2px solid transparent',
                   outline: color === c ? `2px solid ${c}` : 'none',
                   transition: 'transform 0.1s',
                 }} />
@@ -137,7 +137,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
 
         {/* Funções */}
         <Section label="Funções">
-          <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.75rem' }}>
+          <p style={{ fontSize: '0.78rem', color: 'var(--wis-text-3)', marginBottom: '0.75rem' }}>
             Escolhe as funções deste ministério. Podes usar o catálogo ou criar as tuas próprias.
           </p>
 
@@ -159,7 +159,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
           {/* Função personalizada */}
           <div style={{
             padding: '1rem', borderRadius: '0.75rem',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
           }}>
             <Label>Criar função personalizada</Label>
 
@@ -207,7 +207,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
           </div>
 
           {functions.length > 0 && (
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.75rem' }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', marginTop: '0.75rem' }}>
               {functions.length} {functions.length !== 1 ? 'funções' : 'função'} selecionada{functions.length !== 1 ? 's' : ''}
             </p>
           )}
@@ -227,7 +227,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div style={{ marginBottom: '1.75rem' }}>
       <p style={{
         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em',
-        textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '0.75rem',
+        textTransform: 'uppercase', color: 'var(--wis-text-3)', marginBottom: '0.75rem',
       }}>
         {label}
       </p>
@@ -238,7 +238,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label style={{ display: 'block', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.4rem' }}>
+    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--wis-text-2)', marginBottom: '0.4rem' }}>
       {children}
     </label>
   );
@@ -246,36 +246,36 @@ function Label({ children }: { children: React.ReactNode }) {
 
 const backBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-  fontSize: '0.8rem', fontWeight: 500, color: 'rgba(255,255,255,0.55)',
+  fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-text-2)',
   background: 'none', border: 'none', cursor: 'pointer', padding: 0,
   transition: 'color 0.12s',
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%', height: '2.75rem', padding: '0 0.875rem',
-  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '0.5rem', color: '#fff', fontSize: '0.875rem', outline: 'none',
+  background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border-strong)',
+  borderRadius: '0.5rem', color: 'var(--wis-text)', fontSize: '0.875rem', outline: 'none',
 };
 
 function pickBtnStyle(active: boolean, size = '2.5rem'): React.CSSProperties {
   return {
     width: size, height: size, borderRadius: '0.5rem', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
-    background: active ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.05)',
-    border: `1px solid ${active ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)'}`,
+    background: active ? 'var(--wis-surface-4)' : 'var(--wis-surface-2)',
+    border: `1px solid ${active ? 'var(--wis-border-strong)' : 'var(--wis-border-strong)'}`,
     transition: 'background 0.12s, border-color 0.12s',
   };
 }
 
 function chipStyle(selected: boolean, isCustom = false): React.CSSProperties {
-  const base = isCustom ? '#a5b4fc' : '#6ee7b7';
+  const base = isCustom ? 'var(--wis-blue-soft)' : 'var(--wis-success-bg)';
   return {
     display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
     padding: '0.375rem 0.7rem', borderRadius: '9999px',
     fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer',
-    background: selected ? `${base}22` : 'rgba(255,255,255,0.05)',
-    color: selected ? base : 'rgba(255,255,255,0.6)',
-    border: `1px solid ${selected ? `${base}55` : 'rgba(255,255,255,0.1)'}`,
+    background: selected ? `${base}22` : 'var(--wis-surface-2)',
+    color: selected ? base : 'var(--wis-surface-4)',
+    border: `1px solid ${selected ? `${base}55` : 'var(--wis-border-strong)'}`,
     transition: 'background 0.12s, color 0.12s',
   };
 }

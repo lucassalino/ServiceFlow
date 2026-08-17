@@ -33,7 +33,7 @@ export function CheckinSelfCard({ orgId, compact = false }: Props) {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: compact ? '1rem' : '2rem' }}>
-        <Loader2 className="animate-spin" style={{ width: '1.5rem', height: '1.5rem', color: 'rgba(255,255,255,0.3)' }} />
+        <Loader2 className="animate-spin" style={{ width: '1.5rem', height: '1.5rem', color: 'var(--wis-text-3)' }} />
       </div>
     );
   }
@@ -41,8 +41,8 @@ export function CheckinSelfCard({ orgId, compact = false }: Props) {
   if (!status) {
     return (
       <div style={{ textAlign: 'center', padding: compact ? '1rem' : '2rem' }}>
-        <CalendarX2 style={{ width: '1.75rem', height: '1.75rem', margin: '0 auto 0.5rem', color: 'rgba(255,255,255,0.2)' }} />
-        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+        <CalendarX2 style={{ width: '1.75rem', height: '1.75rem', margin: '0 auto 0.5rem', color: 'var(--wis-text-4)' }} />
+        <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>
           Não estás escalado em nenhum evento hoje, ou ainda não é a hora.
         </p>
       </div>
@@ -52,8 +52,8 @@ export function CheckinSelfCard({ orgId, compact = false }: Props) {
   if (status.checkedOutAt) {
     return (
       <div style={{ textAlign: 'center', padding: compact ? '1rem' : '2rem' }}>
-        <CheckCircle2 style={{ width: '1.75rem', height: '1.75rem', margin: '0 auto 0.5rem', color: '#6ee7b7' }} />
-        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
+        <CheckCircle2 style={{ width: '1.75rem', height: '1.75rem', margin: '0 auto 0.5rem', color: 'var(--wis-success)' }} />
+        <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-2)' }}>
           Check-out registado em {status.eventName}.
         </p>
       </div>
@@ -67,8 +67,8 @@ export function CheckinSelfCard({ orgId, compact = false }: Props) {
       flexWrap: 'wrap',
     }}>
       <div style={{ flex: 1, minWidth: '10rem' }}>
-        <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>{status.eventName}</p>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+        <p style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--wis-text)' }}>{status.eventName}</p>
+        <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)' }}>
           {formatTime(status.eventTime)}
           {status.checkedInAt && ' · presença confirmada'}
         </p>
@@ -80,9 +80,9 @@ export function CheckinSelfCard({ orgId, compact = false }: Props) {
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.6rem 1.1rem', borderRadius: '0.625rem',
           fontSize: '0.85rem', fontWeight: 700,
-          background: status.checkedInAt ? 'rgba(255,255,255,0.08)' : '#fff',
-          color: status.checkedInAt ? '#fff' : '#0a0a0e',
-          border: status.checkedInAt ? '1px solid rgba(255,255,255,0.15)' : 'none',
+          background: status.checkedInAt ? 'var(--wis-surface)' : 'var(--wis-blue)',
+          color: status.checkedInAt ? 'var(--wis-text)' : '#fff',
+          border: status.checkedInAt ? '1px solid var(--wis-border-strong)' : 'none',
           cursor: checkIn.isPending ? 'wait' : 'pointer', opacity: checkIn.isPending ? 0.6 : 1,
         }}
       >

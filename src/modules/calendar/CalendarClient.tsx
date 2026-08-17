@@ -128,9 +128,9 @@ export function CalendarClient({ orgId }: Props) {
 
         {/* Hero */}
         <div className="space-y-1 pt-2">
-          <p className="text-xs font-semibold tracking-[0.16em] uppercase text-white/40">Agenda</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mt-1">Calendário</h1>
-          <p className="text-white/40 text-sm mt-0.5">
+          <p className="text-xs font-semibold tracking-[0.16em] uppercase text-[color:var(--wis-text-3)]">Agenda</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">Calendário</h1>
+          <p className="text-[color:var(--wis-text-3)] text-sm mt-0.5">
             {isLoading ? 'A carregar…' : `${eventsThisMonth} evento${eventsThisMonth !== 1 ? 's' : ''} em ${MONTH_NAMES[cursor.getMonth()].toLowerCase()}`}
           </p>
         </div>
@@ -140,20 +140,20 @@ export function CalendarClient({ orgId }: Props) {
           {/* ── Month grid ─────────────────────────────── */}
           <div className="dash-glass-card overflow-hidden">
             <div className="flex items-center justify-between px-5 pt-5 pb-4">
-              <p className="text-lg font-bold text-white">
-                {MONTH_NAMES[cursor.getMonth()]} <span className="text-white/40 font-medium">{cursor.getFullYear()}</span>
+              <p className="text-lg font-bold text-[color:var(--wis-text)]">
+                {MONTH_NAMES[cursor.getMonth()]} <span className="text-[color:var(--wis-text-3)] font-medium">{cursor.getFullYear()}</span>
               </p>
               <div className="flex items-center gap-1.5">
                 <button onClick={goToday}
-                  className="text-xs font-medium px-2.5 py-1 rounded-md text-white/50 hover:text-white hover:bg-white/08 transition-colors">
+                  className="text-xs font-medium px-2.5 py-1 rounded-md text-[color:var(--wis-text-2)] hover:text-[color:var(--wis-text)] hover:bg-[var(--wis-surface-2)] transition-colors">
                   Hoje
                 </button>
                 <button onClick={goPrevMonth} aria-label="Mês anterior"
-                  className="p-1.5 rounded-md text-white/50 hover:text-white hover:bg-white/08 transition-colors">
+                  className="p-1.5 rounded-md text-[color:var(--wis-text-2)] hover:text-[color:var(--wis-text)] hover:bg-[var(--wis-surface-2)] transition-colors">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button onClick={goNextMonth} aria-label="Mês seguinte"
-                  className="p-1.5 rounded-md text-white/50 hover:text-white hover:bg-white/08 transition-colors">
+                  className="p-1.5 rounded-md text-[color:var(--wis-text-2)] hover:text-[color:var(--wis-text)] hover:bg-[var(--wis-surface-2)] transition-colors">
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -163,7 +163,7 @@ export function CalendarClient({ orgId }: Props) {
               {/* Weekday header */}
               <div className="grid grid-cols-7 mb-1">
                 {WEEKDAY_LABELS.map((w) => (
-                  <div key={w} className="text-center text-[10px] font-semibold uppercase tracking-wider text-white/30 py-1.5">
+                  <div key={w} className="text-center text-[10px] font-semibold uppercase tracking-wider text-[color:var(--wis-text-3)] py-1.5">
                     {w}
                   </div>
                 ))}
@@ -190,20 +190,20 @@ export function CalendarClient({ orgId }: Props) {
                             aspectRatio: '1',
                             borderRadius: '0.625rem',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-                            background: isSelected ? 'rgba(255,255,255,0.14)' : isToday ? 'rgba(165,180,252,0.12)' : 'transparent',
-                            border: isSelected ? '1px solid rgba(255,255,255,0.25)' : isToday ? '1px solid rgba(165,180,252,0.3)' : '1px solid transparent',
+                            background: isSelected ? 'var(--wis-surface-4)' : isToday ? 'var(--wis-blue-soft)' : 'transparent',
+                            border: isSelected ? '1px solid var(--wis-border-strong)' : isToday ? '1px solid var(--wis-blue-border)' : '1px solid transparent',
                             cursor: 'pointer', transition: 'background 0.12s',
                           }}
                         >
                           {dayUnavail.length > 0 && (
                             <span style={{
                               position: 'absolute', top: '4px', right: '4px',
-                              width: '5px', height: '5px', borderRadius: '9999px', background: '#f87171',
+                              width: '5px', height: '5px', borderRadius: '9999px', background: 'var(--wis-danger-bg)',
                             }} />
                           )}
                           <span style={{
                             fontSize: '0.78rem', fontWeight: isToday || isSelected ? 700 : 500,
-                            color: isSelected ? '#fff' : isToday ? '#a5b4fc' : 'rgba(255,255,255,0.65)',
+                            color: isSelected ? 'var(--wis-text)' : isToday ? 'var(--wis-blue)' : 'var(--wis-text-2)',
                           }}>
                             {date.getDate()}
                           </span>
@@ -212,7 +212,7 @@ export function CalendarClient({ orgId }: Props) {
                               {dayEvents.slice(0, 3).map((e, i) => (
                                 <span key={i} style={{
                                   width: '4px', height: '4px', borderRadius: '9999px',
-                                  background: e.color ?? '#a5b4fc',
+                                  background: e.color ?? 'var(--wis-blue-soft)',
                                 }} />
                               ))}
                             </div>
@@ -229,12 +229,12 @@ export function CalendarClient({ orgId }: Props) {
           {/* ── Selected day events ────────────────────── */}
           <div className="dash-glass-card overflow-hidden">
             <div className="px-5 pt-5 pb-4">
-              <p className="text-white/40 text-[11px] font-semibold uppercase tracking-widest">
+              <p className="text-[color:var(--wis-text-3)] text-[11px] font-semibold uppercase tracking-widest">
                 {selectedLabel}
               </p>
               {selectedDayUnavail.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(248,113,113,0.6)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-danger)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                     <CalendarOff className="h-3 w-3" />
                     Indisponíveis
                   </p>
@@ -242,15 +242,15 @@ export function CalendarClient({ orgId }: Props) {
                     <div key={u.entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                       <Avatar style={{ width: '1.75rem', height: '1.75rem', flexShrink: 0 }}>
                         {u.avatarUrl && <AvatarImage src={u.avatarUrl} alt={u.name} />}
-                        <AvatarFallback style={{ fontSize: '0.65rem', background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>
+                        <AvatarFallback style={{ fontSize: '0.65rem', background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)' }}>
                           {getInitials(u.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div style={{ minWidth: 0 }}>
-                        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {u.name}
                         </p>
-                        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {describeUnavailability(u.entry)}
                         </p>
                       </div>
@@ -262,37 +262,37 @@ export function CalendarClient({ orgId }: Props) {
 
             {selectedEvents.length === 0 ? (
               <div className="px-5 pb-8 text-center">
-                <CalendarDays className="h-8 w-8 mx-auto mb-3 text-white/15" />
-                <p className="text-sm text-white/35">Sem eventos neste dia.</p>
+                <CalendarDays className="h-8 w-8 mx-auto mb-3 text-[color:var(--wis-text-4)]" />
+                <p className="text-sm text-[color:var(--wis-text-3)]">Sem eventos neste dia.</p>
               </div>
             ) : (
               <div>
                 {selectedEvents.map((event) => {
-                  const color = event.color ?? '#a5b4fc';
+                  const color = event.color ?? 'var(--wis-blue-soft)';
                   return (
                     <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="dash-glass-event">
                       <div className="w-0.5 self-stretch rounded-full shrink-0" style={{ background: color }} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm text-white truncate">{event.name}</span>
+                          <span className="font-semibold text-sm text-[color:var(--wis-text)] truncate">{event.name}</span>
                           {event.is_published
-                            ? <Badge className="text-[10px] h-[18px] px-1.5 py-0 bg-white/15 text-white border-white/20 hover:bg-white/15">Publicado</Badge>
-                            : <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 py-0 bg-white/08 text-white/60 border-white/12">Rascunho</Badge>}
+                            ? <Badge className="text-[10px] h-[18px] px-1.5 py-0 bg-[var(--wis-surface-2)] text-[color:var(--wis-text)] border-[var(--wis-border-strong)] hover:bg-[var(--wis-surface-2)]">Publicado</Badge>
+                            : <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 py-0 bg-[var(--wis-surface-2)] text-[color:var(--wis-text-2)] border-[var(--wis-border-strong)]">Rascunho</Badge>}
                           {(() => {
                             const p = eventPeriod(event.time);
                             return p ? (
                               <span style={{
                                 fontSize: '0.62rem', fontWeight: 700, padding: '0.05rem 0.4rem',
                                 borderRadius: '9999px', letterSpacing: '0.03em', textTransform: 'uppercase',
-                                background: 'rgba(165,180,252,0.15)', color: '#a5b4fc',
-                                border: '1px solid rgba(165,180,252,0.25)',
+                                background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
+                                border: '1px solid var(--wis-blue-border)',
                               }}>
                                 {p.emoji} {p.label}
                               </span>
                             ) : null;
                           })()}
                         </div>
-                        <div className="flex items-center gap-3 mt-0.5 text-xs text-white/40 flex-wrap">
+                        <div className="flex items-center gap-3 mt-0.5 text-xs text-[color:var(--wis-text-3)] flex-wrap">
                           {event.time && (
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />{formatTime(event.time)}
