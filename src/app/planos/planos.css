@@ -1,0 +1,772 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   /planos — landing pública, linguagem editorial (cartaz + revista).
+   Preto profundo + off-white + azul elétrico. Sem gradientes de SaaS.
+   Tudo em CSS/SVG: nenhuma imagem nova, nenhuma biblioteca.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.wis-lp {
+  --ink: #050505;
+  --ink-soft: #12131a;
+  --paper: #f3f1ec;
+  --paper-dim: #d9d5cb;
+  --blue: #145cff;
+  --blue-deep: #0a2e8c;
+  --yellow: #ffc629;
+
+  background: var(--ink);
+  color: var(--paper);
+  overflow-x: clip;
+  font-synthesis-weight: none;
+}
+
+/* Grão de papel — um único data-URI minúsculo, reaproveitado. */
+.wis-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+.wis-lp section { position: relative; }
+
+/* ── Tipografia ─────────────────────────────────────────────────────── */
+
+.wis-display {
+  font-family: var(--wis-display, 'Arial Narrow', 'Haettenschweiler', Impact, system-ui), sans-serif;
+  text-transform: uppercase;
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.005em;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+.wis-h1 { font-size: clamp(2.6rem, 6.6vw, 5.1rem); }
+.wis-h2 { font-size: clamp(2rem, 4.6vw, 3.5rem); }
+.wis-h3 { font-size: clamp(1.4rem, 2.6vw, 2rem); }
+
+.wis-blue { color: var(--blue); }
+
+/* Palavra dentro de caixa azul */
+.wis-boxed {
+  background: var(--blue);
+  color: #fff;
+  padding: 0 0.28em 0.06em;
+  display: inline-block;
+}
+
+/* Anotação "manuscrita" */
+.wis-hand {
+  font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.wis-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ── Contentor ──────────────────────────────────────────────────────── */
+
+.wis-wrap {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding-inline: 1.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Superfícies ────────────────────────────────────────────────────── */
+
+.wis-paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.wis-paper .wis-kicker { color: var(--blue-deep); }
+
+/* Rasgo entre secções: o SVG pinta a cor da secção seguinte. */
+.wis-tear {
+  display: block;
+  width: 100%;
+  height: clamp(28px, 4.5vw, 58px);
+  position: relative;
+  z-index: 3;
+  margin-bottom: -1px;
+}
+.wis-tear svg { display: block; width: 100%; height: 100%; }
+
+/* ── Botões ─────────────────────────────────────────────────────────── */
+
+.wis-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.6rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease;
+  white-space: nowrap;
+}
+.wis-btn:hover { transform: translate(-2px, -2px); }
+.wis-btn:active { transform: translate(0, 0); }
+.wis-btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+
+.wis-btn-blue { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--blue-deep); }
+.wis-btn-blue:hover { box-shadow: 7px 7px 0 var(--blue-deep); }
+
+.wis-btn-ink { background: var(--ink); color: var(--paper); box-shadow: 4px 4px 0 var(--blue); }
+.wis-btn-ink:hover { box-shadow: 7px 7px 0 var(--blue); }
+
+.wis-btn-outline {
+  background: transparent;
+  color: var(--paper);
+  border-color: rgba(243, 241, 236, 0.45);
+}
+.wis-btn-outline:hover { background: rgba(243, 241, 236, 0.08); transform: translate(-2px, -2px); }
+
+.wis-paper .wis-btn-outline { color: var(--ink); border-color: rgba(5, 5, 5, 0.35); }
+.wis-paper .wis-btn-outline:hover { background: rgba(5, 5, 5, 0.06); }
+
+.wis-btn-sm { padding: 0.55rem 1rem; font-size: 0.78rem; box-shadow: 3px 3px 0 var(--blue-deep); }
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+.wis-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(5, 5, 5, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(243, 241, 236, 0.12);
+}
+
+.wis-header-inner {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0.8rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wis-nav { display: flex; gap: 1.75rem; }
+
+.wis-nav a {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(243, 241, 236, 0.6);
+  text-decoration: none;
+  position: relative;
+  padding-bottom: 2px;
+}
+.wis-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--blue);
+  transition: width 0.18s ease;
+}
+.wis-nav a:hover { color: var(--paper); }
+.wis-nav a:hover::after { width: 100%; }
+.wis-nav a.is-current { color: var(--blue); }
+.wis-nav a.is-current::after { width: 100%; }
+
+.wis-burger {
+  display: none;
+  background: none;
+  border: 1px solid rgba(243, 241, 236, 0.25);
+  border-radius: 2px;
+  color: var(--paper);
+  padding: 0.45rem;
+  cursor: pointer;
+}
+
+.wis-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(243, 241, 236, 0.12);
+  padding: 0.5rem 1.25rem 1rem;
+}
+.wis-mobile-nav a {
+  padding: 0.8rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(243, 241, 236, 0.1);
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────── */
+
+.wis-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 2.5rem;
+  align-items: center;
+  padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(3.5rem, 8vw, 6rem);
+}
+
+.wis-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--blue);
+  color: #fff;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transform: rotate(-1.4deg);
+  margin-bottom: 1.5rem;
+}
+
+.wis-hero-lead {
+  font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+  line-height: 1.65;
+  color: rgba(243, 241, 236, 0.72);
+  max-width: 32rem;
+  margin: 1.75rem 0 2rem;
+}
+
+.wis-hero-ctas { display: flex; flex-wrap: wrap; gap: 0.85rem; }
+
+.wis-nocard {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+  font-size: 0.78rem;
+  color: rgba(243, 241, 236, 0.45);
+}
+
+/* Composição visual do hero */
+.wis-hero-art {
+  position: relative;
+  min-height: 26rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wis-ink-blob {
+  position: absolute;
+  inset: 6% -6% 6% 2%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wis-halftone {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: radial-gradient(rgba(243, 241, 236, 0.5) 1px, transparent 1.4px);
+  background-size: 7px 7px;
+  mask-image: radial-gradient(ellipse 60% 60% at 55% 45%, #000 10%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 55% 45%, #000 10%, transparent 72%);
+}
+
+.wis-phone {
+  position: relative;
+  z-index: 2;
+  width: min(15rem, 62%);
+  border: 3px solid #1b1c22;
+  border-radius: 1.7rem;
+  overflow: hidden;
+  background: #0d0e11;
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.85);
+  transform: rotate(-2.5deg);
+}
+.wis-phone img { display: block; width: 100%; height: auto; }
+.wis-phone::before {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32%;
+  height: 0.8rem;
+  border-radius: 9999px;
+  background: #000;
+  z-index: 2;
+}
+
+.wis-note {
+  position: absolute;
+  z-index: 4;
+  background: var(--blue);
+  color: #fff;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  box-shadow: 5px 5px 0 rgba(5, 5, 5, 0.6);
+  max-width: 11rem;
+}
+
+/* ── Funcionalidades ────────────────────────────────────────────────── */
+
+.wis-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem 1.75rem;
+  margin-top: 2.75rem;
+}
+
+.wis-feature {
+  border-top: 3px solid var(--ink);
+  padding-top: 0.9rem;
+}
+.wis-feature h3 {
+  font-size: 0.98rem;
+  font-weight: 800;
+  margin: 0.7rem 0 0.35rem;
+}
+.wis-feature p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(5, 5, 5, 0.62);
+  margin: 0;
+}
+.wis-feature svg { color: var(--blue); }
+/* Cada quarta funcionalidade puxa a régua azul — quebra a grelha perfeita. */
+.wis-feature:nth-child(4n + 2) { border-top-color: var(--blue); }
+
+/* ── Métricas ───────────────────────────────────────────────────────── */
+
+.wis-metrics {
+  background: var(--ink);
+  transform: rotate(-1deg) scale(1.03);
+  padding: clamp(1.75rem, 3.5vw, 2.5rem) 0;
+  margin: 3rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.wis-metrics-inner {
+  transform: rotate(1deg);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding-inline: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+.wis-metric { text-align: center; }
+.wis-metric b {
+  display: block;
+  font-family: var(--wis-display, 'Arial Narrow', Impact, system-ui), sans-serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  line-height: 1;
+  color: var(--blue);
+  letter-spacing: -0.01em;
+}
+.wis-metric span {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(243, 241, 236, 0.55);
+}
+.wis-metric + .wis-metric { border-left: 1px solid rgba(243, 241, 236, 0.14); }
+
+/* ── Como funciona ──────────────────────────────────────────────────── */
+
+.wis-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+.wis-step { position: relative; padding-right: 0.5rem; }
+.wis-step-n {
+  font-family: var(--wis-display, 'Arial Narrow', Impact, system-ui), sans-serif;
+  font-weight: 400;
+  font-size: 3.4rem;
+  line-height: 0.8;
+  color: var(--blue);
+  display: block;
+}
+.wis-step h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0.7rem 0 0.35rem;
+}
+.wis-step p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(5, 5, 5, 0.62);
+  margin: 0;
+}
+.wis-step-arrow {
+  position: absolute;
+  top: 1.15rem;
+  right: -0.9rem;
+  width: 2rem;
+  color: var(--blue);
+  animation: wis-nudge 2.6s ease-in-out infinite;
+}
+.wis-step:last-child .wis-step-arrow { display: none; }
+
+@keyframes wis-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+/* ── Planos ─────────────────────────────────────────────────────────── */
+
+.wis-toggle {
+  display: inline-flex;
+  border: 2px solid var(--paper);
+  border-radius: 2px;
+  overflow: hidden;
+  background: transparent;
+}
+.wis-toggle button {
+  padding: 0.6rem 1.35rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  background: transparent;
+  color: rgba(243, 241, 236, 0.65);
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.wis-toggle button[aria-pressed='true'] { background: var(--paper); color: var(--ink); }
+.wis-toggle button:focus-visible { outline: 3px solid var(--yellow); outline-offset: -3px; }
+
+.wis-save-tag {
+  display: inline-block;
+  background: var(--yellow);
+  color: var(--ink);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.45rem;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.wis-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.1rem;
+  margin-top: 2.5rem;
+  align-items: start;
+}
+
+.wis-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.6rem 1.4rem;
+  border: 2px solid rgba(243, 241, 236, 0.2);
+  border-radius: 2px;
+  background: rgba(243, 241, 236, 0.03);
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+.wis-plan:hover { transform: translateY(-5px); border-color: rgba(243, 241, 236, 0.45); }
+
+/* Cada plano ganha um pouco mais de presença que o anterior — a escada
+   é visível antes mesmo de se ler os números. */
+.wis-plan[data-tier='0'] { background: transparent; }
+.wis-plan[data-tier='1'] { border-color: rgba(243, 241, 236, 0.3); }
+.wis-plan[data-tier='2'] {
+  border-color: var(--blue);
+  background: linear-gradient(180deg, rgba(20, 92, 255, 0.16) 0%, rgba(20, 92, 255, 0.03) 100%);
+  box-shadow: 8px 8px 0 var(--blue-deep);
+  transform: translateY(-10px);
+}
+.wis-plan[data-tier='2']:hover { transform: translateY(-15px); }
+.wis-plan[data-tier='3'] { border-color: var(--paper); }
+
+.wis-plan-flag {
+  position: absolute;
+  top: -0.85rem;
+  left: 1.1rem;
+  background: var(--yellow);
+  color: var(--ink);
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.65rem;
+  transform: rotate(-2deg);
+}
+
+.wis-plan-name {
+  font-family: var(--wis-display, 'Arial Narrow', Impact, system-ui), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 1.85rem;
+  line-height: 1;
+  margin: 0;
+}
+.wis-plan-tagline {
+  font-size: 0.75rem;
+  color: rgba(243, 241, 236, 0.45);
+  margin: 0.3rem 0 1.1rem;
+}
+
+.wis-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-family: var(--wis-display, 'Arial Narrow', Impact, system-ui), sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 3.4vw, 2.9rem);
+  line-height: 1;
+}
+.wis-price small {
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(243, 241, 236, 0.5);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.wis-price-alt {
+  font-size: 0.76rem;
+  color: rgba(243, 241, 236, 0.45);
+  margin: 0.45rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.wis-limits {
+  list-style: none;
+  padding: 1.1rem 0 0;
+  margin: 1.1rem 0 0;
+  border-top: 1px solid rgba(243, 241, 236, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.wis-limits li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.wis-limits li em {
+  font-style: normal;
+  font-weight: 400;
+  color: rgba(243, 241, 236, 0.5);
+}
+
+.wis-plan-features {
+  list-style: none;
+  padding: 0.9rem 0 0;
+  margin: 0.9rem 0 1.5rem;
+  border-top: 1px dashed rgba(243, 241, 236, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+}
+.wis-plan-features li {
+  display: flex;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(243, 241, 236, 0.78);
+}
+.wis-plan-features svg { flex-shrink: 0; color: var(--blue); margin-top: 0.15rem; }
+.wis-plan-inherits {
+  font-size: 0.74rem;
+  color: rgba(243, 241, 236, 0.4);
+  margin: 0 0 0.7rem;
+}
+
+.wis-plan .wis-btn { width: 100%; }
+
+/* ── FAQ ────────────────────────────────────────────────────────────── */
+
+.wis-faq { border-top: 2px solid var(--ink); }
+.wis-faq-item { border-bottom: 1px solid rgba(5, 5, 5, 0.25); }
+.wis-faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: clamp(1rem, 1.7vw, 1.15rem);
+  font-weight: 800;
+  color: var(--ink);
+}
+.wis-faq-q:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.wis-faq-sign {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--blue);
+  color: var(--blue);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.wis-faq-q[aria-expanded='true'] .wis-faq-sign {
+  transform: rotate(45deg);
+  background: var(--blue);
+  color: #fff;
+}
+.wis-faq-a {
+  padding: 0 0 1.35rem;
+  margin: 0;
+  max-width: 46rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(5, 5, 5, 0.68);
+}
+
+/* ── Instalação PWA ─────────────────────────────────────────────────── */
+
+.wis-install {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+.wis-install-opts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+.wis-install-opt {
+  border: 2px solid rgba(5, 5, 5, 0.2);
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+.wis-install-opt.is-you { border-color: var(--blue); background: rgba(20, 92, 255, 0.08); }
+.wis-install-opt b { display: block; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.wis-install-opt span { display: block; font-size: 0.75rem; color: rgba(5, 5, 5, 0.6); margin-top: 0.2rem; }
+.wis-install-opt svg { color: var(--blue); margin-bottom: 0.5rem; }
+
+/* ── CTA final ──────────────────────────────────────────────────────── */
+
+.wis-cta-final {
+  background: var(--blue);
+  color: #fff;
+  padding: clamp(3.5rem, 8vw, 6rem) 0;
+  text-align: center;
+  overflow: hidden;
+}
+.wis-cta-final p { font-size: 1rem; opacity: 0.85; margin: 1rem 0 2rem; }
+
+/* ── Rodapé ─────────────────────────────────────────────────────────── */
+
+.wis-footer {
+  background: var(--ink);
+  padding: 3rem 0 2rem;
+  border-top: 1px solid rgba(243, 241, 236, 0.12);
+}
+.wis-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 2rem;
+}
+.wis-footer a {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(243, 241, 236, 0.55);
+  text-decoration: none;
+  padding: 0.2rem 0;
+}
+.wis-footer a:hover { color: var(--paper); }
+
+/* ── Revelação ao rolar ─────────────────────────────────────────────── */
+
+/* O conteúdo é visível por omissão. O estado escondido só é aplicado depois
+   de o JS "armar" o bloco (na montagem, antes da pintura) — assim nada
+   desaparece se o IntersectionObserver falhar ou o JS não correr. */
+.wis-reveal-armed {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.wis-reveal-armed.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wis-lp *,
+  .wis-lp *::before,
+  .wis-lp *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .wis-reveal-armed { opacity: 1; transform: none; }
+}
+
+/* ── Responsivo ─────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .wis-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wis-plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wis-plan[data-tier='2'] { transform: none; }
+  .wis-plan[data-tier='2']:hover { transform: translateY(-5px); }
+  .wis-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
+  .wis-step:nth-child(2) .wis-step-arrow { display: none; }
+  .wis-install { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 767px) {
+  .wis-nav { display: none; }
+  .wis-burger { display: inline-flex; }
+  .wis-hero { grid-template-columns: minmax(0, 1fr); gap: 3rem; }
+  .wis-hero-art { min-height: 21rem; }
+  .wis-feature-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .wis-metrics-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.5rem; }
+  .wis-metric:nth-child(odd) { border-left: none; }
+  .wis-metric:nth-child(3) { border-left: none; }
+  .wis-steps { grid-template-columns: minmax(0, 1fr); }
+  .wis-step-arrow { display: none !important; }
+  .wis-plan-grid { grid-template-columns: minmax(0, 1fr); }
+  .wis-install-opts { grid-template-columns: minmax(0, 1fr); }
+  .wis-metrics { transform: rotate(-1deg); }
+}
+
+@media (min-width: 768px) {
+  .wis-mobile-nav { display: none; }
+}
