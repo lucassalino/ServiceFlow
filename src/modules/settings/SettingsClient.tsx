@@ -52,25 +52,22 @@ interface Props { orgId: string }
 
 const MAX_AVATAR_SIZE_MB = 2;
 
+/**
+ * Uma secção das definições. Deixou de ser um cartão: agora é só um título
+ * e o seu conteúdo, separados do resto por espaço e uma linha fina. É o que
+ * evita a página ser uma pilha de caixas dentro de caixas.
+ */
 function Section({ title, danger, children }: { title: string; danger?: boolean; children: React.ReactNode }) {
   return (
-    <div style={{
-      background: 'var(--wis-surface)',
-      border: `1px solid ${danger ? '#f5c9cb' : 'var(--wis-border)'}`,
-      borderRadius: '0.875rem',
-      overflow: 'hidden',
-      boxShadow: 'var(--wis-shadow-md)',
+    <section style={{
+      paddingTop: '1.75rem',
+      borderTop: `1px solid ${danger ? 'color-mix(in srgb, var(--wis-danger) 30%, transparent)' : 'var(--wis-border)'}`,
     }}>
-      <div style={{
-        padding: '0.9rem 1.25rem',
-        borderBottom: `1px solid ${danger ? '#f5c9cb' : 'var(--wis-border)'}`,
-      }}>
-        <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: danger ? 'var(--wis-danger)' : 'var(--wis-text)', letterSpacing: '0.01em' }}>
-          {title}
-        </h2>
-      </div>
-      <div style={{ padding: '1.25rem' }}>{children}</div>
-    </div>
+      <h2 className="wis-eyebrow" style={{ color: danger ? 'var(--wis-danger)' : undefined }}>
+        {title}
+      </h2>
+      <div style={{ marginTop: '1rem' }}>{children}</div>
+    </section>
   );
 }
 

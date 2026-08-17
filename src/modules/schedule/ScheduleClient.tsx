@@ -25,7 +25,7 @@ import {
   useEventAssignments,
   useUpdateEventSchedule,
 } from '@/hooks/useSchedule';
-import { resolveFunction, getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
+import { resolveFunction, getFunctionLabel } from '@/lib/constants';
 import { formatDate, formatTime, getInitials } from '@/lib/utils';
 import { buildWhatsAppLink, scheduleMessage } from '@/lib/whatsapp';
 import { fetchEventScheduledContactsAction } from '@/actions/schedule';
@@ -368,21 +368,14 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
   const color = em.ministry.color;
 
   return (
-    <div style={{
-      background: 'var(--wis-surface)',
-      border: '1px solid var(--wis-border)',
-      borderRadius: '0.875rem',
-      overflow: 'hidden',
-      boxShadow: 'var(--wis-shadow-md)',
-    }}>
-      {/* Header */}
+    <div style={{ borderTop: '1px solid var(--wis-border)' }}>
+      {/* Header do ministério — risca de cor + nome, sem moldura */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem',
-        padding: '0.875rem 1rem',
-        borderBottom: expanded ? '1px solid var(--wis-border)' : 'none',
+        display: 'flex', alignItems: 'center', gap: '0.6rem',
+        padding: '0.9rem 0 0.7rem',
       }}>
-        {/* Left colour accent */}
-        <div style={{ width: 3, alignSelf: 'stretch', borderRadius: 9999, background: color, flexShrink: 0 }} />
+        {/* Risca da cor do ministério */}
+        <div style={{ width: 3, height: '1.1rem', borderRadius: 9999, background: color, flexShrink: 0 }} />
 
         <button
           onClick={() => setExpanded((v) => !v)}
@@ -391,7 +384,12 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
           {expanded
             ? <ChevronDown style={{ width: '1rem', height: '1rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />
             : <ChevronRight style={{ width: '1rem', height: '1rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />}
-          <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{em.ministry.name}</span>
+          <span style={{
+            fontWeight: 600, fontSize: '0.78rem', letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'var(--wis-text-2)',
+          }}>
+            {em.ministry.name}
+          </span>
           <DarkBadge color={color}>
             <Users style={{ width: '0.65rem', height: '0.65rem' }} />
             {schedules.length}
@@ -415,11 +413,11 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
       {expanded && (
         <div>
           {isLoading ? (
-            <div style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
+            <div style={{ padding: '0.5rem 0 0.9rem 0.9rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
               A carregar…
             </div>
           ) : schedules.length === 0 ? (
-            <div style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
+            <div style={{ padding: '0.5rem 0 0.9rem 0.9rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
               Nenhuma pessoa escalada.
             </div>
           ) : (
@@ -431,8 +429,9 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
               return (
                 <div key={schedule.id} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  padding: '0.75rem 1rem',
-                  borderBottom: isLast ? 'none' : '1px solid var(--wis-border)',
+                  padding: '0.65rem 0.5rem 0.65rem 0.9rem',
+                  borderRadius: 'var(--wis-radius-sm)',
+                  marginBottom: isLast ? '0.35rem' : 0,
                   transition: 'background 0.12s',
                 }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-2)')}
@@ -461,9 +460,7 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                     {schedule.functions.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.25rem' }}>
                         {schedule.functions.map((fn) => (
-                          <span key={fn} style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)' }}>
-                            {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
-                          </span>
+                          <span key={fn} className="wis-pill">{getFunctionLabel(fn)}</span>
                         ))}
                       </div>
                     )}

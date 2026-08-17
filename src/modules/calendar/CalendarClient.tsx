@@ -127,10 +127,10 @@ export function CalendarClient({ orgId }: Props) {
       <div className="p-5 md:p-8 space-y-6">
 
         {/* Hero */}
-        <div className="space-y-1 pt-2">
-          <p className="text-xs font-semibold tracking-[0.16em] uppercase text-[color:var(--wis-text-3)]">Agenda</p>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">Calendário</h1>
-          <p className="text-[color:var(--wis-text-3)] text-sm mt-0.5">
+        <div className="pt-3">
+          <p className="wis-eyebrow">Agenda</p>
+          <h1 className="wis-title" style={{ marginTop: '0.4rem' }}>Calendário</h1>
+          <p className="text-[color:var(--wis-text-2)] text-sm mt-2">
             {isLoading ? 'A carregar…' : `${eventsThisMonth} evento${eventsThisMonth !== 1 ? 's' : ''} em ${MONTH_NAMES[cursor.getMonth()].toLowerCase()}`}
           </p>
         </div>
@@ -138,8 +138,8 @@ export function CalendarClient({ orgId }: Props) {
         <div className="cal-layout">
 
           {/* ── Month grid ─────────────────────────────── */}
-          <div className="dash-glass-card overflow-hidden">
-            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+          <div>
+            <div className="flex items-center justify-between pb-4">
               <p className="text-lg font-bold text-[color:var(--wis-text)]">
                 {MONTH_NAMES[cursor.getMonth()]} <span className="text-[color:var(--wis-text-3)] font-medium">{cursor.getFullYear()}</span>
               </p>
@@ -159,7 +159,7 @@ export function CalendarClient({ orgId }: Props) {
               </div>
             </div>
 
-            <div className="px-3 pb-4">
+            <div className="pb-4">
               {/* Weekday header */}
               <div className="grid grid-cols-7 mb-1">
                 {WEEKDAY_LABELS.map((w) => (
@@ -190,29 +190,29 @@ export function CalendarClient({ orgId }: Props) {
                             aspectRatio: '1',
                             borderRadius: '0.625rem',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-                            background: isSelected ? 'var(--wis-surface-4)' : isToday ? 'var(--wis-blue-soft)' : 'transparent',
-                            border: isSelected ? '1px solid var(--wis-border-strong)' : isToday ? '1px solid var(--wis-blue-border)' : '1px solid transparent',
+                            background: isSelected ? 'var(--wis-blue)' : isToday ? 'var(--wis-blue-soft)' : 'transparent',
+                            border: '1px solid transparent',
                             cursor: 'pointer', transition: 'background 0.12s',
                           }}
                         >
                           {dayUnavail.length > 0 && (
                             <span style={{
                               position: 'absolute', top: '4px', right: '4px',
-                              width: '5px', height: '5px', borderRadius: '9999px', background: 'var(--wis-danger-bg)',
+                              width: '5px', height: '5px', borderRadius: '9999px', background: 'var(--wis-danger)',
                             }} />
                           )}
                           <span style={{
-                            fontSize: '0.78rem', fontWeight: isToday || isSelected ? 700 : 500,
-                            color: isSelected ? 'var(--wis-text)' : isToday ? 'var(--wis-blue)' : 'var(--wis-text-2)',
+                            fontSize: '0.82rem', fontWeight: isToday || isSelected ? 700 : 500,
+                            color: isSelected ? 'var(--wis-canvas)' : isToday ? 'var(--wis-blue)' : 'var(--wis-text-2)',
                           }}>
                             {date.getDate()}
                           </span>
                           {dayEvents.length > 0 && (
-                            <div style={{ display: 'flex', gap: '0.15rem' }}>
+                            <div style={{ display: 'flex', gap: '0.15rem', position: 'absolute', bottom: '0.32rem' }}>
                               {dayEvents.slice(0, 3).map((e, i) => (
                                 <span key={i} style={{
-                                  width: '4px', height: '4px', borderRadius: '9999px',
-                                  background: e.color ?? 'var(--wis-blue)',
+                                  width: '0.55rem', height: '2px', borderRadius: '9999px',
+                                  background: isSelected ? 'var(--wis-canvas)' : (e.color ?? 'var(--wis-blue)'),
                                 }} />
                               ))}
                             </div>
@@ -227,11 +227,9 @@ export function CalendarClient({ orgId }: Props) {
           </div>
 
           {/* ── Selected day events ────────────────────── */}
-          <div className="dash-glass-card overflow-hidden">
-            <div className="px-5 pt-5 pb-4">
-              <p className="text-[color:var(--wis-text-3)] text-[11px] font-semibold uppercase tracking-widest">
-                {selectedLabel}
-              </p>
+          <div className="wis-section" style={{ paddingTop: 0 }}>
+            <div className="pb-3">
+              <p className="wis-eyebrow">{selectedLabel}</p>
               {selectedDayUnavail.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
                   <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-danger)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
