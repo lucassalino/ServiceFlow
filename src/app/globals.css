@@ -1024,3 +1024,75 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
 }
 
 .wis-metric-delta { font-size: 0.75rem; color: var(--wis-success); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════
+   TEMA ESCURO
+   Mesmos tokens, outros valores — nenhuma página
+   precisa de saber em que tema está.
+   ═══════════════════════════════════════════════ */
+
+.dark {
+  /* O azul sobe de luminosidade para se manter legível sobre quase-preto */
+  --wis-blue:        #4d82ff;
+  --wis-blue-hover:  #6b97ff;
+  --wis-blue-soft:   #16224a;
+  --wis-blue-border: #2b4488;
+  --wis-navy:        #0a0a0f;
+  --wis-navy-soft:   #12131a;
+  --wis-teal:        #2fd4c0;
+
+  --wis-canvas:      #0a0a0f;
+  --wis-surface:     #141419;
+  --wis-surface-2:   #1b1b22;
+  --wis-surface-3:   #23232c;
+  --wis-surface-4:   #2e2e39;
+
+  --wis-text:        #f4f5f7;
+  --wis-text-2:      #a8b0bf;
+  --wis-text-3:      #7a8396;
+  --wis-text-4:      #565e6e;
+
+  --wis-border:        #24242e;
+  --wis-border-strong: #33343f;
+
+  --wis-success:     #3ddc9a;
+  --wis-success-bg:  #10261e;
+  --wis-warning:     #f0b34a;
+  --wis-warning-bg:  #2a2013;
+  --wis-danger:      #ff6b6b;
+  --wis-danger-bg:   #2c1416;
+
+  --wis-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --wis-shadow:    0 1px 3px rgba(0, 0, 0, 0.5);
+  --wis-shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --wis-shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.65);
+}
+
+/* Bordas das etiquetas de estado seguem os tokens no escuro */
+.dark .wis-badge-success { border-color: #1d4a37; }
+.dark .wis-badge-warning { border-color: #4a3a1c; }
+.dark .wis-badge-danger  { border-color: #4a2427; }
+
+/* ── Ícones ────────────────────────────────────────────────────────────
+   O ícone da navegação é azul — é o que dá o toque da marca dentro da
+   app. O texto continua a mandar na hierarquia; o azul não é decoração
+   solta, marca sempre "isto navega para algum lado".                    */
+
+.sidebar-dark-nav-item svg { color: var(--wis-blue); opacity: 0.75; transition: opacity 0.12s; }
+.sidebar-dark-nav-item:hover svg,
+.sidebar-dark-nav-item.active svg { opacity: 1; }
+
+.wis-bottom-nav-item svg { color: var(--wis-blue); opacity: 0.6; transition: opacity 0.12s; }
+.wis-bottom-nav-item.active svg { opacity: 1; }
+
+/* Ícone dentro de um cartão de métrica/atalho */
+.dash-glass-quick svg,
+.dash-glass-stat svg { color: var(--wis-blue); }
+
+/* ── Impressão ─────────────────────────────────────────────────────────
+   A folha imprimível é sempre branca com texto preto, independentemente
+   do tema do ecrã — senão o PDF sai escuro.                              */
+#print-area {
+  background: #ffffff !important;
+  color: #18181b !important;
+}

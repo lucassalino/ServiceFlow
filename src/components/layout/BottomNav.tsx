@@ -36,11 +36,10 @@ export function BottomNav({ orgId }: { orgId: string }) {
             key={href}
             href={fullHref}
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors',
-              isActive
-                ? 'text-[color:var(--wis-text)]'
-                : 'hover:text-[color:var(--wis-text)]',
+              'wis-bottom-nav-item flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors',
+              isActive && 'active',
             )}
+            aria-current={isActive ? 'page' : undefined}
             style={{ color: isActive ? 'var(--wis-text)' : 'var(--wis-text-3)' }}
           >
             <Icon className="h-5 w-5" />

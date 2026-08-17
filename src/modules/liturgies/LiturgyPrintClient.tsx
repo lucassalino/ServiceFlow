@@ -68,7 +68,7 @@ export function LiturgyPrintClient({ orgId, liturgyId }: Props) {
       {/* Folha imprimível — mantém-se branca (é o que sai no PDF) */}
       <div id="print-area" style={{
         maxWidth: '780px', margin: '2rem auto', padding: '2.5rem 2rem',
-        background: 'var(--wis-surface)', color: 'var(--wis-text)', fontFamily: 'system-ui, sans-serif',
+        background: '#ffffff', color: '#18181b', fontFamily: 'system-ui, sans-serif',
         borderRadius: '0.75rem', boxShadow: 'var(--wis-shadow-md)',
       }}>
         <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>

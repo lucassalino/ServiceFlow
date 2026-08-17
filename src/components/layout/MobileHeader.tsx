@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Menu, Megaphone } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { NotificationBell } from './NotificationBell';
+import { ThemeToggle } from './ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
         <Link href={`/${orgId}/mural`} aria-label="Mural de recados" className="sidebar-dark-icon-btn">
           <Megaphone className="h-5 w-5" />
         </Link>
+        <ThemeToggle />
         <NotificationBell orgId={orgId} />
         <Link href={`/${orgId}/settings`} aria-label="Definições" className="shrink-0">
           <Avatar className="h-7 w-7">

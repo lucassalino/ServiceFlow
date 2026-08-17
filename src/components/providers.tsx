@@ -22,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return client;
   });
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
         <AuthInitializer>
           {children}

@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { usePlanState, PlanBadge } from '@/components/FeatureGate';
 import { useEffect, useState } from 'react';
 
@@ -241,6 +242,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
             </div>
           </Link>
           <div className="flex items-center shrink-0">
+            <ThemeToggle />
             <NotificationBell orgId={orgId} />
             <button
               onClick={handleSignOut}
