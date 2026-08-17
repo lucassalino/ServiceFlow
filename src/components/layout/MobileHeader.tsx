@@ -18,11 +18,11 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
 
   return (
     <header
-      className="lg:hidden flex items-center gap-3 h-14 px-4 sticky top-0 z-40"
+      className="lg:hidden flex items-center gap-2.5 h-[52px] px-3.5 sticky top-0 z-40"
       style={{
-        background: 'var(--wis-surface)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: 'color-mix(in srgb, var(--wis-canvas) 82%, transparent)',
+        backdropFilter: 'blur(18px)',
+        WebkitBackdropFilter: 'blur(18px)',
         borderBottom: '1px solid var(--wis-border)',
       }}
     >
@@ -35,11 +35,12 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
       </button>
 
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div className="h-6 w-6 rounded flex items-center justify-center text-xs font-bold shrink-0"
-          style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
-          {activeOrg?.name?.[0]?.toUpperCase() ?? 'W'}
+        <div className="h-6 w-6 rounded-md flex items-center justify-center shrink-0"
+          style={{ background: 'var(--wis-gradient)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '0.85rem', height: 'auto' }} />
         </div>
-        <span className="font-semibold text-sm truncate" style={{ color: 'var(--wis-text)' }}>
+        <span className="font-medium text-sm truncate" style={{ color: 'var(--wis-text-2)' }}>
           {activeOrg?.name ?? 'WIS'}
         </span>
       </div>

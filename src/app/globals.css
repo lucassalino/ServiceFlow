@@ -158,13 +158,16 @@
 
 :root {
   /* Marca */
-  --wis-blue:        #145cff;   /* destaque: CTA, item ativo, links */
-  --wis-blue-hover:  #0f4ad6;
-  --wis-blue-soft:   #eef3ff;   /* fundo de estado selecionado */
-  --wis-blue-border: #c9d9ff;
-  --wis-navy:        #0d1b2e;   /* azul petróleo — títulos e sidebar */
+  --wis-blue:        #4a5bd4;   /* accent — lilás da marca, escurecido p/ contraste */
+  --wis-blue-hover:  #3c4bb8;
+  --wis-blue-soft:   #eef0ff;   /* fundo de estado selecionado */
+  --wis-blue-border: #ccd2ff;
+  --wis-navy:        #0d1b2e;
   --wis-navy-soft:   #16293f;
-  --wis-teal:        #0f9b8e;   /* detalhe secundário, usado com parcimónia */
+  --wis-teal:        #147080;   /* teal da marca — estados e detalhes */
+
+  /* Gradiente proprietário — usar com muita moderação */
+  --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #187c8a 52%, #9daeff 100%);
 
   /* Superfícies */
   --wis-canvas:      #f6f7f9;   /* fundo da aplicação */
@@ -194,15 +197,15 @@
   --wis-info-bg:     var(--wis-blue-soft);
 
   /* Elevação — discreta, nunca pesada */
-  --wis-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --wis-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
   --wis-shadow:    0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
   --wis-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
   --wis-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.10);
 
   /* Raio */
-  --wis-radius-sm: 8px;
-  --wis-radius:    12px;
-  --wis-radius-lg: 16px;
+  --wis-radius-sm: 10px;
+  --wis-radius:    14px;
+  --wis-radius-lg: 20px;
 }
 
 /* ── Tela da aplicação ─────────────────────────────────────────────── */
@@ -213,6 +216,21 @@
   background: var(--wis-canvas);
   color: var(--wis-text);
 }
+
+/* Luz ambiente: um sopro de azul/teal no topo, quase impercetível. Existe
+   para o fundo não ser um preto chapado — se se notar, está forte demais. */
+.dark .dash-purple-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 60vh;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 78% -8%, rgba(157, 174, 255, 0.055) 0%, transparent 62%),
+    radial-gradient(ellipse 45% 38% at 18% -4%, rgba(24, 124, 138, 0.045) 0%, transparent 58%);
+}
+.dash-purple-bg > * { position: relative; z-index: 1; }
 
 /* ── Superfícies ───────────────────────────────────────────────────── */
 
@@ -1033,28 +1051,29 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
    ═══════════════════════════════════════════════ */
 
 .dark {
-  /* O azul sobe de luminosidade para se manter legível sobre quase-preto */
-  --wis-blue:        #4d82ff;
-  --wis-blue-hover:  #6b97ff;
-  --wis-blue-soft:   #16224a;
-  --wis-blue-border: #2b4488;
-  --wis-navy:        #0a0a0f;
-  --wis-navy-soft:   #12131a;
-  --wis-teal:        #2fd4c0;
+  --wis-blue:        #9daeff;   /* accent — lilás da marca */
+  --wis-blue-hover:  #8799ff;
+  --wis-blue-soft:   #191c2e;
+  --wis-blue-border: #33385c;
+  --wis-navy:        #050505;
+  --wis-navy-soft:   #0b0c10;
+  --wis-teal:        #3aa9b8;   /* teal da marca, aclarado p/ fundo escuro */
 
-  --wis-canvas:      #0a0a0f;
-  --wis-surface:     #141419;
-  --wis-surface-2:   #1b1b22;
-  --wis-surface-3:   #23232c;
-  --wis-surface-4:   #2e2e39;
+  --wis-canvas:      #050505;
+  --wis-surface:     #0d0e12;
+  --wis-surface-2:   #13141a;
+  --wis-surface-3:   #1b1c23;
+  --wis-surface-4:   #26272f;
 
-  --wis-text:        #f4f5f7;
-  --wis-text-2:      #a8b0bf;
-  --wis-text-3:      #7a8396;
-  --wis-text-4:      #565e6e;
+  --wis-text:        #f5f5f7;
+  --wis-text-2:      #a1a1aa;
+  --wis-text-3:      #666871;
+  --wis-text-4:      #4a4c55;
 
-  --wis-border:        #24242e;
-  --wis-border-strong: #33343f;
+  --wis-border:        rgba(255,255,255,0.08);
+  --wis-border-strong: rgba(255,255,255,0.14);
+
+  --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #187c8a 52%, #9daeff 100%);
 
   --wis-success:     #3ddc9a;
   --wis-success-bg:  #10261e;
@@ -1103,3 +1122,128 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
    resolvem-no de forma explícita, para o botão certo aparecer em cada ecrã. */
 @media (min-width: 1024px) { .wis-only-mobile  { display: none !important; } }
 @media (max-width: 1023px) { .wis-only-desktop { display: none !important; } }
+
+/* ═══════════════════════════════════════════════
+   WIS — refinamento do layout interno
+   Menos caixas, mais hierarquia. O espaço vazio é
+   deliberado; a cor serve a informação.
+   ═══════════════════════════════════════════════ */
+
+/* Largura máxima do conteúdo — no desktop nada se estica sem limite */
+.wis-page { max-width: 1280px; margin: 0 auto; }
+
+/* Rótulo de secção — o "eyebrow", só quando acrescenta contexto */
+.wis-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wis-text-3);
+  margin: 0;
+}
+
+/* Título de página, generoso no mobile */
+.wis-title {
+  font-size: clamp(2.1rem, 8vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--wis-text);
+  margin: 0;
+}
+
+/* Separador de secção — substitui o card quando só é preciso agrupar */
+.wis-section { padding-top: 2rem; }
+.wis-section + .wis-section { border-top: 1px solid var(--wis-border); }
+
+/* Linha de lista sem caixa: só um separador muito discreto */
+.wis-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--wis-border);
+  text-decoration: none;
+  color: var(--wis-text);
+  transition: opacity 0.15s;
+}
+.wis-row:last-child { border-bottom: none; }
+.wis-row:active { opacity: 0.65; }
+
+/* Data numa lista — número grande, mês pequeno, sem bolha pesada */
+.wis-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 2.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.wis-date b { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; color: var(--wis-text); }
+.wis-date span { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; color: var(--wis-text-3); margin-top: 0.2rem; }
+
+/* Destaque do próximo evento — o único sítio onde o gradiente aparece */
+.wis-next {
+  position: relative;
+  display: block;
+  padding: 1.4rem 1.25rem;
+  border-radius: var(--wis-radius-lg);
+  border: 1px solid var(--wis-border);
+  background: var(--wis-surface);
+  text-decoration: none;
+  color: var(--wis-text);
+  overflow: hidden;
+}
+.wis-next::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--wis-gradient);
+  opacity: 0.9;
+}
+.wis-next::after {
+  content: '';
+  position: absolute;
+  top: -40%; right: -10%;
+  width: 60%; height: 160%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--wis-blue) 12%, transparent) 0%, transparent 68%);
+}
+
+/* Pill discreta — publicado, período, função, ministério */
+.wis-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--wis-text-2);
+  background: var(--wis-surface-2);
+  border: 1px solid var(--wis-border);
+  white-space: nowrap;
+}
+.wis-pill-accent { color: var(--wis-blue); background: var(--wis-blue-soft); border-color: var(--wis-blue-border); }
+.wis-pill-teal   { color: var(--wis-teal); background: color-mix(in srgb, var(--wis-teal) 12%, transparent); border-color: color-mix(in srgb, var(--wis-teal) 30%, transparent); }
+
+/* ── Navegação inferior: ativo iluminado, não apenas branco ────────── */
+
+.wis-bottom-nav-item { position: relative; }
+.wis-bottom-nav-item.active { color: var(--wis-blue); }
+.wis-bottom-nav-item.active svg { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--wis-blue) 55%, transparent)); }
+.wis-bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 1.6rem; height: 2px;
+  border-radius: 0 0 3px 3px;
+  background: var(--wis-blue);
+}
+
+/* ── Botão primário: accent com texto escuro, alto e confortável ───── */
+
+.dark .dark-primary-btn { color: #0a0a0f; }

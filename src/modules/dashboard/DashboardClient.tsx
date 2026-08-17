@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import {
   CalendarDays, Users, LayoutGrid,
-  MapPin, Clock, ArrowRight,
+  MapPin, Clock, ArrowRight, ArrowUpRight,
   CalendarCheck, BookOpen, Cake, TrendingUp,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
 import type { Event } from '@/types/models';
@@ -27,10 +26,10 @@ interface Props {
 }
 
 const QUICK = (orgId: string) => [
-  { label: 'Escalas',     icon: CalendarCheck, href: `/${orgId}/schedule`,    color: 'var(--wis-blue)', bg: 'var(--wis-blue-soft)' },
-  { label: 'Repertório',  icon: BookOpen,       href: `/${orgId}/songs`,       color: 'var(--wis-warning)', bg: 'var(--wis-warning-bg)'  },
-  { label: 'Pessoas',     icon: Users,          href: `/${orgId}/members`,     color: 'var(--wis-success)', bg: 'var(--wis-success-bg)' },
-  { label: 'Ministérios', icon: LayoutGrid,     href: `/${orgId}/ministries`,  color: 'var(--wis-blue)', bg: 'var(--wis-blue-soft)' },
+  { label: 'Escalas',     icon: CalendarCheck, href: `/${orgId}/schedule` },
+  { label: 'Repertório',  icon: BookOpen,      href: `/${orgId}/songs` },
+  { label: 'Pessoas',     icon: Users,         href: `/${orgId}/members` },
+  { label: 'Ministérios', icon: LayoutGrid,    href: `/${orgId}/ministries` },
 ];
 
 function getDateParts(dateStr: string) {
@@ -38,6 +37,7 @@ function getDateParts(dateStr: string) {
   return {
     month: d.toLocaleString('pt-PT', { month: 'short' }).replace('.', '').toUpperCase(),
     day: d.getDate(),
+    weekday: d.toLocaleString('pt-PT', { weekday: 'short' }).replace('.', '').toUpperCase(),
   };
 }
 
@@ -59,184 +59,194 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
   const canSeeReports = isAdmin || activeMembership?.role === 'leader';
   const currentMonthName = MONTH_NAMES[new Date().getMonth()];
 
+  // O primeiro evento ganha destaque próprio; os restantes são uma lista.
+  const [nextEvent, ...laterEvents] = upcomingEvents;
+
   return (
     <div className="dash-purple-bg">
+      <div className="wis-page px-5 md:px-8 pb-10">
 
-      {/* ── Content ─────────────────────────────────── */}
-      <div className="p-5 md:p-8 space-y-6">
-
-        {/* Hero */}
-        <div className="space-y-1 pt-2">
-          <p className="text-xs font-semibold tracking-[0.16em] uppercase text-[color:var(--wis-text-3)]">
-            {getNow()}
+        {/* ── Saudação ──────────────────────────────────── */}
+        <header className="pt-7 pb-6">
+          <p className="wis-eyebrow">{getNow()}</p>
+          <h1 className="wis-title" style={{ marginTop: '0.5rem' }}>Olá, {firstName}.</h1>
+          <p className="text-sm mt-2" style={{ color: 'var(--wis-text-2)' }}>
+            {activeOrg?.name}
+            {upcomingEvents.length > 0 && (
+              <>
+                <span style={{ color: 'var(--wis-text-4)' }}> · </span>
+                {upcomingEvents.length} evento{upcomingEvents.length !== 1 ? 's' : ''} próximo{upcomingEvents.length !== 1 ? 's' : ''}
+              </>
+            )}
           </p>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-none text-[color:var(--wis-text)]">
-            Olá, {firstName}!
-          </h1>
-          <p className="text-[color:var(--wis-text-2)] text-sm pt-0.5">
-            {activeOrg?.name} · {upcomingEvents.length > 0
-              ? `${upcomingEvents.length} evento${upcomingEvents.length !== 1 ? 's' : ''} próximo${upcomingEvents.length !== 1 ? 's' : ''}`
-              : 'tudo tranquilo por aqui'}
-          </p>
-        </div>
+        </header>
 
-        {/* Atalho para os relatórios — só quem os pode ver */}
-        {canSeeReports && (
-          <Link
-            href={`/${orgId}/reports`}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.875rem 1rem', borderRadius: '0.875rem', textDecoration: 'none',
-              background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
-            }}
-          >
-            <TrendingUp style={{ width: '1rem', height: '1rem', color: 'var(--wis-blue)', flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0 }}>
-                Relatórios de engajamento
-              </p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', margin: '0.1rem 0 0' }}>
-                Participação da equipa por período e ministério
-              </p>
+        {/* ── Próximo evento em destaque ────────────────── */}
+        {nextEvent ? (
+          <Link href={`/${orgId}/events?event=${nextEvent.id}`} className="wis-next">
+            <p className="wis-eyebrow" style={{ color: 'var(--wis-blue)' }}>Próximo</p>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', marginTop: '0.6rem' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 style={{
+                  fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em',
+                  color: 'var(--wis-text)', margin: 0,
+                }}>
+                  {nextEvent.name}
+                </h2>
+                <p style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
+                  fontSize: '0.875rem', color: 'var(--wis-text-2)', margin: '0.5rem 0 0',
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--wis-text)' }}>
+                    {getDateParts(nextEvent.date).day} {getDateParts(nextEvent.date).month}
+                  </span>
+                  {nextEvent.time && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <Clock style={{ width: '0.85rem', height: '0.85rem' }} />{formatTime(nextEvent.time)}
+                    </span>
+                  )}
+                  {nextEvent.location && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', minWidth: 0 }}>
+                      <MapPin style={{ width: '0.85rem', height: '0.85rem', flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {nextEvent.location}
+                      </span>
+                    </span>
+                  )}
+                </p>
+              </div>
+              <ArrowUpRight style={{ width: '1.25rem', height: '1.25rem', color: 'var(--wis-blue)', flexShrink: 0 }} />
             </div>
-            <ArrowRight style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />
           </Link>
+        ) : (
+          <div style={{ padding: '2.5rem 0', textAlign: 'center' }}>
+            <CalendarDays style={{ width: '2rem', height: '2rem', margin: '0 auto 0.75rem', color: 'var(--wis-text-4)' }} />
+            <p style={{ fontSize: '0.9rem', color: 'var(--wis-text-2)' }}>Nenhum evento agendado.</p>
+            {isAdmin && (
+              <Link href={`/${orgId}/events`} className="dark-primary-btn" style={{ marginTop: '1rem' }}>
+                Criar evento <ArrowRight style={{ width: '0.9rem', height: '0.9rem' }} />
+              </Link>
+            )}
+          </div>
         )}
 
-        {/* Upcoming events */}
-        <div className="dash-glass-card overflow-hidden">
-          <div className="flex items-center justify-between px-5 pt-5 pb-4">
-            <p className="text-[color:var(--wis-text-3)] text-[11px] font-semibold uppercase tracking-widest">
-              Próximos eventos
-            </p>
-            <Link href={`/${orgId}/events`}
-              className="flex items-center gap-1 text-xs font-medium text-[color:var(--wis-text-2)] hover:text-[color:var(--wis-text)] transition-colors">
-              Ver todos <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-
-          {upcomingEvents.length === 0 ? (
-            <div className="px-5 pb-8 text-center">
-              <CalendarDays className="h-9 w-9 mx-auto mb-3 text-[color:var(--wis-text-4)]" />
-              <p className="text-sm text-[color:var(--wis-text-3)]">Nenhum evento agendado.</p>
-              {isAdmin && (
-                <Link href={`/${orgId}/events`}
-                  className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium px-4 py-2 rounded-lg bg-[var(--wis-surface-2)] border border-[var(--wis-border-strong)] hover:bg-[var(--wis-surface-2)] transition-colors text-[color:var(--wis-text)]">
-                  Criar evento <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              )}
+        {/* ── Restantes eventos, em lista ───────────────── */}
+        {laterEvents.length > 0 && (
+          <section className="wis-section">
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '1rem' }}>
+              <p className="wis-eyebrow">Próximos eventos</p>
+              <Link href={`/${orgId}/events`} style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                fontSize: '0.8rem', fontWeight: 500, color: 'var(--wis-blue)', textDecoration: 'none',
+              }}>
+                Ver todos <ArrowRight style={{ width: '0.8rem', height: '0.8rem' }} />
+              </Link>
             </div>
-          ) : (
-            <div>
-              {upcomingEvents.map((event) => {
+
+            <div style={{ marginTop: '0.5rem' }}>
+              {laterEvents.map((event) => {
                 const { month, day } = getDateParts(event.date);
-                const color = event.color ?? 'var(--wis-blue)';
+                const period = eventPeriod(event.time);
                 return (
-                  <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="dash-glass-event">
-                    {/* Date bubble */}
-                    <div className="flex flex-col items-center justify-center w-11 h-12 rounded-xl shrink-0 text-center"
-                      style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color }}>
-                      <span className="text-[9px] font-bold tracking-wider">{month}</span>
-                      <span className="text-lg font-extrabold leading-none">{day}</span>
-                    </div>
-
-                    {/* Colour bar */}
-                    <div className="w-0.5 self-stretch rounded-full shrink-0" style={{ background: color }} />
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm text-[color:var(--wis-text)] truncate">{event.name}</span>
-                        {event.is_published
-                          ? <Badge className="text-[10px] h-[18px] px-1.5 py-0 bg-[var(--wis-surface-2)] text-[color:var(--wis-text)] border-[var(--wis-border-strong)] hover:bg-[var(--wis-surface-2)]">Publicado</Badge>
-                          : <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 py-0 bg-[var(--wis-surface-2)] text-[color:var(--wis-text-2)] border-[var(--wis-border-strong)]">Rascunho</Badge>}
-                        {(() => {
-                          const p = eventPeriod(event.time);
-                          return p ? (
-                            <span style={{
-                              fontSize: '0.62rem', fontWeight: 700, padding: '0.05rem 0.4rem',
-                              borderRadius: '9999px', letterSpacing: '0.03em', textTransform: 'uppercase',
-                              background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
-                              border: '1px solid var(--wis-blue-border)',
-                            }}>
-                              {p.emoji} {p.label}
-                            </span>
-                          ) : null;
-                        })()}
-                      </div>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-[color:var(--wis-text-3)] flex-wrap">
-                        {event.time && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />{formatTime(event.time)}
-                          </span>
-                        )}
+                  <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="wis-row">
+                    <span className="wis-date">
+                      <b>{day}</b>
+                      <span>{month}</span>
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{
+                        display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+                      }}>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)' }}>
+                          {event.name}
+                        </span>
+                        {!event.is_published && <span className="wis-pill">Rascunho</span>}
+                        {period && <span className="wis-pill wis-pill-accent">{period.label}</span>}
+                      </span>
+                      <span style={{
+                        display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
+                        fontSize: '0.8rem', color: 'var(--wis-text-3)', marginTop: '0.15rem',
+                      }}>
+                        {event.time && <span>{formatTime(event.time)}</span>}
                         {event.location && (
-                          <span className="flex items-center gap-1 truncate">
-                            <MapPin className="h-3 w-3 shrink-0" />{event.location}
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {event.location}
                           </span>
                         )}
-                      </div>
-                    </div>
-
-                    <ArrowRight className="h-4 w-4 text-[color:var(--wis-text-4)] shrink-0" />
+                      </span>
+                    </span>
+                    <ArrowRight style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-4)', flexShrink: 0 }} />
                   </Link>
                 );
               })}
             </div>
-          )}
-        </div>
+          </section>
+        )}
 
+        {/* ── Relatórios — só quem os pode ver ──────────── */}
+        {canSeeReports && (
+          <section className="wis-section">
+            <Link href={`/${orgId}/reports`} className="wis-row" style={{ borderBottom: 'none' }}>
+              <TrendingUp style={{ width: '1.1rem', height: '1.1rem', color: 'var(--wis-blue)', flexShrink: 0 }} />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)' }}>
+                  Relatórios de engajamento
+                </span>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--wis-text-3)', marginTop: '0.1rem' }}>
+                  Participação da equipa por período e ministério
+                </span>
+              </span>
+              <ArrowRight style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-4)', flexShrink: 0 }} />
+            </Link>
+          </section>
+        )}
 
-        {/* Aniversariantes do mês */}
+        {/* ── Aniversariantes ───────────────────────────── */}
         {birthdayPeople.length > 0 && (
-          <div className="dash-glass-card overflow-hidden">
-            <div className="flex items-center gap-2 px-5 pt-5 pb-4">
-              <Cake className="h-4 w-4" style={{ color: 'var(--wis-warning)' }} />
-              <p className="text-[color:var(--wis-text-3)] text-[11px] font-semibold uppercase tracking-widest">
-                Aniversariantes de {currentMonthName}
-              </p>
-            </div>
-            <div className="px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <section className="wis-section">
+            <p className="wis-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Cake style={{ width: '0.85rem', height: '0.85rem', color: 'var(--wis-teal)' }} />
+              Aniversariantes de {currentMonthName}
+            </p>
+            <div style={{ marginTop: '0.5rem' }}>
               {birthdayPeople.map((p, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                  style={{ background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
-                  <Avatar className="h-10 w-10 shrink-0">
+                <div key={i} className="wis-row">
+                  <Avatar className="h-9 w-9 shrink-0">
                     {p.avatarUrl && <AvatarImage src={p.avatarUrl} alt={p.name} />}
                     <AvatarFallback className="text-xs font-semibold"
-                      style={{ background: 'var(--wis-warning-bg)', color: 'var(--wis-warning)' }}>
+                      style={{ background: 'var(--wis-surface-3)', color: 'var(--wis-text-2)' }}>
                       {getInitials(p.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[color:var(--wis-text)] truncate">{p.name}</p>
-                    <p className="text-xs text-[color:var(--wis-text-3)] flex items-center gap-1">
-                      <Cake className="h-3 w-3" style={{ color: 'var(--wis-warning)' }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0 }}>
+                      {p.name}
+                    </p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', margin: '0.1rem 0 0' }}>
                       {p.day} de {MONTH_NAMES[p.month - 1]}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Quick links — desktop only */}
-        <div className="hidden lg:block dash-glass-card p-5">
-          <p className="text-[color:var(--wis-text-3)] text-[11px] font-semibold uppercase tracking-widest mb-3">
-            Acesso rápido
-          </p>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {QUICK(orgId).map(({ label, icon: Icon, href, color, bg }) => (
+        {/* ── Acesso rápido — desktop ───────────────────── */}
+        <section className="wis-section hidden lg:block">
+          <p className="wis-eyebrow">Acesso rápido</p>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gap: '0.6rem', marginTop: '0.85rem',
+          }}>
+            {QUICK(orgId).map(({ label, icon: Icon, href }) => (
               <Link key={label} href={href} className="dash-glass-quick">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: bg, color }}>
-                  <Icon style={{ width: '0.875rem', height: '0.875rem' }} />
-                </div>
-                <span className="truncate">{label}</span>
+                <Icon style={{ width: '1rem', height: '1rem', flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
       </div>
     </div>
