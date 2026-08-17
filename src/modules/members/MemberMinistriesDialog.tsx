@@ -85,7 +85,7 @@ export function MemberMinistriesDialog({ userId, memberName, open, onOpenChange 
           <ScrollArea className="max-h-[55vh] rounded-md border">
             <div className="p-2 space-y-1">
               {activeMinistries.map((ministry) => {
-                const color = ministry.color ?? 'var(--wis-blue-soft)';
+                const color = ministry.color ?? 'var(--wis-blue)';
                 const selected = isIn(ministry.id);
                 const fns = getFns(ministry.id);
                 const availableFunctions = ministry.functions?.length
@@ -103,7 +103,7 @@ export function MemberMinistriesDialog({ userId, memberName, open, onOpenChange 
                       <div style={{
                         width: '1.75rem', height: '1.75rem', borderRadius: '0.4rem', flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: `${color}20`, border: `1px solid ${color}35`,
+                        background: `color-mix(in srgb, ${color} 13%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 21%, transparent)`,
                         fontSize: '0.8rem', fontWeight: 800, color,
                       }}>
                         {ministry.name.charAt(0).toUpperCase()}

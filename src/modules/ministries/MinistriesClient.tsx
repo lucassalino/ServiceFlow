@@ -185,8 +185,8 @@ export function MinistriesClient() {
                   color: isActive ? 'var(--wis-text)' : 'var(--wis-text-3)',
                   transition: 'background 0.12s, color 0.12s',
                 }}
-                onMouseEnter={(e) => { if (!isActive) (e.currentTarget.style.color = 'var(--wis-surface-4)'); }}
-                onMouseLeave={(e) => { if (!isActive) (e.currentTarget.style.color = 'var(--wis-surface-4)'); }}
+                onMouseEnter={(e) => { if (!isActive) (e.currentTarget.style.color = 'var(--wis-text-2)'); }}
+                onMouseLeave={(e) => { if (!isActive) (e.currentTarget.style.color = 'var(--wis-text-2)'); }}
               >
                 {label}
                 {count > 0 && (
@@ -275,7 +275,7 @@ function MinistryCard({
 }) {
   const [hovered, setHovered] = useState(false);
 
-  const color = ministry.color ?? 'var(--wis-blue-soft)';
+  const color = ministry.color ?? 'var(--wis-blue)';
 
   return (
     <div
@@ -315,7 +315,7 @@ function MinistryCard({
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0,
         height: '3px',
-        background: `linear-gradient(90deg, ${color}99, ${color}33)`,
+        background: `linear-gradient(90deg, color-mix(in srgb, ${color} 60%, transparent), color-mix(in srgb, ${color} 20%, transparent))`,
         borderRadius: '0.875rem 0.875rem 0 0',
       }} />
 
@@ -326,7 +326,7 @@ function MinistryCard({
           width: '0.5rem', height: '0.5rem',
           borderRadius: '50%',
           background: ministry.is_active ? color : 'var(--wis-text-4)',
-          boxShadow: ministry.is_active ? `0 0 6px ${color}88` : 'none',
+          boxShadow: ministry.is_active ? `0 0 6px color-mix(in srgb, ${color} 53%, transparent)` : 'none',
         }} />
       )}
 
@@ -348,8 +348,8 @@ function MinistryCard({
         width: '2.75rem', height: '2.75rem', borderRadius: '0.75rem',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginTop: '0.5rem',
-        background: `${color}18`,
-        border: `1px solid ${color}30`,
+        background: `color-mix(in srgb, ${color} 9%, transparent)`,
+        border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
         fontSize: '1.1rem', fontWeight: 800, color,
         flexShrink: 0,
       }}>

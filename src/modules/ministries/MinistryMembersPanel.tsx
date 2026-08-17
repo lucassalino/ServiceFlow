@@ -23,7 +23,7 @@ interface Props {
 }
 
 export function MinistryMembersPanel({ ministry, onBack }: Props) {
-  const color = ministry.color ?? 'var(--wis-blue-soft)';
+  const color = ministry.color ?? 'var(--wis-blue)';
   const { data: orgMembers = [] } = useOrgMembers();
   const { data: existingData } = useMinistryMembers(ministry.id);
   const [members, setMembers] = useState<MemberEntry[]>([]);
@@ -92,8 +92,8 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             {ministry.name}
@@ -130,12 +130,12 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.75rem',
           padding: '0.875rem 1.25rem', borderRadius: '0.875rem', marginBottom: '1.25rem',
-          background: `${color}12`, border: `1px solid ${color}25`,
+          background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 15%, transparent)`,
         }}>
           <div style={{
             width: '2rem', height: '2rem', borderRadius: '0.5rem', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: `${color}20`, fontSize: '0.85rem', fontWeight: 800, color,
+            background: `color-mix(in srgb, ${color} 13%, transparent)`, fontSize: '0.85rem', fontWeight: 800, color,
           }}>
             {ministry.name.charAt(0).toUpperCase()}
           </div>
@@ -171,7 +171,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                   padding: '0.875rem 1.25rem', cursor: 'pointer',
-                  background: selected ? `${color}08` : 'transparent',
+                  background: selected ? `color-mix(in srgb, ${color} 3%, transparent)` : 'transparent',
                   transition: 'background 0.12s',
                 }}>
                   <Checkbox checked={selected} onCheckedChange={() => toggleMember(member.user_id)} />
@@ -196,7 +196,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                         padding: '0.375rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer',
                         fontSize: '0.78rem', color: fns.includes(f.key) ? 'var(--wis-text)' : 'var(--wis-text-2)',
-                        background: fns.includes(f.key) ? `${color}18` : 'transparent',
+                        background: fns.includes(f.key) ? `color-mix(in srgb, ${color} 9%, transparent)` : 'transparent',
                         transition: 'background 0.1s, color 0.1s',
                       }}>
                         <Checkbox

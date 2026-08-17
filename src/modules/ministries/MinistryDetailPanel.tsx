@@ -22,7 +22,7 @@ interface Props {
 export function MinistryDetailPanel({
   ministry, isAdmin, canManage = isAdmin, onBack, onEdit, onEditProperties, onToggle, onDelete, togglePending,
 }: Props) {
-  const color = ministry.color ?? 'var(--wis-blue-soft)';
+  const color = ministry.color ?? 'var(--wis-blue)';
   const initial = ministry.name.charAt(0).toUpperCase();
   const { data: members = [], isLoading: loadingMembers } = useMinistryMembers(ministry.id);
 
@@ -51,8 +51,8 @@ export function MinistryDetailPanel({
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Ministérios
@@ -139,13 +139,13 @@ export function MinistryDetailPanel({
         }}>
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
-            background: `linear-gradient(90deg, ${color}cc, ${color}33)`,
+            background: `linear-gradient(90deg, color-mix(in srgb, ${color} 80%, transparent), color-mix(in srgb, ${color} 20%, transparent))`,
           }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
             <div style={{
               width: '4rem', height: '4rem', borderRadius: '1rem', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: `${color}20`, border: `1px solid ${color}40`,
+              background: `color-mix(in srgb, ${color} 13%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)`,
               fontSize: '1.6rem', fontWeight: 800, color,
             }}>
               {initial}
@@ -205,8 +205,8 @@ export function MinistryDetailPanel({
                     background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                     transition: 'color 0.12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
                 >
                   <Pencil style={{ width: '0.7rem', height: '0.7rem' }} />
                   Editar
@@ -247,7 +247,7 @@ export function MinistryDetailPanel({
                         {m.profile?.avatar_url && <AvatarImage src={m.profile.avatar_url} />}
                         <AvatarFallback style={{
                           fontSize: '0.65rem', fontWeight: 700,
-                          background: `${color}20`, color,
+                          background: `color-mix(in srgb, ${color} 13%, transparent)`, color,
                         }}>
                           {getInitials(name)}
                         </AvatarFallback>
@@ -265,8 +265,8 @@ export function MinistryDetailPanel({
                               <span key={fn} style={{
                                 fontSize: '0.65rem', fontWeight: 500,
                                 padding: '0.1rem 0.4rem', borderRadius: '9999px',
-                                background: `${color}15`, color,
-                                border: `1px solid ${color}30`,
+                                background: `color-mix(in srgb, ${color} 8%, transparent)`, color,
+                                border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
                               }}>
                                 {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
                               </span>

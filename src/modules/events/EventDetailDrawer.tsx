@@ -41,7 +41,7 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(open ? event?.id ?? null : null);
   const { data: setlist = [], isLoading: setlistLoading } = useEventSetlist(open ? event?.id ?? null : null);
 
-  const color = event?.color ?? 'var(--wis-blue-soft)';
+  const color = event?.color ?? 'var(--wis-blue)';
 
   return (
     <>
@@ -91,8 +91,8 @@ export function EventDetailDrawer({ event, open, onClose }: Props) {
               ) : (
                 <div style={{
                   height: '8rem',
-                  background: `linear-gradient(135deg, ${color}33 0%, var(--wis-surface) 70%)`,
-                  borderBottom: `1px solid ${color}22`,
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${color} 20%, transparent) 0%, var(--wis-surface) 70%)`,
+                  borderBottom: `1px solid color-mix(in srgb, ${color} 13%, transparent)`,
                 }} />
               )}
 
@@ -236,7 +236,7 @@ function MinistrySection({
 }) {
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const confirmSchedule = useConfirmSchedule();
-  const color = em.ministry.color ?? 'var(--wis-blue-soft)';
+  const color = em.ministry.color ?? 'var(--wis-blue)';
 
   async function handleConfirm(schedule: EventSchedule) {
     if (schedule.user_id !== currentUserId) return;

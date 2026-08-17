@@ -168,8 +168,8 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             {isEditing ? 'Música' : 'Repertório'}

@@ -130,12 +130,12 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
             <div>
               {upcomingEvents.map((event) => {
                 const { month, day } = getDateParts(event.date);
-                const color = event.color ?? 'var(--wis-blue-soft)';
+                const color = event.color ?? 'var(--wis-blue)';
                 return (
                   <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="dash-glass-event">
                     {/* Date bubble */}
                     <div className="flex flex-col items-center justify-center w-11 h-12 rounded-xl shrink-0 text-center"
-                      style={{ background: color + '20', color }}>
+                      style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color }}>
                       <span className="text-[9px] font-bold tracking-wider">{month}</span>
                       <span className="text-lg font-extrabold leading-none">{day}</span>
                     </div>

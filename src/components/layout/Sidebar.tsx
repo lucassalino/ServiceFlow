@@ -101,8 +101,8 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
     onMobileClose();
   }
 
-  const sidebarContent = (
-    <div className={cn('sidebar-dark', collapsed && 'sidebar-collapsed')}>
+  const renderSidebar = (isCollapsed: boolean) => (
+    <div className={cn('sidebar-dark', isCollapsed && 'sidebar-collapsed')}>
 
       {/* ── Brand ─────────────────────────────── */}
       <div className="sidebar-dark-section flex items-center justify-between px-4 py-4">
@@ -117,18 +117,18 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
         </div>
         <button
           onClick={onMobileClose}
-          className="sidebar-dark-icon-btn lg:hidden"
+          className="sidebar-dark-icon-btn wis-only-mobile"
           aria-label="Fechar menu"
         >
           <X className="h-4 w-4" />
         </button>
         <button
           onClick={toggleCollapsed}
-          className="sidebar-dark-icon-btn hidden lg:flex"
-          aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+          className="sidebar-dark-icon-btn wis-only-desktop"
+          aria-label={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+          title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
         >
-          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </button>
       </div>
 
@@ -205,7 +205,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
                     key={href}
                     href={fullHref}
                     onClick={onMobileClose}
-                    title={collapsed ? label : undefined}
+                    title={isCollapsed ? label : undefined}
                     aria-current={isActive ? 'page' : undefined}
                     className={cn('sidebar-dark-nav-item', isActive && 'active')}
                   >
@@ -265,7 +265,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
         className="hidden lg:block h-screen flex-shrink-0 transition-[width] duration-200"
         style={{ width: collapsed ? '4.25rem' : '15rem' }}
       >
-        {sidebarContent}
+        {renderSidebar(collapsed)}
       </aside>
 
       {/* Mobile overlay */}
@@ -273,7 +273,8 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/60" onClick={onMobileClose} />
           <aside className="relative z-10 w-72 max-w-[85vw] h-full shadow-2xl">
-            {sidebarContent}
+            {/* No telemóvel a sidebar é sempre completa — recolher é só do desktop. */}
+            {renderSidebar(false)}
           </aside>
         </div>
       )}

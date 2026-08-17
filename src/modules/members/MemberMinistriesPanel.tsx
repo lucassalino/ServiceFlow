@@ -86,8 +86,8 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Voltar
@@ -147,7 +147,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
         ) : (
           <div className="mmp-grid">
             {activeMinistries.map((ministry) => {
-              const color = ministry.color ?? 'var(--wis-blue-soft)';
+              const color = ministry.color ?? 'var(--wis-blue)';
               const selected = isIn(ministry.id);
               const fns = getFns(ministry.id);
               const availableFunctions = ministry.functions?.length
@@ -157,8 +157,8 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
               return (
                 <div key={ministry.id} style={{
                   borderRadius: '1rem',
-                  background: selected ? `${color}08` : 'var(--wis-surface-2)',
-                  border: `1px solid ${selected ? color + '30' : 'var(--wis-border)'}`,
+                  background: selected ? `color-mix(in srgb, ${color} 3%, transparent)` : 'var(--wis-surface-2)',
+                  border: `1px solid ${selected ? `color-mix(in srgb, ${color} 19%, transparent)` : 'var(--wis-border)'}`,
                   overflow: 'hidden',
                   transition: 'background 0.15s, border-color 0.15s',
                 }}>
@@ -171,7 +171,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
                     <div style={{
                       width: '2rem', height: '2rem', borderRadius: '0.5rem', flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: `${color}20`, border: `1px solid ${color}35`,
+                      background: `color-mix(in srgb, ${color} 13%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 21%, transparent)`,
                       fontSize: '0.8rem', fontWeight: 800, color,
                     }}>
                       {ministry.name.charAt(0).toUpperCase()}
@@ -189,7 +189,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
                   {/* Functions */}
                   {selected && availableFunctions.length > 0 && (
                     <div style={{
-                      borderTop: `1px solid ${color}20`,
+                      borderTop: `1px solid color-mix(in srgb, ${color} 13%, transparent)`,
                       padding: '0.75rem 1rem 0.875rem',
                     }}>
                       <div className="mmp-fn-grid">
@@ -199,7 +199,7 @@ export function MemberMinistriesPanel({ userId, memberName, memberAvatar, onBack
                             padding: '0.375rem 0.5rem', borderRadius: '0.375rem', cursor: 'pointer',
                             fontSize: '0.78rem',
                             color: fns.includes(f.key) ? 'var(--wis-text)' : 'var(--wis-text-2)',
-                            background: fns.includes(f.key) ? `${color}18` : 'transparent',
+                            background: fns.includes(f.key) ? `color-mix(in srgb, ${color} 9%, transparent)` : 'transparent',
                             transition: 'background 0.1s, color 0.1s',
                           }}>
                             <Checkbox

@@ -54,9 +54,9 @@ function DarkBadge({ children, color }: { children: React.ReactNode; color?: str
       display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
       fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
       borderRadius: '9999px', letterSpacing: '0.04em',
-      background: color ? `${color}22` : 'var(--wis-surface-3)',
+      background: color ? `color-mix(in srgb, ${color} 13%, transparent)` : 'var(--wis-surface-3)',
       color: color ?? 'var(--wis-text-2)',
-      border: `1px solid ${color ? `${color}44` : 'var(--wis-border-strong)'}`,
+      border: `1px solid ${color ? `color-mix(in srgb, ${color} 27%, transparent)` : 'var(--wis-border-strong)'}`,
     }}>{children}</span>
   );
 }
@@ -759,13 +759,13 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     onMouseEnter={(e) => {
                       if (!isSelected) {
                         (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-3)';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-surface-4)';
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-border-strong)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
                         (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-2)';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-surface-3)';
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-border)';
                       }
                     }}
                   >

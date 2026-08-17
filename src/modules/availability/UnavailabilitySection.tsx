@@ -219,8 +219,8 @@ export function UnavailabilitySection() {
                 type="button"
                 onClick={() => handleRemove(e.id)}
                 style={{ color: 'var(--wis-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                onMouseEnter={(ev) => (ev.currentTarget.style.color = 'var(--wis-danger-bg)')}
-                onMouseLeave={(ev) => (ev.currentTarget.style.color = 'var(--wis-surface-4)')}
+                onMouseEnter={(ev) => (ev.currentTarget.style.color = 'var(--wis-danger)')}
+                onMouseLeave={(ev) => (ev.currentTarget.style.color = 'var(--wis-text-2)')}
               >
                 <X style={{ width: '0.75rem', height: '0.75rem' }} />
               </button>

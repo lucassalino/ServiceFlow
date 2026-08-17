@@ -88,8 +88,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Pessoas
@@ -215,8 +215,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                     background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                     transition: 'color 0.12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
                 >
                   <Pencil style={{ width: '0.7rem', height: '0.7rem' }} />
                   Editar
@@ -258,7 +258,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               {assignments.map((a) => {
                 const ministry = ministryMap.get(a.ministry_id);
                 if (!ministry) return null;
-                const color = ministry.color ?? 'var(--wis-blue-soft)';
+                const color = ministry.color ?? 'var(--wis-blue)';
                 return (
                   <div key={a.ministry_id} style={{
                     padding: '0.875rem 1rem', borderRadius: '0.75rem',
@@ -267,7 +267,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                   }}>
                     <div style={{
                       position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px',
-                      background: `linear-gradient(180deg, ${color}cc, ${color}33)`,
+                      background: `linear-gradient(180deg, color-mix(in srgb, ${color} 80%, transparent), color-mix(in srgb, ${color} 20%, transparent))`,
                     }} />
                     <div style={{ paddingLeft: '0.75rem' }}>
                       <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)', margin: '0 0 0.375rem' }}>
@@ -279,8 +279,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                             <span key={fn} style={{
                               fontSize: '0.68rem', fontWeight: 500,
                               padding: '0.1rem 0.45rem', borderRadius: '9999px',
-                              background: `${color}15`, color,
-                              border: `1px solid ${color}30`,
+                              background: `color-mix(in srgb, ${color} 8%, transparent)`, color,
+                              border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
                             }}>
                               {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
                             </span>

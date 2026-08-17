@@ -651,11 +651,11 @@ export function SettingsClient({ orgId }: Props) {
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.background = 'var(--wis-danger-bg)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'var(--wis-danger-bg)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--wis-danger)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.background = 'var(--wis-danger-bg)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'var(--wis-danger-bg)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--wis-danger)';
             }}
           >
             <LogOut style={{ width: '0.9rem', height: '0.9rem' }} />

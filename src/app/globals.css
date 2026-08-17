@@ -1096,3 +1096,9 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
   background: #ffffff !important;
   color: #18181b !important;
 }
+
+/* As classes de componente definem `display`, o que vence os utilitários
+   `hidden`/`lg:flex` do Tailwind (que vivem numa layer). Estas duas classes
+   resolvem-no de forma explícita, para o botão certo aparecer em cada ecrã. */
+@media (min-width: 1024px) { .wis-only-mobile  { display: none !important; } }
+@media (max-width: 1023px) { .wis-only-desktop { display: none !important; } }

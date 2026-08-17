@@ -82,8 +82,8 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem' }}>
           <button onClick={onBack} style={backBtnStyle}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}>
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}>
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Ministérios
           </button>
@@ -103,7 +103,7 @@ export function MinistryFormPanel({ ministry, onBack }: Props) {
             width: '3.25rem', height: '3.25rem', borderRadius: '0.875rem', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.4rem', fontWeight: 800, color,
-            background: `${color}22`, border: `1px solid ${color}55`,
+            background: `color-mix(in srgb, ${color} 13%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 33%, transparent)`,
           }}>
             {name.charAt(0).toUpperCase() || '?'}
           </div>
@@ -273,9 +273,9 @@ function chipStyle(selected: boolean, isCustom = false): React.CSSProperties {
     display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
     padding: '0.375rem 0.7rem', borderRadius: '9999px',
     fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer',
-    background: selected ? `${base}22` : 'var(--wis-surface-2)',
+    background: selected ? `color-mix(in srgb, ${base} 13%, transparent)` : 'var(--wis-surface-2)',
     color: selected ? base : 'var(--wis-surface-4)',
-    border: `1px solid ${selected ? `${base}55` : 'var(--wis-border-strong)'}`,
+    border: `1px solid ${selected ? `color-mix(in srgb, ${base} 33%, transparent)` : 'var(--wis-border-strong)'}`,
     transition: 'background 0.12s, color 0.12s',
   };
 }

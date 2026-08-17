@@ -64,7 +64,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
     reorderSetlist.mutate({ eventId: event.id, orderedSongIds: arrayMove(ids, oldIndex, newIndex) });
   }
 
-  const color = event.color ?? 'var(--wis-blue-soft)';
+  const color = event.color ?? 'var(--wis-blue)';
 
   if (selectedSong) {
     return (
@@ -93,8 +93,8 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               transition: 'color 0.12s',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
           >
             <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
             Eventos
@@ -145,7 +145,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
           ) : (
             <div style={{
               padding: '1.75rem 1.5rem',
-              background: `linear-gradient(135deg, ${color}20 0%, var(--wis-surface) 60%)`,
+              background: `linear-gradient(135deg, color-mix(in srgb, ${color} 13%, transparent) 0%, var(--wis-surface) 60%)`,
               borderLeft: `4px solid ${color}`,
             }}>
               <HeroContent event={event} />
@@ -414,7 +414,7 @@ function MinistrySection({
 }) {
   const { data: schedules = [], isLoading } = useEventSchedules(em.id);
   const confirmSchedule = useConfirmSchedule();
-  const color = em.ministry.color ?? 'var(--wis-blue-soft)';
+  const color = em.ministry.color ?? 'var(--wis-blue)';
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [attendanceTarget, setAttendanceTarget] = useState<EventSchedule | null>(null);
 
@@ -694,11 +694,11 @@ function SetlistRow({ song, index, onClick, dragHandle }: {
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.background = 'var(--wis-surface-2)';
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--wis-surface-4)';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--wis-border-strong)';
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLDivElement).style.background = 'var(--wis-surface)';
-        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--wis-surface-3)';
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--wis-border)';
       }}
     >
       {dragHandle && (

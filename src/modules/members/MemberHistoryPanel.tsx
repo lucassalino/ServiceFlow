@@ -171,7 +171,7 @@ function HistoryRow({ entry }: { entry: MemberHistoryEntry }) {
       <div style={{
         width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: `${color}20`, border: `1px solid ${color}35`,
+        background: `color-mix(in srgb, ${color} 13%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 21%, transparent)`,
       }}>
         <span style={{ fontSize: '0.95rem', fontWeight: 800, color }}>{day}</span>
       </div>

@@ -108,8 +108,8 @@ function Sidebar({ current, onBack, onStepClick, step1Done }: {
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
           marginBottom: '2.25rem', transition: 'color 0.12s',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-surface)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-text)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
       >
         <ArrowLeft style={{ width: '0.875rem', height: '0.875rem' }} />
         Eventos
@@ -573,8 +573,8 @@ export function EventCreatePanel({ onBack }: Props) {
                         background: 'var(--wis-surface-2)', cursor: 'pointer', color: 'var(--wis-text-3)',
                         transition: 'border-color 0.15s, background 0.15s',
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--wis-surface-4)'; e.currentTarget.style.background = 'var(--wis-surface-3)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--wis-surface-4)'; e.currentTarget.style.background = 'var(--wis-surface-2)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--wis-border-strong)'; e.currentTarget.style.background = 'var(--wis-surface-3)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--wis-border-strong)'; e.currentTarget.style.background = 'var(--wis-surface-2)'; }}
                     >
                       <ImagePlus style={{ width: '2rem', height: '2rem' }} />
                       <span style={{ fontSize: '0.85rem' }}>Clica para adicionar imagem</span>
@@ -615,7 +615,7 @@ export function EventCreatePanel({ onBack }: Props) {
                         <div style={{
                           width: '2.25rem', height: '2.25rem', borderRadius: '0.625rem', flexShrink: 0,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: `${m.color}18`, border: `1px solid ${m.color}30`,
+                          background: `color-mix(in srgb, ${m.color} 9%, transparent)`, border: `1px solid color-mix(in srgb, ${m.color} 19%, transparent)`,
                           fontSize: '0.9rem', fontWeight: 800, color: m.color,
                         }}>
                           {m.name.charAt(0).toUpperCase()}
@@ -664,7 +664,7 @@ export function EventCreatePanel({ onBack }: Props) {
                             <div style={{
                               width: '1.625rem', height: '1.625rem', borderRadius: '0.4rem',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              background: `${ministry.color ?? 'var(--wis-blue-soft)'}18`,
+                              background: `${ministry.color ?? 'var(--wis-blue)'}18`,
                               fontSize: '0.65rem', fontWeight: 800, color: ministry.color ?? 'var(--wis-blue)',
                             }}>
                               {ministry.name.charAt(0).toUpperCase()}
@@ -854,8 +854,8 @@ export function EventCreatePanel({ onBack }: Props) {
                                 type="button"
                                 onClick={() => toggleSong(id)}
                                 style={{ color: 'var(--wis-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-danger-bg)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+                                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-danger)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
                               >
                                 <X style={{ width: '0.75rem', height: '0.75rem' }} />
                               </button>
@@ -928,8 +928,8 @@ export function EventCreatePanel({ onBack }: Props) {
                         type="button"
                         onClick={() => removeTimelineItem(idx)}
                         style={{ color: 'var(--wis-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.375rem', flexShrink: 0 }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-danger-bg)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-surface-4)')}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wis-danger)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wis-text-2)')}
                       >
                         <X style={{ width: '0.75rem', height: '0.75rem' }} />
                       </button>

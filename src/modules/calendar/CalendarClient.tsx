@@ -212,7 +212,7 @@ export function CalendarClient({ orgId }: Props) {
                               {dayEvents.slice(0, 3).map((e, i) => (
                                 <span key={i} style={{
                                   width: '4px', height: '4px', borderRadius: '9999px',
-                                  background: e.color ?? 'var(--wis-blue-soft)',
+                                  background: e.color ?? 'var(--wis-blue)',
                                 }} />
                               ))}
                             </div>
@@ -268,7 +268,7 @@ export function CalendarClient({ orgId }: Props) {
             ) : (
               <div>
                 {selectedEvents.map((event) => {
-                  const color = event.color ?? 'var(--wis-blue-soft)';
+                  const color = event.color ?? 'var(--wis-blue)';
                   return (
                     <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="dash-glass-event">
                       <div className="w-0.5 self-stretch rounded-full shrink-0" style={{ background: color }} />
