@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatDate, formatTime, eventPeriod } from '@/lib/utils';
+import { formatTime, eventPeriod } from '@/lib/utils';
 import { EventCreatePanel } from './EventCreatePanel';
 import { EventDetailPanel } from './EventDetailPanel';
 import { EventEditPanel } from './EventEditPanel';
@@ -28,22 +28,31 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'draft',     label: 'Rascunhos' },
 ];
 
-function StatusBadge({ published }: { published: boolean }) {
-  return published ? (
-    <span style={{
-      fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
-      borderRadius: '9999px', letterSpacing: '0.04em',
-      background: 'var(--wis-success-bg)', color: 'var(--wis-success)',
-      border: '1px solid #bfe6d3',
-    }}>Publicado</span>
-  ) : (
-    <span style={{
-      fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.5rem',
-      borderRadius: '9999px', letterSpacing: '0.04em',
-      background: 'var(--wis-surface-3)', color: 'var(--wis-text-2)',
-      border: '1px solid var(--wis-border-strong)',
-    }}>Rascunho</span>
-  );
+
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function dayMonth(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return {
+    day: String(d.getDate()).padStart(2, '0'),
+    month: d.toLocaleString('pt-PT', { month: 'short' }).replace('.', '').toUpperCase(),
+  };
+}
+
+/** Agrupa por mês para a timeline — o cabeçalho dá o contexto que o dia sozinho não dá. */
+function groupByMonth<T extends { date: string }>(events: T[]): { label: string; events: T[] }[] {
+  const groups: { label: string; events: T[] }[] = [];
+  for (const ev of events) {
+    const d = new Date(ev.date + 'T00:00:00');
+    const label = d.toLocaleString('pt-PT', { month: 'long', year: 'numeric' });
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.events.push(ev);
+    else groups.push({ label, events: [ev] });
+  }
+  return groups;
 }
 
 export function EventsClient({ orgId: _orgId }: Props) {
@@ -210,86 +219,78 @@ export function EventsClient({ orgId: _orgId }: Props) {
             )}
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {sorted.map((event) => (
-              <div
-                key={event.id}
-                className="events-dark-card"
-                onClick={() => setDetailEvent(event)}
-                style={{ cursor: 'pointer' }}
-              >
-                {/* Cover or colour bar */}
-                {event.cover_image_url ? (
-                  <div
-                    className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
-                    onClick={(e) => { e.stopPropagation(); setLightboxUrl(event.cover_image_url!); }}
-                    style={{ cursor: 'zoom-in' }}
-                  >
-                    <img src={event.cover_image_url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ) : event.color ? (
-                  <div className="w-1 self-stretch rounded-full flex-shrink-0"
-                    style={{ background: event.color }} />
-                ) : null}
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-[color:var(--wis-text)] truncate">{event.name}</span>
-                    <StatusBadge published={event.is_published} />
-                    {(() => {
-                      const p = eventPeriod(event.time);
-                      return p ? (
-                        <span style={{
-                          fontSize: '0.62rem', fontWeight: 700, padding: '0.1rem 0.45rem',
-                          borderRadius: '9999px', letterSpacing: '0.04em', textTransform: 'uppercase',
-                          background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
-                          border: '1px solid var(--wis-blue-border)',
-                        }}>
-                          {p.emoji} {p.label}
-                        </span>
-                      ) : null;
-                    })()}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs flex-wrap"
-                    style={{ color: 'var(--wis-text-3)' }}>
-                    <span>{formatDate(event.date)}</span>
-                    {event.time && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatTime(event.time)}
-                      </span>
-                    )}
-                    {event.location && (
-                      <span className="flex items-center gap-1 truncate">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        {event.location}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                {canManage && (
-                  <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="dark-icon-btn"
-                      onClick={() => handleEdit(event)}
-                      aria-label="Editar"
+          <div className="wis-timeline">
+            {groupByMonth(sorted).map(({ label, events }) => (
+              <div key={label}>
+                <p className="wis-tl-month">{label}</p>
+                {events.map((event) => {
+                  const { day, month } = dayMonth(event.date);
+                  const period = eventPeriod(event.time);
+                  const isUpcoming = event.date >= todayISO();
+                  return (
+                    <div
+                      key={event.id}
+                      className={`wis-tl-item${isUpcoming ? ' is-next' : ''}`}
+                      onClick={() => setDetailEvent(event)}
                     >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    {isAdmin && (
-                      <button
-                        className="dark-icon-btn danger"
-                        onClick={() => setDeleteTarget(event)}
-                        aria-label="Remover"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                )}
+                      <span className="wis-tl-date" aria-hidden>
+                        <b>{day}</b><span>{month}</span>
+                      </span>
+                      <span className="wis-tl-dot" aria-hidden />
+
+                      {event.cover_image_url && (
+                        <span
+                          className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0"
+                          onClick={(e) => { e.stopPropagation(); setLightboxUrl(event.cover_image_url!); }}
+                          style={{ cursor: 'zoom-in' }}
+                        >
+                          <img src={event.cover_image_url} alt="" className="w-full h-full object-cover" />
+                        </span>
+                      )}
+
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--wis-text)' }}>
+                            {event.name}
+                          </span>
+                          {!event.is_published && <span className="wis-pill">Rascunho</span>}
+                          {period && <span className="wis-pill wis-pill-accent">{period.label}</span>}
+                        </span>
+                        <span style={{
+                          display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
+                          fontSize: '0.8rem', color: 'var(--wis-text-3)', marginTop: '0.2rem',
+                        }}>
+                          {event.time && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <Clock className="h-3 w-3" />{formatTime(event.time)}
+                            </span>
+                          )}
+                          {event.location && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', minWidth: 0 }}>
+                              <MapPin className="h-3 w-3 flex-shrink-0" />
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {event.location}
+                              </span>
+                            </span>
+                          )}
+                        </span>
+                      </span>
+
+                      {canManage && (
+                        <span className="flex gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button className="dark-icon-btn" onClick={() => handleEdit(event)} aria-label={`Editar ${event.name}`}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          {isAdmin && (
+                            <button className="dark-icon-btn danger" onClick={() => setDeleteTarget(event)} aria-label={`Remover ${event.name}`}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>

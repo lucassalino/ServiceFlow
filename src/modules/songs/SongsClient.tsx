@@ -181,22 +181,21 @@ export function SongsClient() {
         </div>
 
         {/* ── View toggle ─────────────────────────────────── */}
-        <div style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
+        <div className="wis-segmented" role="tablist" aria-label="Vista do repertório">
+          <span
+            className="wis-segmented-thumb"
+            style={{ width: 'calc(50% - 3px)', transform: view === 'ranking' ? 'translateX(100%)' : 'translateX(0)' }}
+            aria-hidden
+          />
           {([
             { key: 'list', label: 'Lista', icon: ListMusic },
             { key: 'ranking', label: 'Ranking', icon: Trophy },
           ] as const).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
+              role="tab"
+              aria-selected={view === key}
               onClick={() => setView(key)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.4rem 0.875rem', borderRadius: '0.5rem',
-                fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', border: 'none',
-                background: view === key ? 'var(--wis-blue)' : 'transparent',
-                color: view === key ? '#fff' : 'var(--wis-text-2)',
-                transition: 'background 0.12s, color 0.12s',
-              }}
             >
               <Icon style={{ width: '0.85rem', height: '0.85rem' }} />
               {label}
@@ -331,9 +330,6 @@ export function SongsClient() {
 
 // ── Ranking row ──────────────────────────────────────────────────────────────
 
-/* Ouro, prata e bronze — tons distintos entre si e legíveis nos dois temas. */
-const MEDAL_COLORS: Record<number, string> = { 1: 'var(--wis-warning)', 2: 'var(--wis-text-2)', 3: '#b0714a' };
-
 function RankingRow({
   rank, entry, ministryName, onClick,
 }: {
@@ -342,65 +338,30 @@ function RankingRow({
   ministryName?: string;
   onClick: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
-  const medal = MEDAL_COLORS[rank];
-
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '1rem',
-        padding: '0.875rem 1rem',
-        background: hovered ? 'var(--wis-surface-2)' : 'var(--wis-surface)',
-        border: `1px solid ${hovered ? 'var(--wis-border-strong)' : 'var(--wis-border)'}`,
-        borderRadius: '0.875rem',
-        cursor: 'pointer',
-        transition: 'background 0.15s, border-color 0.15s, transform 0.12s',
-        transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: 'var(--wis-shadow-md)',
-      }}
-    >
-      {/* Rank */}
-      <div style={{
-        width: '2.25rem', textAlign: 'center', flexShrink: 0,
-        fontSize: medal ? '1.1rem' : '0.95rem', fontWeight: 800,
-        color: medal ?? 'var(--wis-text-3)',
-      }}>
-        {rank}º
-      </div>
+    <div className={`wis-rank${rank <= 3 ? ' is-podium' : ''}`} data-rank={rank} onClick={onClick}>
+      <span className={rank <= 3 ? 'wis-rank-n' : 'wis-rank-n'}>{rank}</span>
 
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{
-          fontSize: '0.875rem', fontWeight: 600, color: 'var(--wis-text)',
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{
+          display: 'block', fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {entry.name}
-        </p>
-        <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
+        </span>
+        <span style={{
+          display: 'block', fontSize: '0.8rem', color: 'var(--wis-text-3)', marginTop: '0.1rem',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
           {entry.artist ?? '—'}
           {entry.lastPlayedDate && ` · última vez ${formatDate(entry.lastPlayedDate)}`}
-        </p>
-      </div>
-
-      {/* Chips */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-        {ministryName && (
-          <span className="hidden md:inline-flex">
-            <Chip>{ministryName}</Chip>
-          </span>
-        )}
-        <span style={{
-          fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.6rem',
-          borderRadius: '9999px', letterSpacing: '0.02em', whiteSpace: 'nowrap',
-          background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)',
-          border: '1px solid var(--wis-blue-border)',
-        }}>
-          {entry.timesPlayed}× tocada
         </span>
-      </div>
+      </span>
+
+      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+        {ministryName && <span className="hidden md:inline-flex wis-pill">{ministryName}</span>}
+        <span className="wis-pill wis-pill-accent">Tocada {entry.timesPlayed}×</span>
+      </span>
     </div>
   );
 }

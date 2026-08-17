@@ -130,13 +130,10 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
         {/* ── Two-column main layout ───────────────────────── */}
         <div className="mdp-main">
 
-          {/* Left: Profile card */}
-          <div style={{
-            padding: '1.75rem', borderRadius: '1.25rem',
-            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
-          }}>
+          {/* Left: perfil — sem moldura, o espaço é que agrupa */}
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.875rem' }}>
-              <Avatar className="h-20 w-20">
+              <Avatar className="h-24 w-24">
                 {member.profile?.avatar_url && <AvatarImage src={member.profile.avatar_url} alt={name} />}
                 <AvatarFallback style={{
                   fontSize: '1.4rem', fontWeight: 700,
@@ -147,8 +144,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
               </Avatar>
               <div>
                 <h1 style={{
-                  fontSize: '1.3rem', fontWeight: 800, color: 'var(--wis-text)',
-                  letterSpacing: '-0.02em', margin: '0 0 0.5rem',
+                  fontSize: '1.55rem', fontWeight: 700, color: 'var(--wis-text)',
+                  letterSpacing: '-0.03em', margin: '0 0 0.6rem',
                 }}>
                   {name}
                 </h1>
@@ -182,18 +179,10 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
             </div>
           </div>
 
-          {/* Right: Ministries */}
-          <div style={{
-            padding: '1.5rem', borderRadius: '1.25rem',
-            background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)',
-          }}>
+          {/* Right: ministérios — secção, não cartão */}
+          <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-              <p style={{
-                fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'var(--wis-text-3)', margin: 0,
-              }}>
-                Ministérios · {assignments.length}
-              </p>
+              <p className="wis-eyebrow">Ministérios · {assignments.length}</p>
               {isAdmin && (
                 <button
                   onClick={() => setShowMinistriesPanel(true)}

@@ -1247,3 +1247,153 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
 /* ── Botão primário: accent com texto escuro, alto e confortável ───── */
 
 .dark .dark-primary-btn { color: #0a0a0f; }
+
+/* ── Timeline de eventos ───────────────────────────────────────────────
+   Substitui a lista de cartões administrativos: os eventos ficam ligados
+   por uma linha vertical muito discreta, agrupados por mês.            */
+
+.wis-timeline { position: relative; padding-left: 4.25rem; }
+
+/* A linha corre atrás das datas, do primeiro ao último evento do grupo */
+.wis-timeline::before {
+  content: '';
+  position: absolute;
+  left: 3.15rem;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--wis-border) 12%, var(--wis-border) 88%, transparent);
+}
+
+.wis-tl-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--wis-border);
+  text-decoration: none;
+  color: var(--wis-text);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.wis-tl-item:last-child { border-bottom: none; }
+.wis-tl-item:active { opacity: 0.65; }
+
+/* Data à esquerda da linha */
+.wis-tl-date {
+  position: absolute;
+  left: -4.25rem;
+  top: 0.95rem;
+  width: 2.4rem;
+  text-align: right;
+  line-height: 1;
+}
+.wis-tl-date b { display: block; font-size: 1.3rem; font-weight: 700; letter-spacing: -0.03em; color: var(--wis-text); }
+.wis-tl-date span { display: block; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; color: var(--wis-text-3); margin-top: 0.25rem; }
+
+/* Ponto sobre a linha — accent quando o evento ainda está por vir */
+.wis-tl-dot {
+  position: absolute;
+  left: -1.2rem;
+  top: 1.35rem;
+  width: 7px; height: 7px;
+  border-radius: 9999px;
+  background: var(--wis-border-strong);
+  box-shadow: 0 0 0 4px var(--wis-canvas);
+}
+.wis-tl-item.is-next .wis-tl-dot {
+  background: var(--wis-blue);
+  box-shadow: 0 0 0 4px var(--wis-canvas), 0 0 10px color-mix(in srgb, var(--wis-blue) 60%, transparent);
+}
+
+/* Cabeçalho do mês */
+.wis-tl-month {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wis-text-3);
+  padding: 1.5rem 0 0.4rem;
+}
+.wis-tl-month:first-child { padding-top: 0.25rem; }
+
+@media (max-width: 420px) {
+  .wis-timeline { padding-left: 3.6rem; }
+  .wis-timeline::before { left: 2.6rem; }
+  .wis-tl-date { left: -3.6rem; width: 2rem; }
+  .wis-tl-date b { font-size: 1.15rem; }
+}
+
+/* ── Segmented control ─────────────────────────────────────────────────
+   Um único controlo para alternar vistas (Lista/Ranking, Mensal/Anual).
+   O indicador desliza; o botão selecionado não muda de peso para não
+   fazer o texto saltar.                                                */
+
+.wis-segmented {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 9999px;
+  background: var(--wis-surface-2);
+  border: 1px solid var(--wis-border);
+}
+.wis-segmented button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--wis-text-3);
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+.wis-segmented button[aria-selected='true'] { color: var(--wis-text); }
+.wis-segmented button:focus-visible { outline: 2px solid var(--wis-blue); outline-offset: 2px; }
+
+.wis-segmented-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 9999px;
+  background: var(--wis-surface-4);
+  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), width 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+}
+
+/* ── Ranking ───────────────────────────────────────────────────────────
+   Sem cartões: a posição é que manda, e o pódio distingue-se pelo peso
+   do número, não por uma caixa maior.                                   */
+
+.wis-rank {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--wis-border);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.wis-rank:last-child { border-bottom: none; }
+.wis-rank:active { opacity: 0.65; }
+
+.wis-rank-n {
+  width: 2.1rem;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--wis-text-4);
+  line-height: 1;
+}
+.wis-rank.is-podium .wis-rank-n { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.03em; }
+.wis-rank[data-rank='1'] .wis-rank-n { color: var(--wis-warning); }
+.wis-rank[data-rank='2'] .wis-rank-n { color: var(--wis-text-2); }
+.wis-rank[data-rank='3'] .wis-rank-n { color: #b0714a; }
