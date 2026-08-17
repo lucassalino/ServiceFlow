@@ -158,16 +158,16 @@
 
 :root {
   /* Marca */
-  --wis-blue:        #4a5bd4;   /* accent — lilás da marca, escurecido p/ contraste */
-  --wis-blue-hover:  #3c4bb8;
-  --wis-blue-soft:   #eef0ff;   /* fundo de estado selecionado */
-  --wis-blue-border: #ccd2ff;
+  --wis-blue:        #145cff;   /* accent — o azul elétrico da landing */
+  --wis-blue-hover:  #0f4ad6;
+  --wis-blue-soft:   #eaf1ff;   /* fundo de estado selecionado */
+  --wis-blue-border: #c2d7ff;
   --wis-navy:        #0d1b2e;
   --wis-navy-soft:   #16293f;
   --wis-teal:        #147080;   /* teal da marca — estados e detalhes */
 
   /* Gradiente proprietário — usar com muita moderação */
-  --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #187c8a 52%, #9daeff 100%);
+  --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #0f5c6e 46%, #145cff 100%);
 
   /* Superfícies */
   --wis-canvas:      #f6f7f9;   /* fundo da aplicação */
@@ -227,7 +227,7 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    radial-gradient(ellipse 70% 50% at 78% -8%, rgba(157, 174, 255, 0.055) 0%, transparent 62%),
+    radial-gradient(ellipse 70% 50% at 78% -8%, rgba(91, 140, 255, 0.06) 0%, transparent 62%),
     radial-gradient(ellipse 45% 38% at 18% -4%, rgba(24, 124, 138, 0.045) 0%, transparent 58%);
 }
 .dash-purple-bg > * { position: relative; z-index: 1; }
@@ -1051,10 +1051,10 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
    ═══════════════════════════════════════════════ */
 
 .dark {
-  --wis-blue:        #9daeff;   /* accent — lilás da marca */
-  --wis-blue-hover:  #8799ff;
-  --wis-blue-soft:   #191c2e;
-  --wis-blue-border: #33385c;
+  --wis-blue:        #5b8cff;   /* o azul da landing, aclarado p/ contraste no escuro */
+  --wis-blue-hover:  #7aa3ff;
+  --wis-blue-soft:   #101a33;
+  --wis-blue-border: #24406e;
   --wis-navy:        #050505;
   --wis-navy-soft:   #0b0c10;
   --wis-teal:        #3aa9b8;   /* teal da marca, aclarado p/ fundo escuro */
@@ -1073,7 +1073,7 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
   --wis-border:        rgba(255,255,255,0.08);
   --wis-border-strong: rgba(255,255,255,0.14);
 
-  --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #187c8a 52%, #9daeff 100%);
+  --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #0f5c6e 46%, #145cff 100%);
 
   --wis-success:     #3ddc9a;
   --wis-success-bg:  #10261e;
