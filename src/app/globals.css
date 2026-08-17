@@ -945,6 +945,7 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
 .wis-badge-danger  { background: var(--wis-danger-bg);  color: var(--wis-danger);  border-color: #f5c9cb; }
 .wis-badge-info    { background: var(--wis-info-bg);    color: var(--wis-info);    border-color: var(--wis-blue-border); }
 .wis-badge-neutral { background: var(--wis-surface-3);  color: var(--wis-text-2);  border-color: var(--wis-border-strong); }
+.wis-badge-accent  { background: color-mix(in srgb, var(--wis-teal) 14%, transparent); color: var(--wis-teal); border-color: color-mix(in srgb, var(--wis-teal) 35%, transparent); }
 
 /* Esqueleto de carregamento */
 .wis-skeleton {

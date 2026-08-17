@@ -247,7 +247,7 @@ export function MinistryDetailPanel({
                         {m.profile?.avatar_url && <AvatarImage src={m.profile.avatar_url} />}
                         <AvatarFallback style={{
                           fontSize: '0.65rem', fontWeight: 700,
-                          background: `color-mix(in srgb, ${color} 13%, transparent)`, color,
+                          background: `color-mix(in srgb, ${color} 14%, transparent)`, color: 'var(--wis-text)',
                         }}>
                           {getInitials(name)}
                         </AvatarFallback>
@@ -265,7 +265,7 @@ export function MinistryDetailPanel({
                               <span key={fn} style={{
                                 fontSize: '0.65rem', fontWeight: 500,
                                 padding: '0.1rem 0.4rem', borderRadius: '9999px',
-                                background: `color-mix(in srgb, ${color} 8%, transparent)`, color,
+                                background: `color-mix(in srgb, ${color} 12%, transparent)`, color: 'var(--wis-text-2)',
                                 border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
                               }}>
                                 {getFunctionEmoji(fn)} {getFunctionLabel(fn)}

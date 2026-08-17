@@ -331,7 +331,8 @@ export function SongsClient() {
 
 // ── Ranking row ──────────────────────────────────────────────────────────────
 
-const MEDAL_COLORS: Record<number, string> = { 1: 'var(--wis-warning-bg)', 2: '#d1d5db', 3: 'var(--wis-warning-bg)' };
+/* Ouro, prata e bronze — tons distintos entre si e legíveis nos dois temas. */
+const MEDAL_COLORS: Record<number, string> = { 1: 'var(--wis-warning)', 2: 'var(--wis-text-2)', 3: '#b0714a' };
 
 function RankingRow({
   rank, entry, ministryName, onClick,

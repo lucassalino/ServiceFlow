@@ -8,6 +8,7 @@ import { useMinistries } from '@/hooks/useMinistries';
 import { getFunctionLabel, getFunctionEmoji } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
+import { RoleBadge } from '@/components/RoleBadge';
 import { MemberMinistriesPanel } from './MemberMinistriesPanel';
 import { MemberHistoryPanel } from './MemberHistoryPanel';
 
@@ -15,12 +16,6 @@ type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
 };
 
-const ROLE_LABEL: Record<OrgRole, string> = {
-  admin: 'Administrador', leader: 'Líder', member: 'Membro',
-};
-const ROLE_COLOR: Record<OrgRole, string> = {
-  admin: 'var(--wis-blue-soft)', leader: 'var(--wis-blue-soft)', member: 'var(--wis-surface-4)',
-};
 
 interface Props {
   member: MemberWithProfile;
@@ -158,14 +153,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                   {name}
                 </h1>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                  <span style={{
-                    fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.6rem',
-                    borderRadius: '9999px', letterSpacing: '0.04em',
-                    background: `${ROLE_COLOR[role]}20`, color: ROLE_COLOR[role],
-                    border: `1px solid ${ROLE_COLOR[role]}44`,
-                  }}>
-                    {ROLE_LABEL[role]}
-                  </span>
+                  <RoleBadge role={role} size="md" />
                   {!member.is_active && (
                     <span style={{
                       fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.6rem',
@@ -279,8 +267,8 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                             <span key={fn} style={{
                               fontSize: '0.68rem', fontWeight: 500,
                               padding: '0.1rem 0.45rem', borderRadius: '9999px',
-                              background: `color-mix(in srgb, ${color} 8%, transparent)`, color,
-                              border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
+                              background: `color-mix(in srgb, ${color} 12%, transparent)`, color: 'var(--wis-text-2)',
+                              border: `1px solid color-mix(in srgb, ${color} 30%, transparent)`,
                             }}>
                               {getFunctionEmoji(fn)} {getFunctionLabel(fn)}
                             </span>

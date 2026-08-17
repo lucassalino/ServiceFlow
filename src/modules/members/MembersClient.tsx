@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Copy, Plus, Trash2, Check, Users, Share2, Mail, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
+import { RoleBadge, ROLE_LABEL } from '@/components/RoleBadge';
 import { useOrgMembers, useUpdateMemberRole, useDeleteMember } from '@/hooks/useMembers';
 import { usePendingInvites, useCreateInvite, useDeleteInvite } from '@/hooks/useInvites';
 import type { OrganizationMember, OrgRole } from '@/types/models';
@@ -25,36 +26,6 @@ type MemberWithProfile = OrganizationMember & {
   profile: { full_name: string; email: string; avatar_url: string | null };
 };
 
-const ROLE_LABEL: Record<OrgRole, string> = {
-  admin: 'Administrador',
-  leader: 'Líder',
-  member: 'Membro',
-};
-
-const ROLE_COLOR: Record<OrgRole, string> = {
-  admin:  'var(--wis-blue-soft)',
-  leader: 'rgba(147,197,253,0.15)',
-  member: 'var(--wis-surface-3)',
-};
-
-const ROLE_TEXT: Record<OrgRole, string> = {
-  admin:  'var(--wis-blue-soft)',
-  leader: 'var(--wis-blue-soft)',
-  member: 'var(--wis-surface-4)',
-};
-
-function RoleBadge({ role }: { role: OrgRole }) {
-  return (
-    <span style={{
-      fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.55rem',
-      borderRadius: '9999px', letterSpacing: '0.04em',
-      background: ROLE_COLOR[role], color: ROLE_TEXT[role],
-      border: `1px solid ${ROLE_TEXT[role]}44`,
-    }}>
-      {ROLE_LABEL[role]}
-    </span>
-  );
-}
 
 export function MembersClient() {
   const { activeOrg, activeMembership } = useOrgStore();
