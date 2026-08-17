@@ -9,9 +9,15 @@
   --ink-soft: #12131a;
   --paper: #f3f1ec;
   --paper-dim: #d9d5cb;
-  --blue: #145cff;
-  --blue-deep: #0a2e8c;
+  /* Mesma identidade da app: lilás como accent, teal de apoio.
+     Duas intensidades porque a página alterna preto e papel — o lilás
+     claro só é legível sobre o preto, o profundo só sobre o papel. */
+  --blue: #5566e8;        /* accent sobre papel e fundos de botão */
+  --blue-deep: #2f3aa8;   /* sombra sólida dos botões */
+  --blue-light: #9daeff;  /* accent sobre preto — o mesmo da app */
+  --teal: #187c8a;
   --yellow: #ffc629;
+  --wis-brand-gradient: linear-gradient(135deg, #0d3b66 0%, #187c8a 52%, #9daeff 100%);
 
   background: var(--ink);
   color: var(--paper);
@@ -48,7 +54,8 @@
 .wis-h2 { font-size: clamp(2rem, 4.6vw, 3.5rem); }
 .wis-h3 { font-size: clamp(1.4rem, 2.6vw, 2rem); }
 
-.wis-blue { color: var(--blue); }
+.wis-blue { color: var(--blue-light); }
+.wis-paper .wis-blue { color: var(--blue); }
 
 /* Palavra dentro de caixa azul */
 .wis-boxed {
@@ -183,12 +190,12 @@
   bottom: 0;
   width: 0;
   height: 2px;
-  background: var(--blue);
+  background: var(--blue-light);
   transition: width 0.18s ease;
 }
 .wis-nav a:hover { color: var(--paper); }
 .wis-nav a:hover::after { width: 100%; }
-.wis-nav a.is-current { color: var(--blue); }
+.wis-nav a.is-current { color: var(--blue-light); }
 .wis-nav a.is-current::after { width: 100%; }
 
 .wis-burger {
@@ -385,7 +392,7 @@
   font-weight: 400;
   font-size: clamp(2rem, 4.6vw, 3.2rem);
   line-height: 1;
-  color: var(--blue);
+  color: var(--blue-light);
   letter-spacing: -0.01em;
 }
 .wis-metric span {
@@ -503,8 +510,8 @@
 .wis-plan[data-tier='0'] { background: transparent; }
 .wis-plan[data-tier='1'] { border-color: rgba(243, 241, 236, 0.3); }
 .wis-plan[data-tier='2'] {
-  border-color: var(--blue);
-  background: linear-gradient(180deg, rgba(20, 92, 255, 0.16) 0%, rgba(20, 92, 255, 0.03) 100%);
+  border-color: var(--blue-light);
+  background: linear-gradient(180deg, rgba(157, 174, 255, 0.14) 0%, rgba(157, 174, 255, 0.03) 100%);
   box-shadow: 8px 8px 0 var(--blue-deep);
   transform: translateY(-10px);
 }
@@ -605,7 +612,7 @@
   line-height: 1.45;
   color: rgba(243, 241, 236, 0.78);
 }
-.wis-plan-features svg { flex-shrink: 0; color: var(--blue); margin-top: 0.15rem; }
+.wis-plan-features svg { flex-shrink: 0; color: var(--blue-light); margin-top: 0.15rem; }
 .wis-plan-inherits {
   font-size: 0.74rem;
   color: rgba(243, 241, 236, 0.4);
@@ -688,12 +695,24 @@
 /* ── CTA final ──────────────────────────────────────────────────────── */
 
 .wis-cta-final {
-  background: var(--blue);
+  position: relative;
+  background: var(--wis-brand-gradient);
   color: #fff;
   padding: clamp(3.5rem, 8vw, 6rem) 0;
   text-align: center;
   overflow: hidden;
 }
+
+/* O gradiente termina em lilás claro; sem este véu o texto branco perdia
+   contraste do lado direito. */
+.wis-cta-final::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(5, 5, 5, 0.18) 0%, rgba(5, 5, 5, 0.30) 55%, rgba(5, 5, 5, 0.48) 100%);
+  pointer-events: none;
+}
+.wis-cta-final > * { position: relative; z-index: 1; }
 .wis-cta-final p { font-size: 1rem; opacity: 0.85; margin: 1rem 0 2rem; }
 
 /* ── Rodapé ─────────────────────────────────────────────────────────── */
