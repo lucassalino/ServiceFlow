@@ -37,9 +37,9 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
           position: 'absolute', top: '1.5rem', left: '1.5rem',
           width: '2.5rem', height: '2.5rem', borderRadius: '9999px',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.04)',
+          background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.1)',
-          color: '#56514a', cursor: 'pointer',
+          color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
           transition: 'background 0.12s, color 0.12s',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
@@ -91,20 +91,20 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
                     <div style={{
                       width: '2.5rem', height: '2.5rem', borderRadius: '9999px', flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: '#145cff', color: '#fff', fontSize: '0.95rem', fontWeight: 700,
+                      background: '#fff', color: '#0a0a0e', fontSize: '0.95rem', fontWeight: 700,
                     }}>
                       {membership.organization.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#101010', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {membership.organization.name}
                     </p>
-                    <p style={{ fontSize: '0.72rem', color: '#7a7568', marginTop: '0.1rem' }}>
+                    <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.1rem' }}>
                       {ROLE_LABELS[membership.role] ?? membership.role}
                     </p>
                   </div>
-                  <ChevronRight style={{ width: '1rem', height: '1rem', color: '#9a958a', flexShrink: 0 }} />
+                  <ChevronRight style={{ width: '1rem', height: '1rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
                 </button>
               ))}
             </div>
@@ -115,16 +115,16 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
             display: 'flex', alignItems: 'center', gap: '0.75rem',
             margin: '0.25rem 0 1rem',
           }}>
-            <span style={{ flex: 1, height: '1px', background: '#d6d1c4' }} />
-            <span style={{ fontSize: '0.7rem', color: '#7a7568', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ou</span>
-            <span style={{ flex: 1, height: '1px', background: '#d6d1c4' }} />
+            <span style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ou</span>
+            <span style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
           </div>
 
           {/* Actions */}
           <div className="org-select-actions">
             <Link href="/new-org" className="org-select-card">
               <div className="org-select-card-glow" style={{ background: 'radial-gradient(circle, #8fd0ea 0%, transparent 70%)' }} />
-              <div className="org-select-card-icon" style={{ background: 'rgba(20,92,255,0.12)', color: '#145cff' }}>
+              <div className="org-select-card-icon" style={{ background: 'rgba(143,208,234,0.15)', color: '#8fd0ea' }}>
                 <Plus style={{ width: '1.1rem', height: '1.1rem' }} />
               </div>
               <div>
@@ -134,7 +134,7 @@ export function OrgSelectionClient({ initialMemberships }: OrgSelectionClientPro
             </Link>
             <Link href="/join-org" className="org-select-card">
               <div className="org-select-card-glow" style={{ background: 'radial-gradient(circle, #a5b4fc 0%, transparent 70%)' }} />
-              <div className="org-select-card-icon" style={{ background: 'rgba(20,92,255,0.12)', color: '#145cff' }}>
+              <div className="org-select-card-icon" style={{ background: 'rgba(165,180,252,0.15)', color: '#a5b4fc' }}>
                 <LogIn style={{ width: '1.1rem', height: '1.1rem' }} />
               </div>
               <div>

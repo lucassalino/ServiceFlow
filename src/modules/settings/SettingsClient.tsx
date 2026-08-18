@@ -347,7 +347,7 @@ export function SettingsClient({ orgId }: Props) {
 
   return (
     <div className="dash-purple-bg">
-      <div className="p-5 md:p-8 max-w-2xl mx-auto space-y-5">
+      <div className="p-5 md:p-8 max-w-6xl mx-auto space-y-5">
 
         {/* ── Header ──────────────────────────────────── */}
         <div className="pt-2">
@@ -364,6 +364,15 @@ export function SettingsClient({ orgId }: Props) {
         </div>
 
         {isAdmin && activeOrg && <DowngradeLockScreen orgId={orgId} />}
+
+        {/*
+          Em ecrãs largos a página deixa de ser uma coluna estreita: passa a
+          duas colunas — à esquerda o que é *teu* (perfil, funções, escalas),
+          à direita o que é *da organização e do sistema*. Abaixo de `lg`
+          volta a ser uma única coluna, na mesma ordem de leitura.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 items-start">
+          <div className="space-y-5">
 
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">
@@ -415,7 +424,9 @@ export function SettingsClient({ orgId }: Props) {
 
           <Divider />
 
-          <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="dark-inputs space-y-4">
+          <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="dark-inputs">
+            {/* Os campos emparelham-se assim que há largura para isso. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Email</Label>
               <Input value={user?.email ?? ''} disabled />
@@ -438,7 +449,8 @@ export function SettingsClient({ orgId }: Props) {
                 Aparece nos aniversariantes do mês no painel da organização.
               </p>
             </div>
-            <button type="submit" className="dark-primary-btn"
+            </div>
+            <button type="submit" className="dark-primary-btn" style={{ marginTop: '1.25rem' }}
               disabled={profileForm.formState.isSubmitting || updateProfile.isPending}>
               {updateProfile.isPending ? 'A guardar…' : 'Guardar perfil'}
             </button>
@@ -452,13 +464,6 @@ export function SettingsClient({ orgId }: Props) {
           </Section>
         )}
 
-        {/* ── Sincronizar calendário ───────────────────── */}
-        {activeOrg && (
-          <Section title="Sincronizar calendário">
-            <CalendarSyncSection orgId={orgId} />
-          </Section>
-        )}
-
         {/* ── Preferências de email ────────────────────── */}
         <Section title="Notificações por email">
           <EmailPreferencesSection />
@@ -468,6 +473,17 @@ export function SettingsClient({ orgId }: Props) {
         {activeOrg && (
           <Section title="As minhas escalas">
             <MyHistorySection />
+          </Section>
+        )}
+
+          </div>
+
+          <div className="space-y-5 mt-5 lg:mt-0">
+
+        {/* ── Sincronizar calendário ───────────────────── */}
+        {activeOrg && (
+          <Section title="Sincronizar calendário">
+            <CalendarSyncSection orgId={orgId} />
           </Section>
         )}
 
@@ -683,6 +699,9 @@ export function SettingsClient({ orgId }: Props) {
             Eliminar conta
           </button>
         </Section>
+
+          </div>
+        </div>
 
         <div style={{ height: '1rem' }} />
       </div>
