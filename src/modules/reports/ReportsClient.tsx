@@ -77,7 +77,7 @@ export function ReportsClient({ orgId }: { orgId: string }) {
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[color:var(--wis-text)] mt-1">
             Relatórios
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-3)' }}>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--wis-text-2)' }}>
             Engajamento da equipa no período escolhido
           </p>
         </div>
@@ -151,8 +151,8 @@ export function ReportsClient({ orgId }: { orgId: string }) {
               <Stat label="Escalações" value={String(s.assignments)} />
               <Stat label="Pessoas envolvidas" value={String(s.people)} />
               <Stat label="Taxa de resposta" value={responseRate !== null ? `${responseRate}%` : '—'}
-                accent={responseRate !== null && responseRate < 50 ? 'var(--wis-warning-bg)' : 'var(--wis-success-bg)'} />
-              <Stat label="Confirmações" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="var(--wis-success-bg)" />
+                accent={responseRate !== null && responseRate < 50 ? 'var(--wis-warning)' : 'var(--wis-success)'} />
+              <Stat label="Confirmações" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="var(--wis-success)" />
             </div>
 
             {/* Nota honesta sobre faltas */}
@@ -182,8 +182,8 @@ export function ReportsClient({ orgId }: { orgId: string }) {
                           {m.assignments} · {m.people} {m.people === 1 ? 'pessoa' : 'pessoas'}
                         </span>
                       </div>
-                      <div style={{ height: '0.375rem', borderRadius: '9999px', background: 'var(--wis-surface-3)', overflow: 'hidden' }}>
-                        <div style={{ width: `${pct}%`, height: '100%', background: m.color || 'var(--wis-blue-soft)' }} />
+                      <div style={{ height: '0.375rem', borderRadius: '9999px', background: 'var(--wis-border-strong)', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: m.color || 'var(--wis-blue)' }} />
                       </div>
                     </div>
                   );
@@ -239,7 +239,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
       <p style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
         fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em',
-        textTransform: 'uppercase', color: 'var(--wis-text-3)', margin: 0,
+        textTransform: 'uppercase', color: 'var(--wis-text-2)', margin: 0,
       }}>
         {icon} {title}
       </p>
@@ -254,7 +254,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
       <p style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.02em', color: accent ?? 'var(--wis-text)', margin: 0, lineHeight: 1.2 }}>
         {value}
       </p>
-      <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', margin: '0.15rem 0 0' }}>{label}</p>
+      <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-2)', margin: '0.15rem 0 0' }}>{label}</p>
     </div>
   );
 }
@@ -276,10 +276,10 @@ function PersonRow({ p, max, last }: { p: EngagementPerson; max: number; last: b
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {p.name}
         </p>
-        <div style={{ height: '0.25rem', borderRadius: '9999px', background: 'var(--wis-surface-3)', marginTop: '0.3rem', overflow: 'hidden' }}>
-          <div style={{ width: `${pct}%`, height: '100%', background: 'var(--wis-blue-soft)' }} />
+        <div style={{ height: '0.25rem', borderRadius: '9999px', background: 'var(--wis-border-strong)', marginTop: '0.3rem', overflow: 'hidden' }}>
+          <div style={{ width: `${pct}%`, height: '100%', background: 'var(--wis-blue)' }} />
         </div>
-        <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-3)', margin: '0.25rem 0 0' }}>
+        <p style={{ fontSize: '0.7rem', color: 'var(--wis-text-2)', margin: '0.25rem 0 0' }}>
           {p.confirmed} confirmadas · {p.pending} sem resposta
           {p.declined > 0 && ` · ${p.declined} recusadas`}
           {p.last_served && ` · última: ${formatDate(p.last_served)}`}
