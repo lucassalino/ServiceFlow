@@ -12,6 +12,7 @@ export interface Organization {
   logo_url: string | null; created_at: string; updated_at: string;
   checkin_latitude: number | null; checkin_longitude: number | null;
   checkin_radius_meters: number;
+  disabled_features: string[];
 }
 export interface OrganizationMember {
   id: string; org_id: string; user_id: string;

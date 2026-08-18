@@ -16,13 +16,14 @@ import { getInitials } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { usePlanState, PlanBadge } from '@/components/FeatureGate';
+import { isOrgFeatureEnabled, type OrgToggleFeature } from '@/lib/org-features';
 import { useEffect, useState } from 'react';
 
 /**
  * Navegação agrupada — dá hierarquia ao menu em vez de uma lista corrida de
  * doze itens. Os grupos são só rótulos visuais; as rotas não mudaram.
  */
-const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: typeof Users }[] }[] = [
+const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: typeof Users; feature?: OrgToggleFeature }[] }[] = [
   {
     label: 'Início',
     items: [{ href: 'dashboard', label: 'Painel', icon: LayoutDashboard }],
@@ -40,7 +41,7 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: t
     items: [
       { href: 'events',       label: 'Eventos',           icon: Calendar },
       { href: 'calendar',     label: 'Calendário',        icon: CalendarDays },
-      { href: 'checkin',      label: 'Check-in',          icon: QrCode },
+      { href: 'checkin',      label: 'Check-in',          icon: QrCode, feature: 'checkin' },
       { href: 'availability', label: 'Indisponibilidade', icon: CalendarOff },
     ],
   },
@@ -48,8 +49,8 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: t
     label: 'Conteúdo',
     items: [
       { href: 'songs',     label: 'Repertório', icon: BookOpen },
-      { href: 'liturgies', label: 'Roteiros',   icon: ClipboardList },
-      { href: 'mural',     label: 'Mural',      icon: Megaphone },
+      { href: 'liturgies', label: 'Roteiros',   icon: ClipboardList, feature: 'liturgies' },
+      { href: 'mural',     label: 'Mural',      icon: Megaphone, feature: 'mural' },
     ],
   },
   {
@@ -193,11 +194,16 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
 
       {/* ── Nav ───────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-none" aria-label="Navegação principal">
-        {NAV_GROUPS.map((group) => (
+        {NAV_GROUPS.map((group) => {
+          const items = group.items.filter(
+            ({ feature }) => !feature || isOrgFeatureEnabled(activeOrg?.disabled_features, feature),
+          );
+          if (items.length === 0) return null;
+          return (
           <div key={group.label}>
             <p className="sidebar-group-label">{group.label}</p>
             <div className="space-y-0.5">
-              {group.items.map(({ href, label, icon: Icon }) => {
+              {items.map(({ href, label, icon: Icon }) => {
                 const fullHref = `/${orgId}/${href}`;
                 const isActive = pathname.startsWith(fullHref);
                 return (
@@ -216,7 +222,8 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* ── Footer ────────────────────────────── */}

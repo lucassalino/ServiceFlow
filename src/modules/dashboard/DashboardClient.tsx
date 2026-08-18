@@ -7,6 +7,7 @@ import {
   CalendarCheck, BookOpen, Cake, TrendingUp,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
+import { isOrgFeatureEnabled } from '@/lib/org-features';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
 import type { Event } from '@/types/models';
@@ -56,7 +57,8 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
   const { activeMembership, activeOrg } = useOrgStore();
   const firstName = activeMembership?.profile?.full_name?.split(' ')[0] ?? 'Bem-vindo';
   const isAdmin = activeMembership?.role === 'admin';
-  const canSeeReports = isAdmin || activeMembership?.role === 'leader';
+  const canSeeReports = (isAdmin || activeMembership?.role === 'leader')
+    && isOrgFeatureEnabled(activeOrg?.disabled_features, 'engagement_reports');
   const currentMonthName = MONTH_NAMES[new Date().getMonth()];
 
   // O primeiro evento ganha destaque próprio; os restantes são uma lista.

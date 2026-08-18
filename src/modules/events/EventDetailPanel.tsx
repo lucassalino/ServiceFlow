@@ -24,6 +24,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useOrgStore } from '@/stores/orgStore';
+import { isOrgFeatureEnabled } from '@/lib/org-features';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLiturgies } from '@/hooks/useLiturgies';
@@ -845,8 +846,10 @@ function YoutubePlaylistButton({ songs }: { songs: Song[] }) {
  */
 function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
   const [open, setOpen] = useState(false);
+  const { activeOrg } = useOrgStore();
+  const liturgiesEnabled = isOrgFeatureEnabled(activeOrg?.disabled_features, 'liturgies');
   const { data: liturgies = [] } = useLiturgies();
-  const liturgy = liturgies.find((l) => l.event_id === eventId) ?? null;
+  const liturgy = liturgiesEnabled ? (liturgies.find((l) => l.event_id === eventId) ?? null) : null;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -888,7 +891,7 @@ function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
             subtitle={`${liturgy.moments.length} momento${liturgy.moments.length !== 1 ? 's' : ''} · PDF`}
             onNavigate={() => setOpen(false)}
           />
-        ) : (
+        ) : liturgiesEnabled ? (
           <div style={{ display: 'flex', gap: '0.6rem', padding: '0.6rem 0.7rem' }}>
             <FileText style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-4)', flexShrink: 0, marginTop: '0.1rem' }} />
             <div>
@@ -900,7 +903,7 @@ function ExportMenu({ orgId, eventId }: { orgId: string; eventId: string }) {
               </p>
             </div>
           </div>
-        )}
+        ) : null}
       </PopoverContent>
     </Popover>
   );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Menu, Megaphone } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
+import { isOrgFeatureEnabled } from '@/lib/org-features';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -46,9 +47,11 @@ export function MobileHeader({ orgId, onMenuOpen }: Props) {
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Link href={`/${orgId}/mural`} aria-label="Mural de recados" className="sidebar-dark-icon-btn">
-          <Megaphone className="h-5 w-5" />
-        </Link>
+        {isOrgFeatureEnabled(activeOrg?.disabled_features, 'mural') && (
+          <Link href={`/${orgId}/mural`} aria-label="Mural de recados" className="sidebar-dark-icon-btn">
+            <Megaphone className="h-5 w-5" />
+          </Link>
+        )}
         <ThemeToggle />
         <NotificationBell orgId={orgId} />
         <Link href={`/${orgId}/settings`} aria-label="Definições" className="shrink-0">

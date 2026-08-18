@@ -33,6 +33,7 @@ import { MyHistorySection } from './MyHistorySection';
 import { EmailPreferencesSection } from './EmailPreferencesSection';
 import { CalendarSyncSection } from './CalendarSyncSection';
 import { PlanSection } from './PlanSection';
+import { FeatureVisibilitySection } from './FeatureVisibilitySection';
 import { DowngradeLockScreen } from './DowngradeLockScreen';
 
 const profileSchema = z.object({
@@ -593,6 +594,17 @@ export function SettingsClient({ orgId }: Props) {
         {isAdmin && activeOrg && (
           <Section title="Plano e cupões">
             <PlanSection orgId={orgId} isAdmin={isAdmin} />
+          </Section>
+        )}
+
+        {/* ── Funcionalidades visíveis na app ──────────── */}
+        {isAdmin && activeOrg && (
+          <Section title="Funcionalidades">
+            <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+              Escolhe o que fica visível na app para esta organização. Desligar uma
+              funcionalidade não apaga os dados — só a esconde do menu.
+            </p>
+            <FeatureVisibilitySection orgId={orgId} />
           </Section>
         )}
 
