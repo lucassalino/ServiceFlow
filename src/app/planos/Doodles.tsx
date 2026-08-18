@@ -61,16 +61,6 @@ export function HandArrow({ className, style }: { className?: string; style?: Re
   );
 }
 
-/** Seta longa a apontar para baixo/diagonal — usada junto ao título do hero. */
-export function HandArrowDown({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 70 96" fill="none" aria-hidden focusable="false">
-      <path d="M12 4c14 24 20 48 16 78" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-      <path d="M8 62c6 12 14 20 20 26 6-10 14-16 24-20" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 /** Sublinhado a pincel — corre por baixo de uma palavra. */
 export function BrushUnderline({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -106,74 +96,6 @@ export function Sparkle({ className, style }: { className?: string; style?: Reac
   return (
     <svg className={className} style={style} viewBox="0 0 24 24" aria-hidden focusable="false">
       <path fill="currentColor" d="M12 0c1.4 6.6 4.9 10.2 12 12-7.1 1.8-10.6 5.4-12 12-1.4-6.6-4.9-10.2-12-12C7.1 10.2 10.6 6.6 12 0z" />
-    </svg>
-  );
-}
-
-/**
- * Recorte de jornal: um retalho de papel com colunas de "texto" impresso,
- * rasgado nos quatro lados. As linhas são barras finas — legibilidade zero
- * de propósito, é textura, não conteúdo.
- */
-export function NewsClipping({
-  className, style, lines = 7, columns = 2,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-  lines?: number;
-  columns?: number;
-}) {
-  const colWidth = 100 / columns;
-  return (
-    <svg
-      className={className}
-      style={style}
-      viewBox="0 0 120 90"
-      preserveAspectRatio="none"
-      aria-hidden
-      focusable="false"
-    >
-      <defs>
-        <clipPath id="wis-clip-tear">
-          {/* Contorno irregular — os quatro lados rasgados à mão */}
-          <path d="M3 6 L18 2 L34 7 L52 1 L70 6 L88 2 L104 7 L117 3 L115 20 L119 38 L114 56 L118 74 L113 86
-                   L96 89 L78 84 L60 89 L42 85 L24 89 L8 85 L2 72 L6 54 L1 36 L5 20 Z" />
-        </clipPath>
-      </defs>
-
-      <g clipPath="url(#wis-clip-tear)">
-        <rect width="120" height="90" fill="#e8e5dd" />
-        {/* Manchete */}
-        <rect x="8" y="10" width="60" height="6" fill="#1a1a1a" opacity="0.82" />
-        <rect x="8" y="19" width="38" height="4" fill="#1a1a1a" opacity="0.6" />
-        {/* Colunas de texto */}
-        {Array.from({ length: columns }).map((_, c) =>
-          Array.from({ length: lines }).map((_, l) => (
-            <rect
-              key={`${c}-${l}`}
-              x={8 + c * colWidth}
-              y={30 + l * 6}
-              width={colWidth - 12 - (l % 3 === 2 ? 8 : 0)}
-              height="2.4"
-              fill="#1a1a1a"
-              opacity="0.34"
-            />
-          )),
-        )}
-      </g>
-    </svg>
-  );
-}
-
-/** Fita adesiva — o pedaço de papel parece colado à página. */
-export function TapeStrip({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 90 26" aria-hidden focusable="false">
-      <path
-        d="M2 7 L88 2 L86 20 L4 24 Z"
-        fill="currentColor"
-        opacity="0.42"
-      />
     </svg>
   );
 }
