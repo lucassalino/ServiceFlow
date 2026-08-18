@@ -29,7 +29,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
 import { MyFunctionsSection } from './MyFunctionsSection';
-import { MyHistorySection } from './MyHistorySection';
 import { EmailPreferencesSection } from './EmailPreferencesSection';
 import { CalendarSyncSection } from './CalendarSyncSection';
 import { PlanSection } from './PlanSection';
@@ -469,13 +468,6 @@ export function SettingsClient({ orgId }: Props) {
         <Section title="Notificações por email">
           <EmailPreferencesSection />
         </Section>
-
-        {/* ── Histórico de participações do próprio ────── */}
-        {activeOrg && (
-          <Section title="As minhas escalas">
-            <MyHistorySection />
-          </Section>
-        )}
 
           </div>
 
