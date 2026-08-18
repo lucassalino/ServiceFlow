@@ -314,6 +314,19 @@
   z-index: 2;
 }
 
+/* Seta desenhada à mão: aponta para o telemóvel a partir do espaço vazio à
+   esquerda. Antes cruzava o nome do evento dentro da captura — um elemento
+   decorativo nunca deve passar por cima de conteúdo legível. */
+.wis-hero-arrow {
+  position: absolute;
+  top: 16%;
+  left: 6%;
+  width: 3rem;
+  color: var(--paper);
+  z-index: 4;
+  pointer-events: none;
+}
+
 .wis-note {
   position: absolute;
   z-index: 4;
@@ -764,7 +777,20 @@
 
   .wis-phone { width: min(12.5rem, 56%); transform: rotate(-2deg) translateX(6%); }
 
-  .wis-note {
+  /* Seta desenhada à mão: aponta para o telemóvel a partir do espaço vazio à
+   esquerda. Antes cruzava o nome do evento dentro da captura — um elemento
+   decorativo nunca deve passar por cima de conteúdo legível. */
+.wis-hero-arrow {
+  position: absolute;
+  top: 16%;
+  left: 6%;
+  width: 3rem;
+  color: var(--paper);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.wis-note {
     max-width: 8.5rem;
     padding: 0.5rem 0.65rem;
     font-size: 0.66rem;
