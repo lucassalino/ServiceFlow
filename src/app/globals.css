@@ -500,6 +500,13 @@
    AUTH PAGES — black minimal with spotlight
    ═══════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════
+   AUTENTICAÇÃO — recorte de papel sobre preto
+   A mesma linguagem da landing: fundo preto com
+   grão e tinta, e o formulário num retalho de
+   papel rasgado, como se estivesse colado ali.
+   ═══════════════════════════════════════════════ */
+
 .auth-bg {
   min-height: 100dvh;
   position: relative;
@@ -507,117 +514,233 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: #000000;
-  /* spotlight from top-right */
+  background: #050505;
+  overflow: hidden;
   background-image:
-    radial-gradient(ellipse 55% 60% at 75% -10%, rgba(210,210,230,0.13) 0%, transparent 65%),
-    radial-gradient(ellipse 30% 40% at 72% -5%,  rgba(255,255,255,0.07) 0%, transparent 50%);
+    radial-gradient(ellipse 60% 55% at 78% -8%, rgba(20, 92, 255, 0.22) 0%, transparent 62%),
+    radial-gradient(ellipse 45% 45% at 12% 105%, rgba(20, 92, 255, 0.14) 0%, transparent 60%);
 }
 
-/* Glass card — dark frosted */
+/* Trama de pontos — o halftone da landing */
+.auth-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: radial-gradient(rgba(243, 241, 236, 0.16) 1px, transparent 1.4px);
+  background-size: 8px 8px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 5%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 5%, transparent 70%);
+}
+
+/* Grão de papel */
+.auth-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+/* ── O retalho de papel ─────────────────────────────────────────────── */
+
 .auth-glass {
-  background: rgba(28,28,32,0.82);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 1.375rem;
-  padding: 2.5rem 2.25rem;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.03),
-    0 24px 64px rgba(0,0,0,0.7),
-    0 8px 24px rgba(0,0,0,0.4);
+  position: relative;
+  z-index: 1;
+  background: #f3f1ec;
+  color: #101010;
+  border: none;
+  border-radius: 0;
+  padding: 2.75rem 2.25rem 2.5rem;
+  transform: rotate(-0.7deg);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.7), 0 6px 18px rgba(0, 0, 0, 0.45);
+
+  /* Rasgo em cima e em baixo — o papel foi arrancado, não cortado */
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='560' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 14 L22 6 L48 15 L76 5 L104 14 L132 6 L160 15 L188 5 L216 14 L244 6 L272 15 L300 5 L328 14 L356 6 L384 15 L400 8 L400 548 L378 556 L352 547 L324 555 L296 546 L268 554 L240 545 L212 555 L184 546 L156 554 L128 545 L100 555 L72 546 L44 554 L18 545 L0 552 Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='560' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 14 L22 6 L48 15 L76 5 L104 14 L132 6 L160 15 L188 5 L216 14 L244 6 L272 15 L300 5 L328 14 L356 6 L384 15 L400 8 L400 548 L378 556 L352 547 L324 555 L296 546 L268 554 L240 545 L212 555 L184 546 L156 554 L128 545 L100 555 L72 546 L44 554 L18 545 L0 552 Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
 }
 
-/* Inputs */
+/* Grão também no papel */
+.auth-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
+}
+
+.auth-glass > * { position: relative; z-index: 1; }
+
+/* ── Campos sobre papel ─────────────────────────────────────────────── */
+
 .auth-glass input {
-  background: rgba(255,255,255,0.05) !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  border-radius: 0.5rem !important;
-  color: #ffffff !important;
+  background: #ffffff !important;
+  border: 1px solid #cfcabd !important;
+  border-radius: 2px !important;
+  color: #101010 !important;
   height: 2.875rem !important;
-  font-size: 0.875rem !important;
+  font-size: 0.9rem !important;
 }
 
-.auth-glass input::placeholder {
-  color: rgba(255,255,255,0.28) !important;
-}
+.auth-glass input::placeholder { color: #9a958a !important; }
 
 .auth-glass input:focus {
-  border-color: rgba(255,255,255,0.28) !important;
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.05) !important;
+  border-color: #145cff !important;
+  box-shadow: 0 0 0 3px rgba(20, 92, 255, 0.16) !important;
   outline: none !important;
-  background: rgba(255,255,255,0.07) !important;
+  background: #ffffff !important;
 }
 
 .auth-glass label {
-  color: rgba(255,255,255,0.55) !important;
+  color: #4a463d !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+/* O rótulo do consentimento é uma frase corrida, não um rótulo de campo:
+   em maiúsculas ficava pesado e ilegível. */
+.auth-glass label[for="acceptTerms"] {
   font-size: 0.8rem !important;
   font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  line-height: 1.45 !important;
+  color: #56514a !important;
+}
+.auth-glass label[for="acceptTerms"] a { color: #145cff !important; }
+
+/* Caixa de verificação sobre papel */
+.auth-glass input[type="checkbox"] {
+  height: 1rem !important;
+  width: 1rem !important;
+  accent-color: #145cff !important;
+  border-color: #b8b3a6 !important;
 }
 
-.auth-glass .text-destructive {
-  color: #fca5a5 !important;
-}
+.auth-glass .text-destructive { color: #b3261e !important; }
 
-/* Submit button — WHITE (exact match to image) */
+/* Botão principal — o mesmo da landing, com sombra sólida */
 .auth-glass form button[type="submit"] {
-  background: #ffffff !important;
-  color: #000000 !important;
+  background: #145cff !important;
+  color: #ffffff !important;
   border: none !important;
-  font-weight: 600 !important;
-  font-size: 0.9rem !important;
-  transition: background 0.15s, transform 0.15s !important;
+  border-radius: 2px !important;
+  font-weight: 800 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  height: 2.9rem !important;
+  box-shadow: 4px 4px 0 #0a2e8c !important;
+  transition: box-shadow 0.14s, transform 0.14s !important;
 }
 
 .auth-glass form button[type="submit"]:hover:not(:disabled) {
-  background: #e8e8e8 !important;
-  transform: translateY(-1px) !important;
+  box-shadow: 6px 6px 0 #0a2e8c !important;
+  transform: translate(-1px, -1px) !important;
 }
 
 .auth-glass form button[type="submit"]:disabled {
-  background: rgba(255,255,255,0.4) !important;
+  background: #8ba7f0 !important;
+  box-shadow: 4px 4px 0 rgba(10, 46, 140, 0.4) !important;
 }
 
-/* Divider */
-.auth-glass .border-t {
-  border-color: rgba(255,255,255,0.1) !important;
-}
+.auth-glass .border-t { border-color: #d6d1c4 !important; }
 
 .auth-glass .bg-background {
   background: transparent !important;
-  color: rgba(255,255,255,0.3) !important;
+  color: #7a7568 !important;
   font-size: 0.7rem !important;
 }
 
-/* Google/outline button */
+/* Botões secundários (mostrar password, etc.) */
 .auth-glass button[type="button"] {
-  background: rgba(255,255,255,0.05) !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  color: rgba(255,255,255,0.75) !important;
+  background: transparent !important;
+  border: none !important;
+  color: #6b6659 !important;
   font-size: 0.875rem !important;
 }
 
-.auth-glass button[type="button"]:hover:not(:disabled) {
-  background: rgba(255,255,255,0.09) !important;
+.auth-glass button[type="button"]:hover:not(:disabled) { color: #101010 !important; }
+
+/* ── Cabeçalho editorial do cartão ──────────────────────────────────── */
+
+.auth-mark {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #0d3b66 0%, #0f5c6e 100%);
+  margin-bottom: 1rem;
 }
 
-/* Dots logo mark */
-.auth-logo-dots {
-  position: relative;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin: 0 auto 1.25rem;
+.auth-eyebrow {
+  display: inline-block;
+  background: #145cff;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  transform: rotate(-1.2deg);
+  margin-bottom: 0.85rem;
 }
 
-/* Forgot password + sign-up link */
+.auth-title {
+  font-family: var(--wis-display, 'Arial Narrow', Impact, system-ui), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 9vw, 2.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: #101010;
+  margin: 0;
+}
+
+.auth-lead {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #56514a;
+  margin: 0.6rem 0 0;
+}
+
+.auth-rule {
+  height: 3px;
+  background: #101010;
+  margin: 1.1rem 0 1.5rem;
+}
+
+/* Ligações do rodapé do cartão */
 .auth-link {
-  color: rgba(255,255,255,0.4);
+  color: #56514a;
   font-size: 0.8rem;
   text-decoration: none;
   transition: color 0.12s;
 }
+.auth-link:hover { color: #145cff; }
 
-.auth-link:hover { color: rgba(255,255,255,0.75); }
+.auth-foot {
+  margin-top: 1.5rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid #d6d1c4;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #56514a;
+}
+.auth-foot a { color: #145cff; font-weight: 700; text-decoration: none; }
+.auth-foot a:hover { text-decoration: underline; }
 
 /* Back arrow (top-left) — join / new org pages */
 .auth-back-arrow {
@@ -688,8 +811,8 @@
 }
 
 .auth-glass a.org-select-card:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.2);
   transform: translateY(-2px);
 }
 
@@ -718,14 +841,14 @@
 .org-select-card-title {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fff;
+  color: #101010;
   margin: 0;
   letter-spacing: -0.005em;
 }
 
 .org-select-card-desc {
   font-size: 0.72rem;
-  color: rgba(255,255,255,0.42);
+  color: #7a7568;
   margin: 0;
   line-height: 1.4;
 }

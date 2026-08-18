@@ -7,30 +7,27 @@ export default function RegisterPage() {
       <div className="w-full max-w-[380px]">
         <div className="auth-glass">
 
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div className="inline-flex h-12 w-12 rounded-xl items-center justify-center mb-3"
-              style={{ background: 'linear-gradient(135deg, #0D3B66 0%, #0F5C6E 100%)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          {/* Cabeçalho editorial */}
+          <div className="mb-1">
+            <span className="auth-mark">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '1.9rem', height: 'auto' }} />
-            </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
-              Criar conta
-            </h1>
-            <p className="text-[13px] text-white/40 mt-1">
-              Preenche os teus dados para começar.
-            </p>
+              <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '1.5rem', height: 'auto' }} />
+            </span>
+            <p className="auth-eyebrow">WIS — Services</p>
+            <h1 className="auth-title">Criar conta</h1>
+            <p className="auth-lead">Preenche os teus dados para começar.</p>
+            <div className="auth-rule" />
           </div>
 
           {/* Form */}
           <RegisterForm />
 
           {/* Footer */}
-          <p className="text-center text-[13px] text-white/35 mt-5">
+          <p className="auth-foot">
             Já tens conta?{' '}
             <Link
               href="/login"
-              className="text-white/70 font-semibold hover:text-white transition-colors"
+              
             >
               Entrar
             </Link>

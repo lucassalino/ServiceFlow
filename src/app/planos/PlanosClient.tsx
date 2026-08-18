@@ -11,7 +11,7 @@ import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { TearDivider, InkBlob, HandArrow, HandArrowDown, BrushUnderline, ScribbleCircle, Sparkle } from './Doodles';
+import { TearDivider, InkBlob, HandArrow, HandArrowDown, BrushUnderline, ScribbleCircle, Sparkle, NewsClipping, TapeStrip } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -238,6 +238,10 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
               </span>
 
               <HandArrowDown className="wis-hero-arrow" />
+              <span className="wis-clip wis-clip-hero" aria-hidden>
+                <NewsClipping />
+                <TapeStrip className="wis-clip-tape" />
+              </span>
               <Sparkle style={{ position: 'absolute', bottom: '12%', right: '4%', width: '1.7rem', color: 'var(--yellow)', zIndex: 4 }} />
               <Sparkle style={{ position: 'absolute', bottom: '5%', right: '13%', width: '1rem', color: 'var(--yellow)', zIndex: 4 }} />
             </div>
@@ -259,6 +263,11 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                 <BrushUnderline style={{ position: 'absolute', left: 0, bottom: '-0.1em', width: '100%', height: '0.13em', color: 'var(--blue)' }} />
               </span>
             </h2>
+
+            <span className="wis-clip wis-clip-features" aria-hidden>
+              <NewsClipping lines={6} />
+              <TapeStrip className="wis-clip-tape" />
+            </span>
 
             <div className="wis-feature-grid">
               {FEATURES.map((f) => (
@@ -371,6 +380,10 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
               Perguntas<br />frequentes
             </h2>
 
+            <span className="wis-clip wis-clip-faq" aria-hidden>
+              <NewsClipping lines={5} columns={1} />
+            </span>
+
             <div className="wis-faq">
               {FAQ.map((item) => <FaqItem key={item.q} {...item} />)}
             </div>
@@ -428,7 +441,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
           <h2 className="wis-display wis-h2" style={{ color: '#fff' }}>
             Pronto para colocar<br />sua igreja em sintonia?
           </h2>
-          <p>Comece hoje — o plano Semente é grátis para sempre.</p>
+          <p>Comece hoje — o plano Semente é grátis.</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
             <Link href="/register" className="wis-btn wis-btn-ink" style={{ boxShadow: '4px 4px 0 rgba(5,5,5,0.45)' }}>
               Começar agora <ArrowRight size={17} />

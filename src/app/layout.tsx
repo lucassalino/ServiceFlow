@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Anton } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
+
+/** Display condensada da marca — usada na landing e nos ecrãs de entrada. */
+const anton = Anton({ weight: '400', subsets: ['latin'], display: 'swap', variable: '--wis-display' });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://wis-services.com'),
@@ -35,7 +38,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} antialiased`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -812,3 +812,65 @@
 @media (min-width: 768px) {
   .wis-mobile-nav { display: none; }
 }
+
+/* ── Recortes de jornal ────────────────────────────────────────────────
+   Retalhos de papel impresso espalhados pela página, sempre em zonas
+   vazias e nunca por cima de texto. Ligeiramente rodados e com uma fita
+   por cima, como se estivessem colados a uma prancha.                   */
+
+.wis-clip {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+}
+.wis-clip svg { display: block; width: 100%; height: auto; }
+
+.wis-clip-tape {
+  position: absolute;
+  top: -0.55rem;
+  left: 50%;
+  width: 46%;
+  height: auto;
+  color: var(--paper);
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+/* Nota: a página tem overflow-x: clip, por isso os recortes têm de ficar
+   dentro da margem — com offsets negativos desapareciam. */
+
+/* Hero — junto ao telemóvel, à direita */
+.wis-clip-hero {
+  width: 7rem;
+  right: 1%;
+  top: 4%;
+  transform: rotate(7deg);
+  opacity: 0.92;
+}
+
+/* Recursos — no espaço à direita do título */
+.wis-clip-features {
+  width: 8rem;
+  right: 2.5rem;
+  top: 1.5rem;
+  transform: rotate(-7deg);
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.16));
+}
+
+/* FAQ — à direita do cabeçalho, onde a coluna fica vazia */
+.wis-clip-faq {
+  width: 6.5rem;
+  right: 3rem;
+  top: 0.5rem;
+  transform: rotate(11deg);
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.16));
+}
+
+/* Em ecrãs estreitos os recortes recolhem: em zonas apertadas passariam
+   a tapar conteúdo, e aí deixam de ser decoração. */
+@media (max-width: 767px) {
+  .wis-clip-hero { width: 5rem; right: -4%; top: 4%; }
+  .wis-clip-features,
+  .wis-clip-faq { display: none; }
+}
