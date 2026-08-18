@@ -756,6 +756,22 @@
   .wis-burger { display: inline-flex; }
   .wis-hero { grid-template-columns: minmax(0, 1fr); gap: 3rem; }
   .wis-hero-art { min-height: 21rem; }
+
+  /* No telemóvel a composição tem de caber: o botão do header encolhe, o
+     telemóvel recua e a nota deixa de tapar o ecrã da captura. */
+  .wis-header .wis-btn-sm { padding: 0.45rem 0.7rem; font-size: 0.68rem; }
+  .wis-header-inner { padding: 0.7rem 1rem; gap: 0.6rem; }
+
+  .wis-phone { width: min(12.5rem, 56%); transform: rotate(-2deg) translateX(6%); }
+
+  .wis-note {
+    max-width: 8.5rem;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.66rem;
+    line-height: 1.3;
+    left: -1% !important;
+    top: -2% !important;
+  }
   .wis-feature-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .wis-metrics-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.5rem; }
   .wis-metric:nth-child(odd) { border-left: none; }

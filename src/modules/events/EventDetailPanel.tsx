@@ -563,17 +563,9 @@ function ConfirmControl({
   // Quem NÃO é a pessoa escalada: só vê o estado, sem poder alterar.
   if (!isMe) {
     const label = confirmed === true ? 'Confirmado' : confirmed === false ? 'Recusou' : 'Por confirmar';
-    const fg = confirmed === true ? 'var(--wis-success-bg)' : confirmed === false ? 'var(--wis-danger-bg)' : 'var(--wis-surface-4)';
-    const bg = confirmed === true ? 'var(--wis-success-bg)' : confirmed === false ? 'var(--wis-danger-bg)' : 'var(--wis-surface-2)';
-    const border = confirmed === true ? 'var(--wis-success-bg)' : confirmed === false ? 'var(--wis-danger-bg)' : 'var(--wis-surface-4)';
+    const variant = confirmed === true ? 'wis-badge-success' : confirmed === false ? 'wis-badge-danger' : 'wis-badge-neutral';
     return (
-      <span style={{
-        display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
-        padding: '0.3rem 0.7rem', borderRadius: '9999px',
-        fontSize: '0.72rem', fontWeight: 600,
-        color: fg, background: bg, border: `1px solid ${border}`,
-        whiteSpace: 'nowrap',
-      }}>
+      <span className={`wis-badge ${variant}`} style={{ flexShrink: 0 }}>
         {confirmed === true ? <Check style={{ width: '0.75rem', height: '0.75rem' }} />
           : confirmed === false ? <X style={{ width: '0.75rem', height: '0.75rem' }} />
           : <Minus style={{ width: '0.75rem', height: '0.75rem' }} />}
@@ -586,9 +578,7 @@ function ConfirmControl({
   const isConfirmed = confirmed === true;
   const isDeclined = confirmed === false;
   const label = isConfirmed ? 'Confirmado' : isDeclined ? 'Declinado' : 'Confirmar';
-  const fg = isConfirmed ? 'var(--wis-success-bg)' : isDeclined ? 'var(--wis-danger-bg)' : 'var(--wis-surface)';
-  const bg = isConfirmed ? 'var(--wis-success-bg)' : isDeclined ? 'var(--wis-danger-bg)' : 'var(--wis-surface)';
-  const border = isConfirmed ? 'var(--wis-success-bg)' : isDeclined ? 'var(--wis-danger-bg)' : 'transparent';
+  const variant = isConfirmed ? 'wis-badge-success' : isDeclined ? 'wis-badge-danger' : '';
 
   return (
     <div style={{
@@ -617,14 +607,17 @@ function ConfirmControl({
       <button
         onClick={onOpen}
         title="Clique para confirmar ou declinar sua presença"
+        className={variant ? `wis-badge ${variant}` : undefined}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
           padding: '0.45rem 0.9rem', borderRadius: '9999px',
           fontSize: '0.75rem', fontWeight: 600,
-          color: fg, background: bg, border: `1px solid ${border}`,
           cursor: 'pointer',
           whiteSpace: 'nowrap',
           transition: 'background 0.12s, opacity 0.12s, transform 0.1s',
+          ...(variant ? {} : {
+            color: '#fff', background: 'var(--wis-blue)', border: '1px solid transparent',
+          }),
         }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}

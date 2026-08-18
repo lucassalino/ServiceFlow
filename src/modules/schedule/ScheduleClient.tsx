@@ -479,10 +479,10 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
                         ? 'var(--wis-danger-bg)'
                         : 'var(--wis-surface-3)',
                       color: schedule.confirmed === true
-                        ? 'var(--wis-success-bg)'
+                        ? 'var(--wis-success)'
                         : schedule.confirmed === false
-                        ? 'var(--wis-danger-bg)'
-                        : 'var(--wis-surface-4)',
+                        ? 'var(--wis-danger)'
+                        : 'var(--wis-text-3)',
                       transition: 'background 0.12s',
                     };
                     const icon = schedule.confirmed === true
@@ -718,9 +718,13 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
       {/* ── Left: event list ──────────────────────────── */}
       <aside className={`schedule-aside scrollbar-none${mobileShowDetail ? ' mobile-hidden' : ''}`}>
         {/* Header */}
-        <div style={{ padding: '1.25rem 1rem 0.75rem', borderBottom: '1px solid var(--wis-border)' }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
-            Escalas
+        <div style={{ padding: '1.5rem 1.1rem 1rem', borderBottom: '1px solid var(--wis-border)' }}>
+          <p className="wis-eyebrow">Agenda</p>
+          <h1 className="wis-title" style={{ fontSize: '1.75rem', marginTop: '0.35rem' }}>Escalas</h1>
+          <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', margin: '0.45rem 0 0' }}>
+            {sortedEvents.length === 0
+              ? 'Sem eventos para escalar'
+              : `${sortedEvents.length} evento${sortedEvents.length !== 1 ? 's' : ''} · escolhe um para ver quem serve`}
           </p>
         </div>
 
@@ -745,9 +749,9 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     onClick={() => handleSelectEvent(event.id)}
                     style={{
                       width: '100%', textAlign: 'left', padding: '0.625rem 0.75rem',
-                      borderRadius: '0.625rem', border: `1px solid ${isSelected ? 'var(--wis-border-strong)' : 'var(--wis-border)'}`,
+                      borderRadius: 'var(--wis-radius-sm)', border: '1px solid transparent',
                       cursor: 'pointer',
-                      background: isSelected ? 'var(--wis-surface-4)' : 'var(--wis-surface-2)',
+                      background: isSelected ? 'var(--wis-blue-soft)' : 'transparent',
                       color: 'var(--wis-text)',
                       transition: 'background 0.12s, border-color 0.12s',
                       display: 'flex', flexDirection: 'column', gap: '0.25rem',
@@ -755,14 +759,12 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-3)';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-border-strong)';
+                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-2)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--wis-surface-2)';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--wis-border)';
+                        (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
                       }
                     }}
                   >
@@ -771,24 +773,16 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                       <div style={{
                         position: 'absolute', left: 0, top: 0, bottom: 0,
                         width: '3px', borderRadius: '0 2px 2px 0',
-                        background: 'var(--wis-surface-4)',
+                        background: 'var(--wis-blue)',
                       }} />
                     )}
 
                     {/* Name + status */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.375rem', paddingLeft: isSelected ? '0.25rem' : 0 }}>
-                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '0.92rem', fontWeight: 600, color: isSelected ? 'var(--wis-blue)' : 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, flex: 1, minWidth: 0 }}>
                         {event.name}
                       </p>
-                      <span style={{
-                        fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.35rem',
-                        borderRadius: '9999px', flexShrink: 0, letterSpacing: '0.04em',
-                        background: event.is_published ? 'var(--wis-success-bg)' : 'var(--wis-surface-3)',
-                        color: event.is_published ? 'var(--wis-success)' : 'var(--wis-text-3)',
-                        border: `1px solid ${event.is_published ? '#bfe6d3' : 'var(--wis-border-strong)'}`,
-                      }}>
-                        {event.is_published ? 'Pub' : 'Rascunho'}
-                      </span>
+                      {!event.is_published && <span className="wis-pill">Rascunho</span>}
                     </div>
 
                     {/* Date + time */}
