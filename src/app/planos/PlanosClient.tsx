@@ -217,21 +217,25 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
               </p>
             </div>
 
-            {/* Composição: tinta + halftone + captura real do app */}
+            {/* Composição: tinta azul + fotografia + captura real do app */}
             <div className="wis-hero-art">
               <InkBlob className="wis-ink-blob wis-blue" />
-              <span className="wis-halftone" aria-hidden />
 
-              <div className="wis-phone">
+              {/* A fotografia vem com fundo preto e um halo próprio: as margens
+                  dissolvem-se no preto do hero, por isso não precisa de recorte. */}
+              <picture className="wis-hero-photo">
+                <source srcSet="/brand/hero-guitarist@2x.webp 2x, /brand/hero-guitarist.webp 1x" type="image/webp" />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/screenshots/mobile-eventos-equipa.webp"
-                  alt="Tela do WIS no celular, com a equipe escalada de um culto e as confirmações de presença"
-                  width={390}
-                  height={844}
+                  src="/brand/hero-guitarist.webp"
+                  alt="Músico de costas a tocar guitarra durante um culto"
+                  width={700}
+                  height={471}
                   fetchPriority="high"
                 />
-              </div>
+              </picture>
+
+              <span className="wis-halftone" aria-hidden />
 
               <span className="wis-note" style={{ top: '4%', left: '-2%' }}>
                 Mais tempo para o que realmente importa.
