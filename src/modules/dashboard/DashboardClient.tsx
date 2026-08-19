@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
+import { formatTime, getInitials } from '@/lib/utils';
 import type { Event } from '@/types/models';
 
 export interface BirthdayPerson {
@@ -93,7 +93,6 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
             <div className="wis-event-card" style={{ marginTop: '0.85rem' }}>
               {upcomingEvents.slice(0, 3).map((event) => {
                 const { month, day } = getDateParts(event.date);
-                const period = eventPeriod(event.time);
                 return (
                   <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="wis-event-row">
                     <div className="wis-event-date-badge">
@@ -108,11 +107,6 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
                         </span>
                         <span className="wis-pill">{event.is_published ? 'Publicado' : 'Rascunho'}</span>
                       </div>
-                      {period && (
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <span className="wis-pill wis-pill-accent">{period.emoji} {period.label.toUpperCase()}</span>
-                        </div>
-                      )}
                       {event.time && (
                         <span style={{
                           display: 'flex', alignItems: 'center', gap: '0.35rem',
