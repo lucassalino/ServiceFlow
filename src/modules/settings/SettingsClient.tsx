@@ -75,6 +75,13 @@ function Divider() {
   return <div style={{ height: '1px', background: 'var(--wis-surface-3)', margin: '1rem 0' }} />;
 }
 
+const TABS = [
+  { key: 'conta', label: 'Conta' },
+  { key: 'organizacao', label: 'Organização' },
+  { key: 'sistema', label: 'Sistema' },
+] as const;
+type TabKey = typeof TABS[number]['key'];
+
 export function SettingsClient({ orgId }: Props) {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -100,6 +107,11 @@ export function SettingsClient({ orgId }: Props) {
   const [codeCopied, setCodeCopied] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferTargetId, setTransferTargetId] = useState<string>('');
+  const [tab, setTab] = useState<TabKey>('conta');
+
+  // O separador "Organização" só existe para quem administra — é onde vive
+  // tudo o que só o admin pode ver ou mudar.
+  const visibleTabs = TABS.filter((t) => t.key !== 'organizacao' || isAdmin);
 
   // Logótipo da organização
   const orgLogoInputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +135,10 @@ export function SettingsClient({ orgId }: Props) {
   useEffect(() => {
     if (activeOrg) orgForm.reset({ name: activeOrg.name });
   }, [activeOrg, orgForm]);
+
+  useEffect(() => {
+    if (tab === 'organizacao' && !isAdmin) setTab('conta');
+  }, [tab, isAdmin]);
 
   function handleOrgLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -366,14 +382,31 @@ export function SettingsClient({ orgId }: Props) {
         {isAdmin && activeOrg && <DowngradeLockScreen orgId={orgId} />}
 
         {/*
-          Em ecrãs largos a página deixa de ser uma coluna estreita: passa a
-          duas colunas — à esquerda o que é *teu* (perfil, funções, escalas),
-          à direita o que é *da organização e do sistema*. Abaixo de `lg`
-          volta a ser uma única coluna, na mesma ordem de leitura.
+          Três separadores em vez de um scroll só: Conta (o que é teu),
+          Organização (só admin — nome, plano, funcionalidades) e Sistema
+          (sessão, saída, zona de perigo). Cada um mostra só o que lhe
+          pertence, em vez de tudo empilhado numa página só.
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 items-start">
-          <div className="space-y-5">
+        <div className="wis-segmented" role="tablist" aria-label="Secções das definições">
+          <span
+            className="wis-segmented-thumb"
+            style={{
+              width: `calc(${100 / visibleTabs.length}% - 3px)`,
+              transform: `translateX(${visibleTabs.findIndex((t) => t.key === tab) * 100}%)`,
+            }}
+            aria-hidden
+          />
+          {visibleTabs.map(({ key, label }) => (
+            <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>
+              {label}
+            </button>
+          ))}
+        </div>
 
+        <div className="max-w-2xl space-y-5">
+
+        {tab === 'conta' && (
+        <>
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">
           {/* Avatar row */}
@@ -469,17 +502,17 @@ export function SettingsClient({ orgId }: Props) {
           <EmailPreferencesSection />
         </Section>
 
-          </div>
-
-          <div className="space-y-5 mt-5 lg:mt-0">
-
         {/* ── Sincronizar calendário ───────────────────── */}
         {activeOrg && (
           <Section title="Sincronizar calendário">
             <CalendarSyncSection orgId={orgId} />
           </Section>
         )}
+        </>
+        )}
 
+        {tab === 'organizacao' && isAdmin && activeOrg && (
+        <>
         {/* ── Organisation (admin only) ────────────────── */}
         {isAdmin && activeOrg && (
           <Section title="Organização">
@@ -599,7 +632,11 @@ export function SettingsClient({ orgId }: Props) {
             <FeatureVisibilitySection orgId={orgId} />
           </Section>
         )}
+        </>
+        )}
 
+        {tab === 'sistema' && (
+        <>
         {/* ── Sessão ──────────────────────────────────── */}
         <Section title="Sessão">
           <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
@@ -703,8 +740,9 @@ export function SettingsClient({ orgId }: Props) {
             Eliminar conta
           </button>
         </Section>
+        </>
+        )}
 
-          </div>
         </div>
 
         <div style={{ height: '1rem' }} />
