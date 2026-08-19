@@ -6,6 +6,7 @@ import {
   checkMinistryUnlocked, checkMemberUnlockedByUserId,
   getEventOrgId, getEventMinistryOrgId, type LockGuarded,
 } from '@/lib/downgrade-lock';
+import { logEventActivity, fetchMinistryName, fetchPersonName } from '@/lib/activity-log';
 
 export async function fetchEventMinistriesAction(
   eventId: string,
@@ -102,6 +103,32 @@ export async function replaceEventSetupAction(
     }
   }
 
+  // ── Estado anterior, só para gerar o histórico do que vai mudar ───────
+  const { data: prevMinsRaw } = await supabase
+    .from('event_ministries').select('id, ministry_id, ministry:ministries(name)').eq('event_id', eventId);
+  const prevMins = (prevMinsRaw ?? []) as unknown as
+    { id: string; ministry_id: string; ministry: { name: string } | null }[];
+  const prevMinistryIds = new Set(prevMins.map((m) => m.ministry_id));
+  const prevMembersByEm = new Map<string, { user_id: string }[]>();
+  if (prevMins.length > 0) {
+    const { data: prevSched } = await supabase
+      .from('event_schedules').select('event_ministry_id, user_id')
+      .in('event_ministry_id', prevMins.map((m) => m.id));
+    for (const s of (prevSched ?? []) as { event_ministry_id: string; user_id: string }[]) {
+      const list = prevMembersByEm.get(s.event_ministry_id) ?? [];
+      list.push(s);
+      prevMembersByEm.set(s.event_ministry_id, list);
+    }
+  }
+  const { data: prevSetlistRaw } = await supabase
+    .from('event_setlists').select('song_id, song:songs(name)').eq('event_id', eventId);
+  const prevSetlist = (prevSetlistRaw ?? []) as unknown as { song_id: string; song: { name: string } | null }[];
+  const prevSongIds = new Set(prevSetlist.map((s) => s.song_id));
+  const prevSongNameById = new Map(prevSetlist.map((s) => [s.song_id, s.song?.name ?? '']));
+  const { data: prevTimelineRaw } = await supabase
+    .from('event_timeline_items').select('time, title').eq('event_id', eventId).order('order_index');
+  const prevTimeline = (prevTimelineRaw ?? []) as EventTimelineItemInput[];
+
   const { data: existingMins } = await supabase
     .from('event_ministries').select('id').eq('event_id', eventId);
   if (existingMins && existingMins.length > 0) {
@@ -143,6 +170,64 @@ export async function replaceEventSetupAction(
     const { error: tlErr } = await supabase.from('event_timeline_items').insert(rows);
     if (tlErr) throw new Error(tlErr.message);
   }
+
+  // ── Diff → histórico ───────────────────────────────────────────────
+  const messages: string[] = [];
+  const newMinistryIds = new Set(setup.map((s) => s.ministryId));
+  const addedMinistryIds = setup.map((s) => s.ministryId).filter((id) => !prevMinistryIds.has(id));
+
+  const allUserIds = new Set<string>();
+  for (const list of prevMembersByEm.values()) for (const m of list) allUserIds.add(m.user_id);
+  for (const { members } of setup) for (const { userId } of members) allUserIds.add(userId);
+  let nameByUserId = new Map<string, string>();
+  if (allUserIds.size > 0) {
+    const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', [...allUserIds]);
+    nameByUserId = new Map(((profs ?? []) as { id: string; full_name: string }[]).map((p) => [p.id, p.full_name]));
+  }
+  let addedMinistryNameById = new Map<string, string>();
+  if (addedMinistryIds.length > 0) {
+    const { data: minRows } = await supabase.from('ministries').select('id, name').in('id', addedMinistryIds);
+    addedMinistryNameById = new Map(((minRows ?? []) as { id: string; name: string }[]).map((r) => [r.id, r.name]));
+  }
+  const prevMinistryNameById = new Map(prevMins.map((m) => [m.ministry_id, m.ministry?.name ?? '']));
+
+  for (const m of prevMins) {
+    if (!newMinistryIds.has(m.ministry_id)) messages.push(`removeu o ministério ${m.ministry?.name ?? ''} do evento`);
+  }
+  for (const id of addedMinistryIds) {
+    messages.push(`adicionou o ministério ${addedMinistryNameById.get(id) ?? ''} ao evento`);
+  }
+  for (const { ministryId, members } of setup) {
+    const em = prevMins.find((m) => m.ministry_id === ministryId);
+    const prevMembers = em ? (prevMembersByEm.get(em.id) ?? []) : [];
+    const prevUserIds = new Set(prevMembers.map((m) => m.user_id));
+    const newUserIds = new Set(members.map((m) => m.userId));
+    const ministryName = addedMinistryNameById.get(ministryId) ?? prevMinistryNameById.get(ministryId) ?? '';
+    for (const m of prevMembers) {
+      if (!newUserIds.has(m.user_id)) messages.push(`removeu ${nameByUserId.get(m.user_id) ?? 'alguém'} de ${ministryName}`);
+    }
+    for (const { userId } of members) {
+      if (!prevUserIds.has(userId)) messages.push(`adicionou ${nameByUserId.get(userId) ?? 'alguém'} a ${ministryName}`);
+    }
+  }
+
+  const newSongIds = new Set(songIds);
+  for (const id of prevSongIds) {
+    if (!newSongIds.has(id)) messages.push(`removeu a música ${prevSongNameById.get(id) ?? ''} da setlist`);
+  }
+  const addedSongIds = songIds.filter((id) => !prevSongIds.has(id));
+  if (addedSongIds.length > 0) {
+    const { data: songRows } = await supabase.from('songs').select('id, name').in('id', addedSongIds);
+    const nameById = new Map(((songRows ?? []) as { id: string; name: string }[]).map((r) => [r.id, r.name]));
+    for (const id of addedSongIds) messages.push(`adicionou a música ${nameById.get(id) ?? ''} à setlist`);
+  }
+
+  if (JSON.stringify(prevTimeline) !== JSON.stringify(timeline)) {
+    messages.push('atualizou o roteiro do evento');
+  }
+
+  await logEventActivity(supabase, orgId, eventId, user.id, messages);
+
   return { ok: true, data: undefined };
 }
 
@@ -159,6 +244,8 @@ export async function addMinistryToEventAction(
   const { data, error } = await supabase.from('event_ministries')
     .insert({ event_id: eventId, ministry_id: ministryId }).select().single();
   if (error) throw new Error(error.message);
+  const ministryName = await fetchMinistryName(supabase, ministryId);
+  await logEventActivity(supabase, orgId, eventId, user.id, [`adicionou o ministério ${ministryName} ao evento`]);
   return { ok: true, data: data as EventMinistry };
 }
 
@@ -166,8 +253,15 @@ export async function removeMinistryFromEventAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const { data: em } = await supabase.from('event_ministries')
+    .select('event_id, ministry:ministries(name), event:events(org_id)').eq('id', id).maybeSingle();
+  const emRow = em as unknown as { event_id: string; ministry: { name: string } | null; event: { org_id: string } | null } | null;
   const { error } = await supabase.from('event_ministries').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  if (emRow?.event?.org_id) {
+    await logEventActivity(supabase, emRow.event.org_id, emRow.event_id, user.id,
+      [`removeu o ministério ${emRow.ministry?.name ?? ''} do evento`]);
+  }
 }
 
 export async function addPersonToScheduleAction(
@@ -187,6 +281,14 @@ export async function addPersonToScheduleAction(
     .insert({ event_ministry_id: eventMinistryId, user_id: userId, functions })
     .select().single();
   if (error) throw new Error(error.message);
+  const { data: em } = await supabase.from('event_ministries')
+    .select('event_id, ministry:ministries(name)').eq('id', eventMinistryId).maybeSingle();
+  const emRow = em as unknown as { event_id: string; ministry: { name: string } | null } | null;
+  if (emRow) {
+    const personName = await fetchPersonName(supabase, userId);
+    await logEventActivity(supabase, orgId, emRow.event_id, user.id,
+      [`adicionou ${personName} a ${emRow.ministry?.name ?? 'um ministério'}`]);
+  }
   return { ok: true, data: data as EventSchedule };
 }
 
@@ -194,8 +296,21 @@ export async function removePersonFromScheduleAction(id: string): Promise<void> 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const { data: sched } = await supabase.from('event_schedules')
+    .select('user_id, event_ministry:event_ministries(event_id, ministry:ministries(name), event:events(org_id))')
+    .eq('id', id).maybeSingle();
+  const schedRow = sched as unknown as {
+    user_id: string;
+    event_ministry: { event_id: string; ministry: { name: string } | null; event: { org_id: string } | null } | null;
+  } | null;
   const { error } = await supabase.from('event_schedules').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  const em = schedRow?.event_ministry;
+  if (em?.event?.org_id) {
+    const personName = await fetchPersonName(supabase, schedRow!.user_id);
+    await logEventActivity(supabase, em.event.org_id, em.event_id, user.id,
+      [`removeu ${personName} de ${em.ministry?.name ?? 'um ministério'}`]);
+  }
 }
 
 export interface ScheduledContact {
@@ -352,14 +467,29 @@ export async function reorderEventSetlistAction(eventId: string, orderedSongIds:
   await Promise.all(orderedSongIds.map((songId, index) =>
     supabase.from('event_setlists').update({ order_index: index }).eq('event_id', eventId).eq('song_id', songId),
   ));
+  await logEventActivity(supabase, orgId, eventId, user.id, ['reordenou a setlist']);
 }
 
 export async function updateEventScheduleAction(id: string, functions: string[]): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const { data: sched } = await supabase.from('event_schedules')
+    .select('user_id, event_ministry:event_ministries(event_id, ministry:ministries(name), event:events(org_id))')
+    .eq('id', id).maybeSingle();
   const { error } = await supabase.from('event_schedules').update({ functions }).eq('id', id);
   if (error) throw new Error(error.message);
+  const schedRow = sched as unknown as {
+    user_id: string;
+    event_ministry: { event_id: string; ministry: { name: string } | null; event: { org_id: string } | null } | null;
+  } | null;
+  const em = schedRow?.event_ministry;
+  if (em?.event?.org_id) {
+    const personName = await fetchPersonName(supabase, schedRow!.user_id);
+    const funcLabel = functions.length > 0 ? functions.join(', ') : 'sem função';
+    await logEventActivity(supabase, em.event.org_id, em.event_id, user.id,
+      [`alterou a função de ${personName} em ${em.ministry?.name ?? 'um ministério'} para ${funcLabel}`]);
+  }
 }
 
 export async function setupEventSetlistAction(

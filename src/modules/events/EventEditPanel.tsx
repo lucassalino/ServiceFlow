@@ -455,6 +455,7 @@ export function EventEditPanel({ event, onBack }: Props) {
         qc.invalidateQueries({ queryKey: ['event-setlist', event.id] });
         qc.invalidateQueries({ queryKey: ['event-ministries', event.id] });
         qc.invalidateQueries({ queryKey: ['event-timeline', event.id] });
+        qc.invalidateQueries({ queryKey: ['event-activity', event.id] });
         toast.success('Evento atualizado com sucesso');
         onBack();
       } catch (e: unknown) {

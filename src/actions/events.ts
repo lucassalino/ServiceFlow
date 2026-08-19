@@ -1,6 +1,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { logEventActivity } from '@/lib/activity-log';
+import { formatDate, formatTime } from '@/lib/utils';
 import type { Event } from '@/types/models';
 
 /** IDs dos eventos onde o utilizador está escalado (usado nas regras de visibilidade). */
@@ -61,18 +63,35 @@ export async function createEventAction(orgId: string, payload: EventPayload): P
   const { data, error } = await supabase.from('events')
     .insert({ ...payload, org_id: orgId, created_by: user.id }).select().single();
   if (error) throw new Error(error.message);
-  return data as Event;
+  const created = data as Event;
+  await logEventActivity(supabase, orgId, created.id, user.id, ['criou o evento']);
+  return created;
 }
 
 export async function updateEventAction(id: string, payload: EventPayload): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const { data: prev } = await supabase.from('events')
+    .select('org_id, name, date, time, location').eq('id', id).maybeSingle();
   // RLS ("events: admins/leaders can update") impede editar eventos de
   // organizações onde não se é admin/líder.
   const { error } = await supabase.from('events')
     .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
+
+  const prevRow = prev as { org_id: string; name: string; date: string; time: string; location: string | null } | null;
+  if (prevRow) {
+    const messages: string[] = [];
+    if (prevRow.name !== payload.name) messages.push(`alterou o nome do evento de "${prevRow.name}" para "${payload.name}"`);
+    if (prevRow.date !== payload.date || prevRow.time !== payload.time) {
+      messages.push(`alterou a data do evento para ${formatDate(payload.date)} às ${formatTime(payload.time)}`);
+    }
+    if ((prevRow.location ?? '') !== (payload.location ?? '')) {
+      messages.push(payload.location ? `alterou o local para ${payload.location}` : 'removeu o local do evento');
+    }
+    await logEventActivity(supabase, prevRow.org_id, id, user.id, messages);
+  }
 }
 
 export async function deleteEventAction(id: string): Promise<void> {
@@ -107,8 +126,13 @@ export async function publishEventAction(id: string, publish: boolean): Promise<
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+  const { data: prev } = await supabase.from('events').select('org_id').eq('id', id).maybeSingle();
   // RLS ("events: admins/leaders can update") cobre também o toggle de publicação.
   const { error } = await supabase.from('events')
     .update({ is_published: publish, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
+  const orgId = (prev as { org_id?: string } | null)?.org_id;
+  if (orgId) {
+    await logEventActivity(supabase, orgId, id, user.id, [publish ? 'publicou o evento' : 'despublicou o evento']);
+  }
 }

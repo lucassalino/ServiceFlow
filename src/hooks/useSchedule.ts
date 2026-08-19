@@ -41,6 +41,7 @@ export function useAddMinistryToEvent() {
       addMinistryToEventAction(eventId, ministryId).then(unwrapLockGuarded),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['event-ministries', vars.eventId] });
+      qc.invalidateQueries({ queryKey: ['event-activity', vars.eventId] });
     },
   });
 }
@@ -52,6 +53,7 @@ export function useRemoveMinistryFromEvent() {
       removeMinistryFromEventAction(id).then(() => eventId),
     onSuccess: (eventId) => {
       qc.invalidateQueries({ queryKey: ['event-ministries', eventId] });
+      qc.invalidateQueries({ queryKey: ['event-activity', eventId] });
     },
   });
 }
@@ -64,6 +66,7 @@ export function useAddPersonToSchedule() {
     }) => addPersonToScheduleAction(eventMinistryId, userId, functions).then(unwrapLockGuarded),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['event-schedules', data.event_ministry_id] });
+      qc.invalidateQueries({ queryKey: ['event-activity'] });
     },
   });
 }
@@ -75,6 +78,7 @@ export function useRemovePersonFromSchedule() {
       removePersonFromScheduleAction(id).then(() => eventMinistryId),
     onSuccess: (eventMinistryId) => {
       qc.invalidateQueries({ queryKey: ['event-schedules', eventMinistryId] });
+      qc.invalidateQueries({ queryKey: ['event-activity'] });
     },
   });
 }
@@ -119,6 +123,7 @@ export function useUpdateEventSchedule() {
       updateEventScheduleAction(id, functions),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['event-schedules'] });
+      qc.invalidateQueries({ queryKey: ['event-activity'] });
     },
   });
 }
@@ -154,6 +159,7 @@ export function useReorderEventSetlist() {
     },
     onSettled: (_data, _err, { eventId }) => {
       qc.invalidateQueries({ queryKey: ['event-setlist', eventId] });
+      qc.invalidateQueries({ queryKey: ['event-activity', eventId] });
     },
   });
 }

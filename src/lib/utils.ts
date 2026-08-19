@@ -15,6 +15,14 @@ export function formatTime(time: string): string {
   return time.slice(0, 5);
 }
 
+/** "19/08 12:05" — usado no histórico de alterações, onde a data sozinha não chega. */
+export function formatDateTime(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const datePart = new Intl.DateTimeFormat('pt-PT', { day: '2-digit', month: '2-digit' }).format(d);
+  const timePart = new Intl.DateTimeFormat('pt-PT', { hour: '2-digit', minute: '2-digit' }).format(d);
+  return `${datePart} ${timePart}`;
+}
+
 export function getInitials(name: string): string {
   return name.split(' ').slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
 }

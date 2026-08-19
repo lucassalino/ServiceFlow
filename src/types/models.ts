@@ -35,6 +35,10 @@ export interface Event {
   description: string | null; observations: string | null; is_published: boolean;
   created_by: string; created_at: string; updated_at: string;
 }
+export interface EventActivityLogEntry {
+  id: string; org_id: string; event_id: string;
+  actor_id: string | null; actor_name: string; message: string; created_at: string;
+}
 export interface EventMinistry {
   id: string; event_id: string; ministry_id: string;
   ministry?: Ministry;

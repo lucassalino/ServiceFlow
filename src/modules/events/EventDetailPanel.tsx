@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus, GripVertical, ChevronDown, ClipboardList, FileText } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Check, X, Minus, Music2, Youtube, ExternalLink, Users, ListMusic, Timer, Printer, CalendarPlus, GripVertical, ChevronDown, ClipboardList, FileText, History } from 'lucide-react';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
@@ -15,8 +15,9 @@ import {
   useConfirmSchedule,
   useReorderEventSetlist,
 } from '@/hooks/useSchedule';
+import { useEventActivity } from '@/hooks/useActivity';
 import { getFunctionLabel } from '@/lib/constants';
-import { formatDate, formatTime, getInitials, eventPeriod } from '@/lib/utils';
+import { formatDate, formatTime, formatDateTime, getInitials, eventPeriod } from '@/lib/utils';
 import { downloadEventICS } from '@/lib/ics';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -42,7 +43,7 @@ interface Props {
 export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, onEdit }: Props) {
   const { activeMembership, activeOrg } = useOrgStore();
   const currentUserId = activeMembership?.user_id;
-  const [tab, setTab] = useState<'team' | 'setlist' | 'roteiro'>('team');
+  const [tab, setTab] = useState<'team' | 'setlist' | 'roteiro' | 'historico'>('team');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(event.id);
@@ -186,7 +187,8 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
               { key: 'team', label: 'Ministérios & Equipa', icon: <Users style={{ width: '0.875rem', height: '0.875rem' }} />, count: eventMinistries.length },
               { key: 'setlist', label: 'Setlist', icon: <ListMusic style={{ width: '0.875rem', height: '0.875rem' }} />, count: setlist.length },
               { key: 'roteiro', label: 'Roteiro', icon: <Clock style={{ width: '0.875rem', height: '0.875rem' }} />, count: timeline.length },
-            ] as const).map(({ key, label, icon, count }) => (
+              { key: 'historico', label: 'Histórico', icon: <History style={{ width: '0.875rem', height: '0.875rem' }} />, count: 0 },
+            ] as const).filter(({ key }) => key !== 'historico' || canManage).map(({ key, label, icon, count }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
@@ -337,9 +339,59 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
               </div>
             )
           )}
+
+          {/* Tab: Histórico */}
+          {tab === 'historico' && canManage && (
+            <EventActivityTab eventId={event.id} />
+          )}
         </div>
 
       </div>
+    </div>
+  );
+}
+
+// ── Histórico de alterações ────────────────────────────────────────────────
+
+function EventActivityTab({ eventId }: { eventId: string }) {
+  const { data: activity = [], isLoading } = useEventActivity(eventId, true);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {[1, 2, 3].map((i) => (
+          <div key={i} style={{ height: '2.75rem', borderRadius: '0.625rem', background: 'var(--wis-surface-2)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (activity.length === 0) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', borderRadius: '0.875rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)' }}>
+        <History style={{ width: '2rem', height: '2rem', color: 'var(--wis-text-4)', margin: '0 auto 0.75rem' }} />
+        <p style={{ fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
+          Ainda não há alterações registadas para este evento.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ borderRadius: '0.875rem', background: 'var(--wis-surface-2)', border: '1px solid var(--wis-border)', overflow: 'hidden' }}>
+      {activity.map((a, idx) => (
+        <div key={a.id} style={{
+          display: 'flex', gap: '0.75rem', padding: '0.7rem 1.125rem',
+          borderBottom: idx < activity.length - 1 ? '1px solid var(--wis-border)' : 'none',
+        }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', flexShrink: 0, width: '6.5rem', fontVariantNumeric: 'tabular-nums' }}>
+            {formatDateTime(a.created_at)}
+          </span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--wis-text-2)', lineHeight: 1.5 }}>
+            <span style={{ fontWeight: 600, color: 'var(--wis-text)' }}>{a.actor_name}</span> {a.message}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
