@@ -387,7 +387,8 @@ export function SettingsClient({ orgId }: Props) {
           (sessão, saída, zona de perigo). Cada um mostra só o que lhe
           pertence, em vez de tudo empilhado numa página só.
         */}
-        <div className="wis-segmented" role="tablist" aria-label="Secções das definições">
+        <div className="wis-segmented" role="tablist" aria-label="Secções das definições"
+          style={{ display: 'flex', width: '100%', maxWidth: '26rem' }}>
           <span
             className="wis-segmented-thumb"
             style={{
@@ -397,7 +398,8 @@ export function SettingsClient({ orgId }: Props) {
             aria-hidden
           />
           {visibleTabs.map(({ key, label }) => (
-            <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>
+            <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}
+              style={{ flex: 1, justifyContent: 'center' }}>
               {label}
             </button>
           ))}
