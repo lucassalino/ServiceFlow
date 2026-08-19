@@ -177,12 +177,15 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
 
         {/* ── Tabs ───────────────────────────────────── */}
         <div>
-          {/* Tab bar */}
+          {/* Tab bar — desliza no telemóvel em vez de cortar os separadores de fora */}
           <div style={{
             display: 'flex', gap: '0.25rem',
             borderBottom: '1px solid var(--wis-border)',
             marginBottom: '1.25rem',
-          }}>
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+          }} className="scrollbar-none">
             {([
               { key: 'team', label: 'Ministérios & Equipa', icon: <Users style={{ width: '0.875rem', height: '0.875rem' }} />, count: eventMinistries.length },
               { key: 'setlist', label: 'Setlist', icon: <ListMusic style={{ width: '0.875rem', height: '0.875rem' }} />, count: setlist.length },
