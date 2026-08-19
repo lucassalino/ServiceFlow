@@ -105,7 +105,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
                         <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--wis-text)' }}>
                           {event.name}
                         </span>
-                        <span className="wis-pill">{event.is_published ? 'Publicado' : 'Rascunho'}</span>
+                        {!event.is_published && <span className="wis-pill">Rascunho</span>}
                       </div>
                       {event.time && (
                         <span style={{
