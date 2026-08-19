@@ -45,6 +45,7 @@ interface Props { orgId: string }
 
 import { APP_URL } from '@/lib/app-url';
 import { EmailNotifyDialog } from './EmailNotifyDialog';
+import { EventActivityTab } from '@/modules/events/EventDetailPanel';
 
 // ── Shared dark badge ────────────────────────────────────────────────────────
 
@@ -930,6 +931,14 @@ export function ScheduleClient({ orgId: _orgId }: Props) {
                   <MinistrySlot key={em.id} em={em} eventId={selectedEvent.id} isAdmin={isAdmin}
                     eventName={selectedEvent.name} eventDate={selectedEvent.date} eventTime={selectedEvent.time} />
                 ))}
+              </div>
+            )}
+
+            {/* Histórico de alterações — só admin/líder */}
+            {isAdmin && (
+              <div style={{ marginTop: '2rem' }}>
+                <p className="wis-eyebrow" style={{ marginBottom: '1rem' }}>Histórico</p>
+                <EventActivityTab eventId={selectedEvent.id} />
               </div>
             )}
           </div>

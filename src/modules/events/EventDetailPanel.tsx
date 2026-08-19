@@ -353,7 +353,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
 
 // ── Histórico de alterações ────────────────────────────────────────────────
 
-function EventActivityTab({ eventId }: { eventId: string }) {
+export function EventActivityTab({ eventId }: { eventId: string }) {
   const { data: activity = [], isLoading } = useEventActivity(eventId, true);
 
   if (isLoading) {
