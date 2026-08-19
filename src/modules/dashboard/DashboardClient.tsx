@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import {
   CalendarDays, Users, LayoutGrid,
-  MapPin, Clock, ArrowRight, ArrowUpRight,
-  CalendarCheck, BookOpen, Cake, TrendingUp,
+  Clock, ArrowRight,
+  CalendarCheck, BookOpen, Cake,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
-import { isOrgFeatureEnabled } from '@/lib/org-features';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatTime, getInitials, eventPeriod } from '@/lib/utils';
 import type { Event } from '@/types/models';
@@ -57,12 +56,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
   const { activeMembership, activeOrg } = useOrgStore();
   const firstName = activeMembership?.profile?.full_name?.split(' ')[0] ?? 'Bem-vindo';
   const isAdmin = activeMembership?.role === 'admin';
-  const canSeeReports = (isAdmin || activeMembership?.role === 'leader')
-    && isOrgFeatureEnabled(activeOrg?.disabled_features, 'engagement_reports');
   const currentMonthName = MONTH_NAMES[new Date().getMonth()];
-
-  // O primeiro evento ganha destaque próprio; os restantes são uma lista.
-  const [nextEvent, ...laterEvents] = upcomingEvents;
 
   return (
     <div className="dash-purple-bg">
@@ -83,57 +77,8 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
           </p>
         </header>
 
-        {/* ── Próximo evento em destaque ────────────────── */}
-        {nextEvent ? (
-          <Link href={`/${orgId}/events?event=${nextEvent.id}`} className="wis-next">
-            <p className="wis-eyebrow" style={{ color: 'var(--wis-blue)' }}>Próximo</p>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', marginTop: '0.6rem' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{
-                  fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em',
-                  color: 'var(--wis-text)', margin: 0,
-                }}>
-                  {nextEvent.name}
-                </h2>
-                <p style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
-                  fontSize: '0.875rem', color: 'var(--wis-text-2)', margin: '0.5rem 0 0',
-                }}>
-                  <span style={{ fontWeight: 600, color: 'var(--wis-text)' }}>
-                    {getDateParts(nextEvent.date).day} {getDateParts(nextEvent.date).month}
-                  </span>
-                  {nextEvent.time && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <Clock style={{ width: '0.85rem', height: '0.85rem' }} />{formatTime(nextEvent.time)}
-                    </span>
-                  )}
-                  {nextEvent.location && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', minWidth: 0 }}>
-                      <MapPin style={{ width: '0.85rem', height: '0.85rem', flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {nextEvent.location}
-                      </span>
-                    </span>
-                  )}
-                </p>
-              </div>
-              <ArrowUpRight style={{ width: '1.25rem', height: '1.25rem', color: 'var(--wis-blue)', flexShrink: 0 }} />
-            </div>
-          </Link>
-        ) : (
-          <div style={{ padding: '2.5rem 0', textAlign: 'center' }}>
-            <CalendarDays style={{ width: '2rem', height: '2rem', margin: '0 auto 0.75rem', color: 'var(--wis-text-4)' }} />
-            <p style={{ fontSize: '0.9rem', color: 'var(--wis-text-2)' }}>Nenhum evento agendado.</p>
-            {isAdmin && (
-              <Link href={`/${orgId}/events`} className="dark-primary-btn" style={{ marginTop: '1rem' }}>
-                Criar evento <ArrowRight style={{ width: '0.9rem', height: '0.9rem' }} />
-              </Link>
-            )}
-          </div>
-        )}
-
-        {/* ── Restantes eventos, em lista ───────────────── */}
-        {laterEvents.length > 0 && (
+        {/* ── Próximos eventos ───────────────────────────── */}
+        {upcomingEvents.length > 0 ? (
           <section className="wis-section">
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '1rem' }}>
               <p className="wis-eyebrow">Próximos eventos</p>
@@ -145,62 +90,54 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
               </Link>
             </div>
 
-            <div style={{ marginTop: '0.5rem' }}>
-              {laterEvents.map((event) => {
+            <div className="wis-event-card" style={{ marginTop: '0.85rem' }}>
+              {upcomingEvents.slice(0, 3).map((event) => {
                 const { month, day } = getDateParts(event.date);
                 const period = eventPeriod(event.time);
                 return (
-                  <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="wis-row">
-                    <span className="wis-date">
-                      <b>{day}</b>
+                  <Link key={event.id} href={`/${orgId}/events?event=${event.id}`} className="wis-event-row">
+                    <div className="wis-event-date-badge">
                       <span>{month}</span>
-                    </span>
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{
-                        display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
-                      }}>
-                        <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)' }}>
+                      <b>{day}</b>
+                    </div>
+                    <div className="wis-event-bar" />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--wis-text)' }}>
                           {event.name}
                         </span>
-                        {!event.is_published && <span className="wis-pill">Rascunho</span>}
-                        {period && <span className="wis-pill wis-pill-accent">{period.label}</span>}
-                      </span>
-                      <span style={{
-                        display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
-                        fontSize: '0.8rem', color: 'var(--wis-text-3)', marginTop: '0.15rem',
-                      }}>
-                        {event.time && <span>{formatTime(event.time)}</span>}
-                        {event.location && (
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {event.location}
-                          </span>
-                        )}
-                      </span>
-                    </span>
-                    <ArrowRight style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-4)', flexShrink: 0 }} />
+                        <span className="wis-pill">{event.is_published ? 'Publicado' : 'Rascunho'}</span>
+                      </div>
+                      {period && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <span className="wis-pill wis-pill-accent">{period.emoji} {period.label.toUpperCase()}</span>
+                        </div>
+                      )}
+                      {event.time && (
+                        <span style={{
+                          display: 'flex', alignItems: 'center', gap: '0.35rem',
+                          fontSize: '0.85rem', color: 'var(--wis-text-3)', marginTop: '0.5rem',
+                        }}>
+                          <Clock style={{ width: '0.85rem', height: '0.85rem' }} />{formatTime(event.time)}
+                        </span>
+                      )}
+                    </div>
+                    <ArrowRight style={{ width: '1rem', height: '1rem', color: 'var(--wis-text-4)', flexShrink: 0, alignSelf: 'center' }} />
                   </Link>
                 );
               })}
             </div>
           </section>
-        )}
-
-        {/* ── Relatórios — só quem os pode ver ──────────── */}
-        {canSeeReports && (
-          <section className="wis-section">
-            <Link href={`/${orgId}/reports`} className="wis-row" style={{ borderBottom: 'none' }}>
-              <TrendingUp style={{ width: '1.1rem', height: '1.1rem', color: 'var(--wis-blue)', flexShrink: 0 }} />
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)' }}>
-                  Relatórios de engajamento
-                </span>
-                <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--wis-text-3)', marginTop: '0.1rem' }}>
-                  Participação da equipa por período e ministério
-                </span>
-              </span>
-              <ArrowRight style={{ width: '0.9rem', height: '0.9rem', color: 'var(--wis-text-4)', flexShrink: 0 }} />
-            </Link>
-          </section>
+        ) : (
+          <div style={{ padding: '2.5rem 0', textAlign: 'center' }}>
+            <CalendarDays style={{ width: '2rem', height: '2rem', margin: '0 auto 0.75rem', color: 'var(--wis-text-4)' }} />
+            <p style={{ fontSize: '0.9rem', color: 'var(--wis-text-2)' }}>Nenhum evento agendado.</p>
+            {isAdmin && (
+              <Link href={`/${orgId}/events`} className="dark-primary-btn" style={{ marginTop: '1rem' }}>
+                Criar evento <ArrowRight style={{ width: '0.9rem', height: '0.9rem' }} />
+              </Link>
+            )}
+          </div>
         )}
 
         {/* ── Aniversariantes ───────────────────────────── */}

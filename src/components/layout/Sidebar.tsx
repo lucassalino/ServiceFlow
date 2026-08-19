@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, Users, Music2, BookOpen,
   Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X, KeyRound, Megaphone, QrCode,
-  ClipboardList, PanelLeftClose, PanelLeftOpen,
+  ClipboardList, PanelLeftClose, PanelLeftOpen, TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOrgStore } from '@/stores/orgStore';
@@ -17,13 +17,14 @@ import { NotificationBell } from '@/components/layout/NotificationBell';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { usePlanState, PlanBadge } from '@/components/FeatureGate';
 import { isOrgFeatureEnabled, type OrgToggleFeature } from '@/lib/org-features';
+import type { OrgRole } from '@/types/models';
 import { useEffect, useState } from 'react';
 
 /**
  * Navegação agrupada — dá hierarquia ao menu em vez de uma lista corrida de
  * doze itens. Os grupos são só rótulos visuais; as rotas não mudaram.
  */
-const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: typeof Users; feature?: OrgToggleFeature }[] }[] = [
+const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: typeof Users; feature?: OrgToggleFeature; roles?: OrgRole[] }[] }[] = [
   {
     label: 'Início',
     items: [{ href: 'dashboard', label: 'Painel', icon: LayoutDashboard }],
@@ -34,6 +35,7 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: t
       { href: 'members',    label: 'Pessoas',     icon: Users },
       { href: 'ministries', label: 'Ministérios', icon: Music2 },
       { href: 'schedule',   label: 'Escalas',     icon: CalendarCheck },
+      { href: 'reports',    label: 'Relatórios',  icon: TrendingUp, feature: 'engagement_reports', roles: ['admin', 'leader'] },
     ],
   },
   {
@@ -196,7 +198,9 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
       <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-none" aria-label="Navegação principal">
         {NAV_GROUPS.map((group) => {
           const items = group.items.filter(
-            ({ feature }) => !feature || isOrgFeatureEnabled(activeOrg?.disabled_features, feature),
+            ({ feature, roles }) =>
+              (!feature || isOrgFeatureEnabled(activeOrg?.disabled_features, feature))
+              && (!roles || (activeMembership && roles.includes(activeMembership.role))),
           );
           if (items.length === 0) return null;
           return (

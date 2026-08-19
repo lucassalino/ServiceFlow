@@ -1182,6 +1182,41 @@ input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: 
 .wis-date b { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; color: var(--wis-text); }
 .wis-date span { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; color: var(--wis-text-3); margin-top: 0.2rem; }
 
+/* Cartão "Próximos eventos" da Início — bolha de data, traço vertical de
+   acento e as etiquetas do evento na mesma linha. */
+.wis-event-card {
+  border-radius: var(--wis-radius-lg);
+  border: 1px solid var(--wis-border);
+  background: var(--wis-surface);
+  overflow: hidden;
+}
+.wis-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--wis-border);
+  text-decoration: none;
+  color: var(--wis-text);
+  transition: background 0.15s;
+}
+.wis-event-row:last-child { border-bottom: none; }
+.wis-event-row:hover { background: var(--wis-surface-2); }
+.wis-event-date-badge {
+  flex-shrink: 0;
+  width: 3.5rem;
+  padding: 0.55rem 0;
+  border-radius: 0.75rem;
+  background: var(--wis-surface-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.wis-event-date-badge span { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; color: var(--wis-blue); }
+.wis-event-date-badge b { font-size: 1.35rem; font-weight: 800; color: var(--wis-text); margin-top: 0.3rem; }
+.wis-event-bar { width: 2px; align-self: stretch; background: var(--wis-blue); border-radius: 9999px; flex-shrink: 0; }
+
 /* Destaque do próximo evento — o único sítio onde o gradiente aparece */
 .wis-next {
   position: relative;
