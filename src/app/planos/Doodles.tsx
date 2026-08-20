@@ -91,6 +91,23 @@ export function ScribbleCircle({ className, style }: { className?: string; style
   );
 }
 
+/**
+ * Autocolante de recorte — a mesma ideia das fotos "sticker" com margem
+ * branca rasgada e halftone que às vezes se vê em colagens de jornal, mas
+ * feito só com CSS (`clip-path` irregular + pontos em radial-gradient),
+ * para não depender de nenhuma imagem externa. Recebe qualquer ícone do
+ * lucide-react no centro.
+ */
+export function Sticker({
+  icon: Icon, className, style,
+}: { icon: React.ComponentType<{ size?: number; strokeWidth?: number }>; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div className={`wis-sticker${className ? ` ${className}` : ''}`} style={style} aria-hidden>
+      <Icon size={30} strokeWidth={1.5} />
+    </div>
+  );
+}
+
 /** Estrela de 4 pontas — pequeno marcador de destaque. */
 export function Sparkle({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
