@@ -12,7 +12,7 @@ import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle, Sticker, PaperScrap } from './Doodles';
+import { PhotoTear, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle, Sticker, PaperScrap } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -250,8 +250,8 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
       </section>
 
       <div style={{ position: 'relative' }}>
-        <TearDivider fill={PAPER} />
-        <PaperScrap style={{ top: '-1.6rem', right: '4%', transform: 'rotate(7deg)' }} />
+        <PhotoTear />
+        <PaperScrap style={{ top: '-0.8rem', right: '2%', width: '10rem' }} />
       </div>
 
       {/* ── Recursos ───────────────────────────────────── */}
@@ -316,8 +316,8 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
       </section>
 
       <div style={{ position: 'relative' }}>
-        <TearDivider fill={INK} />
-        <PaperScrap style={{ top: '-1.4rem', left: '10%', transform: 'rotate(-6deg) scale(0.85)' }} />
+        <PhotoTear flip />
+        <PaperScrap style={{ bottom: '-0.8rem', left: '6%', width: '9rem', transform: 'scaleY(-1) rotate(8deg)' }} />
       </div>
 
       {/* ── Planos ─────────────────────────────────────── */}
@@ -370,7 +370,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
         </div>
       </section>
 
-      <TearDivider fill={PAPER} />
+      <PhotoTear />
 
       {/* ── FAQ + instalação ───────────────────────────── */}
       <section id="faq" className="wis-paper wis-grain">

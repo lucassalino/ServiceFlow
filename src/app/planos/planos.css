@@ -103,29 +103,24 @@
 }
 .wis-tear svg { display: block; width: 100%; height: 100%; }
 
+/* Rasgão fotografado — a mesma imagem cobre a largura toda; como o
+   grão do papel não é perfeitamente regular, um "object-position" ao
+   centro evita repetir sempre o mesmo troço em ecrãs muito largos. */
+.wis-tear-photo { height: clamp(56px, 9vw, 128px); overflow: hidden; }
+.wis-tear-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
 /* Bocado de papel solto sobre o rasgão — linhas a sugerir texto impresso,
    nunca texto real. */
-.wis-scrap {
+/* Recorte fotografado (tear-scrap.webp) — só um fragmento do rasgão real,
+   fundo transparente, pousado como acento sobre o divisor. */
+.wis-scrap-photo {
   position: absolute;
   z-index: 4;
-  width: 7rem;
-  height: 3.6rem;
-  background: var(--paper);
-  clip-path: polygon(
-    4% 20%, 20% 5%, 42% 13%, 64% 3%, 86% 11%, 100% 26%,
-    93% 50%, 100% 76%, 84% 93%, 60% 99%, 38% 90%,
-    16% 98%, 2% 82%, 9% 56%, 0% 35%
-  );
-  box-shadow: 3px 3px 0 rgba(5, 5, 5, 0.4);
+  width: 9rem;
   pointer-events: none;
+  filter: drop-shadow(2px 3px 3px rgba(0, 0, 0, 0.35));
 }
-.wis-scrap::before {
-  content: '';
-  position: absolute;
-  inset: 26% 14%;
-  background-image: repeating-linear-gradient(rgba(5, 5, 5, 0.55) 0 2px, transparent 2px 7px);
-  opacity: 0.75;
-}
+.wis-scrap-photo img { display: block; width: 100%; height: auto; }
 
 /* ── Botões ─────────────────────────────────────────────────────────── */
 

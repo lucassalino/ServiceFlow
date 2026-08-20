@@ -35,13 +35,33 @@ export function TearDivider({ fill, flip = false }: { fill: string; flip?: boole
 }
 
 /**
- * Bocado de papel solto, com linhas a sugerir texto impresso — não texto
- * real (não temos direitos sobre nenhum recorte de jornal), só a textura.
- * Fica pousado por cima de um `TearDivider`, como se tivesse ficado preso
+ * O rasgão real, fotografado — fornecido pelo utilizador (papel preto
+ * rasgado a mostrar o branco por baixo, com um recorte de jornal preso na
+ * fenda). `flip` inverte para a transição inversa (branco em cima, preto
+ * em baixo), reaproveitando a mesma imagem.
+ */
+export function PhotoTear({ flip = false }: { flip?: boolean }) {
+  return (
+    <div className="wis-tear wis-tear-photo" aria-hidden style={flip ? { transform: 'scaleY(-1)' } : undefined}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/tear-hero.webp" alt="" />
+    </div>
+  );
+}
+
+/**
+ * Bocado de papel solto com o recorte de jornal, recortado do mesmo
+ * rasgão fotografado (`tear-scrap.webp`, fundo transparente) — fica
+ * pousado sobre um `TearDivider`/`PhotoTear`, como se tivesse ficado preso
  * ali quando o papel rasgou.
  */
 export function PaperScrap({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div className={`wis-scrap${className ? ` ${className}` : ''}`} style={style} aria-hidden />;
+  return (
+    <div className={`wis-scrap-photo${className ? ` ${className}` : ''}`} style={style} aria-hidden>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/tear-scrap.webp" alt="" />
+    </div>
+  );
 }
 
 /** Mancha de tinta azul espalhada — fundo da composição do hero. */
