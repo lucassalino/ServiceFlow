@@ -95,12 +95,37 @@
 .wis-tear {
   display: block;
   width: 100%;
-  height: clamp(28px, 4.5vw, 58px);
+  height: clamp(38px, 7vw, 92px);
   position: relative;
   z-index: 3;
   margin-bottom: -1px;
+  filter: drop-shadow(0 -6px 14px rgba(0, 0, 0, 0.25));
 }
 .wis-tear svg { display: block; width: 100%; height: 100%; }
+
+/* Bocado de papel solto sobre o rasgão — linhas a sugerir texto impresso,
+   nunca texto real. */
+.wis-scrap {
+  position: absolute;
+  z-index: 4;
+  width: 7rem;
+  height: 3.6rem;
+  background: var(--paper);
+  clip-path: polygon(
+    4% 20%, 20% 5%, 42% 13%, 64% 3%, 86% 11%, 100% 26%,
+    93% 50%, 100% 76%, 84% 93%, 60% 99%, 38% 90%,
+    16% 98%, 2% 82%, 9% 56%, 0% 35%
+  );
+  box-shadow: 3px 3px 0 rgba(5, 5, 5, 0.4);
+  pointer-events: none;
+}
+.wis-scrap::before {
+  content: '';
+  position: absolute;
+  inset: 26% 14%;
+  background-image: repeating-linear-gradient(rgba(5, 5, 5, 0.55) 0 2px, transparent 2px 7px);
+  opacity: 0.75;
+}
 
 /* ── Botões ─────────────────────────────────────────────────────────── */
 

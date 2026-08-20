@@ -12,7 +12,7 @@ import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle, Sticker } from './Doodles';
+import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle, Sticker, PaperScrap } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -249,7 +249,10 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
         </div>
       </section>
 
-      <TearDivider fill={PAPER} />
+      <div style={{ position: 'relative' }}>
+        <TearDivider fill={PAPER} />
+        <PaperScrap style={{ top: '-1.6rem', right: '4%', transform: 'rotate(7deg)' }} />
+      </div>
 
       {/* ── Recursos ───────────────────────────────────── */}
       <section id="recursos" className="wis-paper wis-grain" style={{ paddingBottom: '1rem' }}>
@@ -312,7 +315,10 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
         </div>
       </section>
 
-      <TearDivider fill={INK} />
+      <div style={{ position: 'relative' }}>
+        <TearDivider fill={INK} />
+        <PaperScrap style={{ top: '-1.4rem', left: '10%', transform: 'rotate(-6deg) scale(0.85)' }} />
+      </div>
 
       {/* ── Planos ─────────────────────────────────────── */}
       <section id="planos" className="wis-grain" style={{ background: INK, paddingTop: '2.5rem', paddingBottom: '4rem' }}>
