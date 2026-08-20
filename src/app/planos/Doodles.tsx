@@ -6,60 +6,17 @@
  * ligeiramente irregulares — a página não deve parecer geométrica.
  */
 
-/**
- * Papel rasgado à mão, não recortado — picos e vales sem regularidade
- * nenhuma, como um bocado de papel que se puxou dos dois lados. Passa a
- * ficar mais alto e mais denteado do que a versão anterior, que era ondulada
- * de mais e parecia recortada a tesoura.
- */
 export function TearDivider({ fill, flip = false }: { fill: string; flip?: boolean }) {
   return (
     <div className="wis-tear" aria-hidden style={flip ? { transform: 'scaleY(-1)' } : undefined}>
-      <svg viewBox="0 0 1200 90" preserveAspectRatio="none" focusable="false">
+      <svg viewBox="0 0 1200 60" preserveAspectRatio="none" focusable="false">
         <path
           fill={fill}
-          d="M0 90 L0 34
-             L26 20 L44 38 L61 14 L79 30 L95 8 L118 26 L133 12 L152 33 L171 18
-             L189 40 L206 15 L229 28 L246 6 L268 24 L287 11 L309 36 L326 19
-             L348 31 L367 9 L389 27 L406 4 L428 22 L449 38 L467 13 L486 29
-             L508 6 L527 24 L545 41 L566 16 L584 33 L603 10 L624 27 L642 4
-             L664 22 L683 39 L701 14 L723 30 L740 8 L762 26 L781 12 L803 34
-             L820 18 L842 30 L861 6 L883 24 L900 40 L922 15 L941 28 L963 5
-             L982 23 L1004 38 L1021 13 L1043 30 L1060 8 L1082 26 L1101 12
-             L1123 33 L1140 18 L1162 30 L1181 8 L1200 24
-             L1200 90 Z"
+          d="M0 60 L0 26 C 48 14 96 30 148 22 C 210 12 236 34 292 28 C 350 22 372 6 430 16
+             C 484 25 516 12 566 20 C 626 30 654 10 712 18 C 770 26 796 8 852 16
+             C 912 25 940 6 998 16 C 1052 25 1084 12 1136 20 C 1166 25 1184 32 1200 24 L1200 60 Z"
         />
       </svg>
-    </div>
-  );
-}
-
-/**
- * O rasgão real, fotografado — fornecido pelo utilizador (papel preto
- * rasgado a mostrar o branco por baixo, com um recorte de jornal preso na
- * fenda). `flip` inverte para a transição inversa (branco em cima, preto
- * em baixo), reaproveitando a mesma imagem.
- */
-export function PhotoTear({ flip = false }: { flip?: boolean }) {
-  return (
-    <div className="wis-tear wis-tear-photo" aria-hidden style={flip ? { transform: 'scaleY(-1)' } : undefined}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brand/tear-hero.webp" alt="" />
-    </div>
-  );
-}
-
-/**
- * Bocado de papel solto com o recorte de jornal, recortado do mesmo
- * rasgão fotografado (`tear-scrap.webp`, fundo transparente) — fica
- * pousado sobre um `TearDivider`/`PhotoTear`, como se tivesse ficado preso
- * ali quando o papel rasgou.
- */
-export function PaperScrap({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <div className={`wis-scrap-photo${className ? ` ${className}` : ''}`} style={style} aria-hidden>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brand/tear-scrap.webp" alt="" />
     </div>
   );
 }
@@ -104,6 +61,16 @@ export function HandArrow({ className, style }: { className?: string; style?: Re
   );
 }
 
+/** Seta longa a apontar para baixo/diagonal — usada junto ao título do hero. */
+export function HandArrowDown({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 70 96" fill="none" aria-hidden focusable="false">
+      <path d="M12 4c14 24 20 48 16 78" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+      <path d="M8 62c6 12 14 20 20 26 6-10 14-16 24-20" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Sublinhado a pincel — corre por baixo de uma palavra. */
 export function BrushUnderline({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -131,23 +98,6 @@ export function ScribbleCircle({ className, style }: { className?: string; style
         vectorEffect="non-scaling-stroke"
       />
     </svg>
-  );
-}
-
-/**
- * Autocolante de recorte — a mesma ideia das fotos "sticker" com margem
- * branca rasgada e halftone que às vezes se vê em colagens de jornal, mas
- * feito só com CSS (`clip-path` irregular + pontos em radial-gradient),
- * para não depender de nenhuma imagem externa. Recebe qualquer ícone do
- * lucide-react no centro.
- */
-export function Sticker({
-  icon: Icon, className, style,
-}: { icon: React.ComponentType<{ size?: number; strokeWidth?: number }>; className?: string; style?: React.CSSProperties }) {
-  return (
-    <div className={`wis-sticker${className ? ` ${className}` : ''}`} style={style} aria-hidden>
-      <Icon size={30} strokeWidth={1.5} />
-    </div>
   );
 }
 

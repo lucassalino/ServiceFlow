@@ -6,13 +6,12 @@ import { toast } from 'sonner';
 import {
   CalendarCheck, Music2, Users, Bell, ListChecks, Building2,
   BarChart3, Layers, Smartphone, Monitor, Apple, ArrowRight, Check, Loader2, Menu, X,
-  Camera, Megaphone,
 } from 'lucide-react';
 import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { PhotoTear, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle, Sticker, PaperScrap } from './Doodles';
+import { TearDivider, InkBlob, HandArrow, HandArrowDown, BrushUnderline, ScribbleCircle, Sparkle } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -238,21 +237,17 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                 Mais tempo para o que realmente importa.
               </span>
 
-              <HandArrow className="wis-hero-arrow" />
+              <HandArrowDown
+                style={{ position: 'absolute', top: '18%', left: '24%', width: '3.2rem', color: PAPER, zIndex: 4 }}
+              />
               <Sparkle style={{ position: 'absolute', bottom: '12%', right: '4%', width: '1.7rem', color: 'var(--yellow)', zIndex: 4 }} />
               <Sparkle style={{ position: 'absolute', bottom: '5%', right: '13%', width: '1rem', color: 'var(--yellow)', zIndex: 4 }} />
-
-              <Sticker icon={Camera} style={{ top: '-4%', right: '2%', transform: 'rotate(9deg)' }} />
-              <Sticker icon={Megaphone} style={{ bottom: '-6%', left: '0%', transform: 'rotate(-8deg)' }} />
             </div>
           </div>
         </div>
       </section>
 
-      <div style={{ position: 'relative' }}>
-        <PhotoTear />
-        <PaperScrap style={{ top: '-0.8rem', right: '2%', width: '10rem' }} />
-      </div>
+      <TearDivider fill={PAPER} />
 
       {/* ── Recursos ───────────────────────────────────── */}
       <section id="recursos" className="wis-paper wis-grain" style={{ paddingBottom: '1rem' }}>
@@ -315,10 +310,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
         </div>
       </section>
 
-      <div style={{ position: 'relative' }}>
-        <PhotoTear flip />
-        <PaperScrap style={{ bottom: '-0.8rem', left: '6%', width: '9rem', transform: 'scaleY(-1) rotate(8deg)' }} />
-      </div>
+      <TearDivider fill={INK} />
 
       {/* ── Planos ─────────────────────────────────────── */}
       <section id="planos" className="wis-grain" style={{ background: INK, paddingTop: '2.5rem', paddingBottom: '4rem' }}>
@@ -370,7 +362,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
         </div>
       </section>
 
-      <PhotoTear />
+      <TearDivider fill={PAPER} />
 
       {/* ── FAQ + instalação ───────────────────────────── */}
       <section id="faq" className="wis-paper wis-grain">
@@ -417,7 +409,6 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
 
             <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', paddingTop: '3rem' }}>
               <InkBlob className="wis-ink-blob wis-blue" />
-              <Sticker icon={Smartphone} style={{ bottom: '2%', right: '2%', transform: 'rotate(-10deg)' }} />
               <div className="wis-phone" style={{ transform: 'rotate(3deg)', width: 'min(14rem, 70%)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -439,7 +430,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
           <h2 className="wis-display wis-h2" style={{ color: '#fff' }}>
             Pronto para colocar<br />sua igreja em sintonia?
           </h2>
-          <p>Comece hoje — o plano Semente é grátis.</p>
+          <p>Comece hoje — o plano Semente é grátis para sempre.</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
             <Link href="/register" className="wis-btn wis-btn-ink" style={{ boxShadow: '4px 4px 0 rgba(5,5,5,0.45)' }}>
               Começar agora <ArrowRight size={17} />
