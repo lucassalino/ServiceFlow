@@ -146,7 +146,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
               gridTemplateColumns: 'repeat(auto-fill, minmax(11rem, 1fr))', gap: '0.75rem 1.25rem',
             }}>
               {birthdayPeople.map((p, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                <div key={i} className="dash-glass-quick" style={{ minWidth: 0, cursor: 'default' }}>
                   <Avatar className="h-9 w-9 shrink-0">
                     {p.avatarUrl && <AvatarImage src={p.avatarUrl} alt={p.name} />}
                     <AvatarFallback className="text-xs font-semibold"
