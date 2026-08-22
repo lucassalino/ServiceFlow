@@ -143,7 +143,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
             </p>
             <div style={{
               marginTop: '0.75rem', display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(11rem, 1fr))', gap: '0.75rem 1.25rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))', gap: '0.75rem 1.25rem',
             }}>
               {birthdayPeople.map((p, i) => (
                 <div key={i} className="dash-glass-quick" style={{ minWidth: 0, cursor: 'default' }}>
