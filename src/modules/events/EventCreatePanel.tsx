@@ -419,6 +419,12 @@ export function EventCreatePanel({ onBack }: Props) {
         .ep-member-grid > *, .ep-ministry-grid > *, .ep-date-grid > * { min-width: 0; }
         .ep-two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; }
         .ep-date-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.875rem; }
+        /* Inputs nativos de data/hora têm uma largura mínima própria do
+           browser que "width: 100%" nem sempre consegue encolher — e um
+           font-size abaixo de 16px faz o Safari do iOS dar zoom ao focar,
+           empurrando o campo para fora do ecrã. */
+        .ep-content input[type="date"],
+        .ep-content input[type="time"] { width: 100%; min-width: 0; max-width: 100%; font-size: 1rem; }
         .ep-ministry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
         .ep-member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
         .ep-setlist-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
