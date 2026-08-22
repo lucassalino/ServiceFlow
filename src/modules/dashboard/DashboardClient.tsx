@@ -141,9 +141,12 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
               <Cake style={{ width: '0.85rem', height: '0.85rem', color: 'var(--wis-teal)' }} />
               Aniversariantes de {currentMonthName}
             </p>
-            <div style={{ marginTop: '0.5rem' }}>
+            <div style={{
+              marginTop: '0.75rem', display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(11rem, 1fr))', gap: '0.75rem 1.25rem',
+            }}>
               {birthdayPeople.map((p, i) => (
-                <div key={i} className="wis-row">
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
                   <Avatar className="h-9 w-9 shrink-0">
                     {p.avatarUrl && <AvatarImage src={p.avatarUrl} alt={p.name} />}
                     <AvatarFallback className="text-xs font-semibold"
@@ -152,7 +155,10 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
                     </AvatarFallback>
                   </Avatar>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0 }}>
+                    <p style={{
+                      fontSize: '0.95rem', fontWeight: 600, color: 'var(--wis-text)', margin: 0,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {p.name}
                     </p>
                     <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', margin: '0.1rem 0 0' }}>
