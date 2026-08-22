@@ -6,7 +6,6 @@ import { Sparkles, ArrowUpRight, Settings2, Loader2 } from 'lucide-react';
 import { useOrgSubscription } from '@/hooks/useSubscription';
 import { getPlan } from '@/lib/plans';
 import { PlansDialog } from './PlansDialog';
-import { CouponsSection } from './CouponsSection';
 import { createBillingPortalSessionAction } from '@/actions/stripe-checkout';
 import { PlanLimitRings } from './PlanLimitRing';
 
@@ -28,9 +27,9 @@ function Card({ title, icon, accent, children }: {
   );
 }
 
-interface Props { orgId: string; isAdmin: boolean }
+interface Props { orgId: string }
 
-export function PlanSection({ orgId, isAdmin }: Props) {
+export function PlanSection({ orgId }: Props) {
   const { data: sub, isLoading } = useOrgSubscription(orgId);
 
   const [plansOpen, setPlansOpen] = useState(false);
@@ -148,9 +147,6 @@ export function PlanSection({ orgId, isAdmin }: Props) {
       </Card>
 
       <PlansDialog open={plansOpen} onOpenChange={setPlansOpen} currentPlan={current.key} orgId={orgId} />
-
-      {/* Cupões — resgate (admin da org) + gestão (super-admin) */}
-      <CouponsSection orgId={orgId} isAdmin={isAdmin} />
     </div>
   );
 }

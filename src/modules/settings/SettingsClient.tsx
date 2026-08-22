@@ -626,8 +626,8 @@ export function SettingsClient({ orgId }: Props) {
           <div className="space-y-5 mt-5 lg:mt-0">
         {/* ── Plano + concessão dev + cupões (cartão próprio) ── */}
         {isAdmin && activeOrg && (
-          <Section title="Plano e cupões">
-            <PlanSection orgId={orgId} isAdmin={isAdmin} />
+          <Section title="Plano">
+            <PlanSection orgId={orgId} />
           </Section>
         )}
 
