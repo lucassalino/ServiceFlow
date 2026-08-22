@@ -405,10 +405,11 @@ export function SettingsClient({ orgId }: Props) {
           ))}
         </div>
 
-        <div className="max-w-2xl space-y-5">
+        <div className="max-w-5xl">
 
         {tab === 'conta' && (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 items-start">
+          <div className="space-y-5">
         {/* ── Profile ─────────────────────────────────── */}
         <Section title="Perfil">
           {/* Avatar row */}
@@ -491,7 +492,9 @@ export function SettingsClient({ orgId }: Props) {
             </button>
           </form>
         </Section>
+          </div>
 
+          <div className="space-y-5 mt-5 lg:mt-0">
         {/* ── Os meus ministérios e funções ────────────── */}
         {activeOrg && (
           <Section title="Os meus ministérios e funções">
@@ -510,11 +513,13 @@ export function SettingsClient({ orgId }: Props) {
             <CalendarSyncSection orgId={orgId} />
           </Section>
         )}
-        </>
+          </div>
+        </div>
         )}
 
         {tab === 'organizacao' && isAdmin && activeOrg && (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 items-start">
+          <div className="space-y-5">
         {/* ── Organisation (admin only) ────────────────── */}
         {isAdmin && activeOrg && (
           <Section title="Organização">
@@ -616,7 +621,9 @@ export function SettingsClient({ orgId }: Props) {
 
           </Section>
         )}
+          </div>
 
+          <div className="space-y-5 mt-5 lg:mt-0">
         {/* ── Plano + concessão dev + cupões (cartão próprio) ── */}
         {isAdmin && activeOrg && (
           <Section title="Plano e cupões">
@@ -634,11 +641,13 @@ export function SettingsClient({ orgId }: Props) {
             <FeatureVisibilitySection orgId={orgId} />
           </Section>
         )}
-        </>
+          </div>
+        </div>
         )}
 
         {tab === 'sistema' && (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 items-start">
+          <div className="space-y-5">
         {/* ── Sessão ──────────────────────────────────── */}
         <Section title="Sessão">
           <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
@@ -718,7 +727,9 @@ export function SettingsClient({ orgId }: Props) {
             Saír da organização
           </button>
         </Section>
+          </div>
 
+          <div className="space-y-5 mt-5 lg:mt-0">
         {/* ── Danger zone ─────────────────────────────── */}
         <Section title="Zona de perigo" danger>
           <p style={{ fontSize: '0.85rem', color: 'var(--wis-text-3)', marginBottom: '1rem', lineHeight: 1.6 }}>
@@ -742,7 +753,8 @@ export function SettingsClient({ orgId }: Props) {
             Eliminar conta
           </button>
         </Section>
-        </>
+          </div>
+        </div>
         )}
 
         </div>
