@@ -9,6 +9,15 @@ import { formatDate, formatTime } from '@/lib/utils';
 import { getFunctionLabel } from '@/lib/constants';
 import type { EventMinistry, Ministry, Song } from '@/types/models';
 
+/**
+ * A folha impressa é sempre branca, mesmo com a app em tema escuro — as
+ * cores do texto aqui são por isso fixas, nunca `var(--wis-text*)` (essas
+ * mudam com o tema e ficavam quase ilegíveis sobre o papel branco).
+ */
+const PRINT_TEXT = '#18181b';
+const PRINT_TEXT_3 = '#71717a';
+const PRINT_BORDER = '#e4e4e7';
+
 interface Props { orgId: string; eventId: string }
 
 export function EventPrintClient({ orgId, eventId }: Props) {
@@ -63,11 +72,11 @@ export function EventPrintClient({ orgId, eventId }: Props) {
         background: '#ffffff', color: '#18181b', fontFamily: 'system-ui, sans-serif',
         borderRadius: '0.75rem', boxShadow: 'var(--wis-shadow-md)',
       }}>
-        <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
+        <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: PRINT_TEXT_3 }}>
           {activeOrg?.name ?? 'Roteiro do evento'}
         </p>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0.25rem 0 0.5rem' }}>{event.name}</h1>
-        <p style={{ fontSize: '0.9rem', color: 'var(--wis-text)', marginBottom: '1.75rem' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0.25rem 0 0.5rem', color: PRINT_TEXT }}>{event.name}</h1>
+        <p style={{ fontSize: '0.9rem', color: PRINT_TEXT, marginBottom: '1.75rem' }}>
           {formatDate(event.date)}
           {event.time && ` · ${formatTime(event.time)}`}
           {event.location && ` · ${event.location}`}
@@ -79,11 +88,11 @@ export function EventPrintClient({ orgId, eventId }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <tbody>
                 {timeline.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid var(--wis-border)' }}>
-                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', fontWeight: 700, width: '3.5rem' }}>
+                  <tr key={idx} style={{ borderBottom: `1px solid ${PRINT_BORDER}` }}>
+                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', fontWeight: 700, width: '3.5rem', color: PRINT_TEXT }}>
                       {formatTime(item.time)}
                     </td>
-                    <td style={{ padding: '0.4rem 0' }}>{item.title}</td>
+                    <td style={{ padding: '0.4rem 0', color: PRINT_TEXT }}>{item.title}</td>
                   </tr>
                 ))}
               </tbody>
@@ -104,20 +113,20 @@ export function EventPrintClient({ orgId, eventId }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <tbody>
                 {(setlist as (Song & { order_index: number; event_key: string | null; event_note: string | null })[]).map((song, idx) => (
-                  <tr key={song.id} style={{ borderBottom: '1px solid var(--wis-border)' }}>
-                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', color: 'var(--wis-text-3)', width: '1.5rem' }}>
+                  <tr key={song.id} style={{ borderBottom: `1px solid ${PRINT_BORDER}` }}>
+                    <td style={{ padding: '0.4rem 0.5rem 0.4rem 0', color: PRINT_TEXT_3, width: '1.5rem' }}>
                       {idx + 1}
                     </td>
-                    <td style={{ padding: '0.4rem 0' }}>
+                    <td style={{ padding: '0.4rem 0', color: PRINT_TEXT }}>
                       <span style={{ fontWeight: 600 }}>{song.name}</span>
-                      {song.artist && <span style={{ color: 'var(--wis-text-3)' }}> — {song.artist}</span>}
+                      {song.artist && <span style={{ color: PRINT_TEXT_3 }}> — {song.artist}</span>}
                       {song.event_note && (
                         <div style={{ fontSize: '0.75rem', color: '#b45309', marginTop: '0.1rem' }}>
                           {song.event_note}
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: '0.4rem 0', textAlign: 'right', color: 'var(--wis-text)' }}>
+                    <td style={{ padding: '0.4rem 0', textAlign: 'right', color: PRINT_TEXT }}>
                       {(song.event_key ?? song.musical_key) || ''}
                     </td>
                   </tr>
@@ -136,7 +145,7 @@ function PrintSection({ title, children }: { title: string; children: React.Reac
     <div style={{ marginBottom: '1.75rem', breakInside: 'avoid' }}>
       <p style={{
         fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-        color: 'var(--wis-text-3)', marginBottom: '0.5rem', borderBottom: '2px solid var(--wis-border)', paddingBottom: '0.25rem',
+        color: PRINT_TEXT_3, marginBottom: '0.5rem', borderBottom: `2px solid ${PRINT_BORDER}`, paddingBottom: '0.25rem',
       }}>
         {title}
       </p>
@@ -149,16 +158,16 @@ function PrintMinistryBlock({ em }: { em: EventMinistry & { ministry: Ministry }
   const { data: schedules = [] } = useEventSchedules(em.id);
   return (
     <div style={{ marginBottom: '0.75rem', breakInside: 'avoid' }}>
-      <p style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>{em.ministry.name}</p>
+      <p style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem', color: PRINT_TEXT }}>{em.ministry.name}</p>
       {schedules.length === 0 ? (
-        <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)' }}>Ninguém escalado.</p>
+        <p style={{ fontSize: '0.8rem', color: PRINT_TEXT_3 }}>Ninguém escalado.</p>
       ) : (
-        <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem' }}>
+        <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem', color: PRINT_TEXT }}>
           {schedules.map((s) => (
             <li key={s.id} style={{ marginBottom: '0.15rem' }}>
               {s.profile?.full_name ?? s.user_id}
               {s.functions.length > 0 && (
-                <span style={{ color: 'var(--wis-text-3)' }}> — {s.functions.map(getFunctionLabel).join(', ')}</span>
+                <span style={{ color: PRINT_TEXT_3 }}> — {s.functions.map(getFunctionLabel).join(', ')}</span>
               )}
             </li>
           ))}
