@@ -141,10 +141,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
               <Cake style={{ width: '0.85rem', height: '0.85rem', color: 'var(--wis-teal)' }} />
               Aniversariantes de {currentMonthName}
             </p>
-            <div style={{
-              marginTop: '0.75rem', display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))', gap: '0.75rem 1.25rem',
-            }}>
+            <div className="wis-birthday-grid" style={{ marginTop: '0.75rem' }}>
               {birthdayPeople.map((p, i) => (
                 <div key={i} className="dash-glass-quick" style={{ minWidth: 0, cursor: 'default' }}>
                   <Avatar className="h-9 w-9 shrink-0">

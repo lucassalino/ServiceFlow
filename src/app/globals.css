@@ -736,6 +736,18 @@
   .panel-pad { padding: 1.1rem 1.05rem 2.5rem; }
 }
 
+/* Aniversariantes do Painel — 4 colunas em desktop, encolhendo sozinho;
+   no telemóvel os nomes cortavam ("Gabrielly Sal…") em duas colunas
+   apertadas, por isso passa a uma coluna só. */
+.wis-birthday-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+@media (max-width: 640px) {
+  .wis-birthday-grid { grid-template-columns: 1fr; }
+}
+
 /* Área principal — deixa espaço para a barra inferior fixa no mobile (com safe-area) */
 .app-main { padding-bottom: 0; }
 @media (max-width: 1023px) {
