@@ -227,7 +227,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                   src="/screenshots/mobile-eventos-equipa.webp"
                   alt="Tela do WIS no celular, com a equipe escalada de um culto e as confirmações de presença"
                   width={390}
-                  height={844}
+                  height={792}
                   fetchPriority="high"
                 />
               </div>
@@ -412,7 +412,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                   alt="Setlist de um culto no WIS pelo celular, com tom e BPM de cada música"
                   loading="lazy"
                   width={390}
-                  height={844}
+                  height={792}
                 />
               </div>
             </div>
