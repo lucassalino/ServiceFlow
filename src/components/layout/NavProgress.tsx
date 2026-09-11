@@ -2,22 +2,31 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useIsFetching } from '@tanstack/react-query';
 import { LoadingRing } from '@/components/ui/LoadingRing';
 
 const MIN_VISIBLE_MS = 220;
-const FALLBACK_TIMEOUT_MS = 6000;
+const SETTLE_AFTER_NAV_MS = 200;
+const FALLBACK_TIMEOUT_MS = 8000;
 
 /**
  * Overlay que aparece assim que o utilizador clica num link interno — não
  * espera a navegação terminar — para dar feedback imediato de que o clique
- * foi registado. Desaparece quando o novo ecrã termina de montar.
+ * foi registado. Só desaparece quando o novo ecrã montou E as suas queries
+ * (TanStack Query) terminaram de carregar.
  */
 export function NavProgress() {
   const pathname = usePathname();
+  const fetchingCount = useIsFetching();
   const [visible, setVisible] = useState(false);
+  const first = useRef(true);
   const shownAtRef = useRef(0);
+  const navigatedAtRef = useRef(0);
+  const awaitingDataRef = useRef(false);
   const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Clique num link interno → mostra o overlay já.
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -30,6 +39,7 @@ export function NavProgress() {
       if (targetPath === window.location.pathname) return;
 
       shownAtRef.current = Date.now();
+      awaitingDataRef.current = false;
       setVisible(true);
 
       if (fallbackRef.current) clearTimeout(fallbackRef.current);
@@ -39,21 +49,37 @@ export function NavProgress() {
     return () => document.removeEventListener('click', onClick, true);
   }, []);
 
+  // A rota mudou (novo ecrã montado) → passa a aguardar as queries dele.
   useEffect(() => {
-    setVisible((wasVisible) => {
-      if (!wasVisible) return wasVisible;
-      const elapsed = Date.now() - shownAtRef.current;
-      const remain = Math.max(0, MIN_VISIBLE_MS - elapsed);
-      const t = setTimeout(() => {
-        setVisible(false);
-        if (fallbackRef.current) clearTimeout(fallbackRef.current);
-      }, remain);
-      fallbackRef.current && clearTimeout(fallbackRef.current);
-      fallbackRef.current = t;
-      return wasVisible;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (first.current) { first.current = false; return; }
+    navigatedAtRef.current = Date.now();
+    awaitingDataRef.current = true;
   }, [pathname]);
+
+  // Só esconde quando: já navegou, as queries da nova tela zeraram, e já
+  // passou um tempo mínimo desde a navegação (dá tempo às queries arrancarem).
+  useEffect(() => {
+    if (!visible || !awaitingDataRef.current) return;
+
+    if (settleRef.current) clearTimeout(settleRef.current);
+
+    const check = () => {
+      if (fetchingCount > 0) return; // uma query recomeçou — espera o próximo disparo do efeito
+      const sinceNav = Date.now() - navigatedAtRef.current;
+      const sinceShown = Date.now() - shownAtRef.current;
+      const missing = Math.max(SETTLE_AFTER_NAV_MS - sinceNav, MIN_VISIBLE_MS - sinceShown);
+      if (missing > 0) {
+        settleRef.current = setTimeout(check, missing);
+        return;
+      }
+      setVisible(false);
+      awaitingDataRef.current = false;
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
+    };
+
+    settleRef.current = setTimeout(check, 90);
+    return () => { if (settleRef.current) clearTimeout(settleRef.current); };
+  }, [fetchingCount, visible, pathname]);
 
   if (!visible) return null;
 
