@@ -19,12 +19,31 @@ export function NavProgress() {
   const pathname = usePathname();
   const fetchingCount = useIsFetching();
   const [visible, setVisible] = useState(false);
+  const [percent, setPercent] = useState(0);
   const first = useRef(true);
   const shownAtRef = useRef(0);
   const navigatedAtRef = useRef(0);
   const awaitingDataRef = useRef(false);
+  const percentRef = useRef(0);
   const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Enquanto o overlay estiver visível, sobe a percentagem em direção a 90%
+  // (nunca chega a 100% sozinha — isso só acontece quando os dados terminam).
+  useEffect(() => {
+    if (!visible) {
+      if (tickRef.current) clearInterval(tickRef.current);
+      return;
+    }
+    percentRef.current = 0;
+    setPercent(0);
+    tickRef.current = setInterval(() => {
+      percentRef.current += (90 - percentRef.current) * 0.08;
+      setPercent(percentRef.current);
+    }, 100);
+    return () => { if (tickRef.current) clearInterval(tickRef.current); };
+  }, [visible]);
 
   // Clique num link interno → mostra o overlay já.
   useEffect(() => {
@@ -72,9 +91,12 @@ export function NavProgress() {
         settleRef.current = setTimeout(check, missing);
         return;
       }
-      setVisible(false);
+      if (tickRef.current) clearInterval(tickRef.current);
+      percentRef.current = 100;
+      setPercent(100);
       awaitingDataRef.current = false;
       if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      settleRef.current = setTimeout(() => setVisible(false), 200);
     };
 
     settleRef.current = setTimeout(check, 90);
@@ -93,7 +115,7 @@ export function NavProgress() {
         backdropFilter: 'blur(2px)',
       }}
     >
-      <LoadingRing />
+      <LoadingRing percent={percent} />
     </div>
   );
 }
