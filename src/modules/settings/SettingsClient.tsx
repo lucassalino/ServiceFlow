@@ -60,8 +60,10 @@ const MAX_AVATAR_SIZE_MB = 2;
 function Section({ title, danger, children }: { title: string; danger?: boolean; children: React.ReactNode }) {
   return (
     <section style={{
-      paddingTop: '1.75rem',
-      borderTop: `1px solid ${danger ? 'color-mix(in srgb, var(--wis-danger) 30%, transparent)' : 'var(--wis-border)'}`,
+      padding: '1.25rem 1.25rem 1.5rem',
+      borderRadius: '0.875rem',
+      background: 'var(--wis-surface)',
+      border: `1px solid ${danger ? 'color-mix(in srgb, var(--wis-danger) 30%, transparent)' : 'var(--wis-border)'}`,
     }}>
       <h2 className="wis-eyebrow" style={{ color: danger ? 'var(--wis-danger)' : undefined }}>
         {title}

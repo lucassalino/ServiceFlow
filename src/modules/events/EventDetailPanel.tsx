@@ -31,6 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useLiturgies } from '@/hooks/useLiturgies';
 import { SongDetailPanel } from '@/modules/songs/SongDetailPanel';
 import { ConfirmAttendanceDialog } from '@/components/ConfirmAttendanceDialog';
+import { NotifyScheduleButton } from './NotifyScheduleButton';
 
 interface Props {
   event: Event;
@@ -103,8 +104,9 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
           </button>
 
           {canManage && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               {activeOrg?.id && <ExportMenu orgId={activeOrg.id} eventId={event.id} />}
+              <NotifyScheduleButton event={event} orgName={activeOrg?.name ?? 'a tua igreja'} />
               <button onClick={onEdit} style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                 padding: '0.375rem 0.875rem',

@@ -130,8 +130,11 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
         {/* ── Two-column main layout ───────────────────────── */}
         <div className="mdp-main">
 
-          {/* Left: perfil — sem moldura, o espaço é que agrupa */}
-          <div>
+          {/* Left: perfil */}
+          <div style={{
+            padding: '1.5rem 1.25rem', borderRadius: '0.875rem',
+            background: 'var(--wis-surface)', border: '1px solid var(--wis-border)',
+          }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.875rem' }}>
               <Avatar className="h-24 w-24">
                 {member.profile?.avatar_url && <AvatarImage src={member.profile.avatar_url} alt={name} />}
@@ -179,8 +182,11 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
             </div>
           </div>
 
-          {/* Right: ministérios — secção, não cartão */}
-          <div>
+          {/* Right: ministérios */}
+          <div style={{
+            padding: '1.5rem 1.25rem', borderRadius: '0.875rem',
+            background: 'var(--wis-surface)', border: '1px solid var(--wis-border)',
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
               <p className="wis-eyebrow">Ministérios · {assignments.length}</p>
               {isAdmin && (
