@@ -119,19 +119,26 @@ RLS**. É dívida técnica conhecida.
 | Plano | €/mês | Pessoas | Min. | Admin | Líderes |
 |---|---|---|---|---|---|
 | Semente | 0 | 10 | 1 | 1 | 0 |
-| Broto | 9,99 | 25 | 5 | 1 | 0 |
-| Colheita | 19,99 | 60 | ∞ | 1 | 3 |
-| Celeiro | 39,99 | ∞ | ∞ | 1 | ∞ |
+| Plus (slug `broto`) | 9,99 | 25 | 5 | 1 | 1 |
+| Pro (slug `colheita`) | 25,99 | ∞ | ∞ | 1 | ∞ |
+
+O Celeiro (slug `celeiro`) foi descontinuado (migração 043) — `is_active =
+false`, sem novas assinaturas. O Pro herdou os seus limites e
+funcionalidades. Os slugs `broto`/`colheita` na base de dados não mudaram,
+só o nome de apresentação (evita migrar `org_subscriptions`/`coupons`).
 
 - **Admin é sempre 1**, em qualquer plano — quem varia por plano é o número
-  de líderes (migração 030, `plans.max_leaders`). Semente/Broto não incluem
+  de líderes (migração 030, `plans.max_leaders`). O Semente não inclui
   líderes de todo (só o admin gere a organização).
 - **Limites por quantidade:** RPC `check_plan_limit(org, resource)` — recursos
   `people` | `ministry` | `admin` | `leader`.
 - **Funcionalidades:** coluna `plans.features` + RPC `org_has_feature`
 - **Cortesia:** `org_subscriptions.source = 'manual'` → plano pago sem custo.
   AMN-Vizela e MyChurch estão assim. Mostra selo "Cortesia" na UI.
-- Mudar preços/limites/features é um **UPDATE**, não um deploy.
+- Mudar preços/limites/features é um **UPDATE**, não um deploy — mas se o
+  preço de um plano pago mudar, os `stripe_price_id_monthly/annual` também
+  têm de apontar para Prices novos (o Stripe não deixa editar o valor de um
+  Price já criado — só arquivar e criar outro).
 
 ---
 

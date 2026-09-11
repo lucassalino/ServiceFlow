@@ -51,7 +51,7 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxPeople: 25,
     maxMinistries: 5,
     maxAdmins: 1,
-    maxLeaders: 0,
+    maxLeaders: 1,
     priceMonthly: 9.99,
     priceAnnual: 99.90,
     features: [

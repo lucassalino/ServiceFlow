@@ -20,7 +20,7 @@ const RESOURCE_ICON: Record<PlanResource, typeof Users> = {
  * Anéis de utilização dos limites do plano — um por recurso com quantidade
  * (pessoas, ministérios, líderes). Verde normalmente, amarelo a partir de 80%
  * do limite, vermelho ao atingi-lo. O anel de líderes fica de fora quando o
- * plano atual não inclui líderes (limit 0, ex.: Semente/Broto) — mostrar
+ * plano atual não inclui líderes (limit 0, ex.: Semente) — mostrar
  * "0/0" a vermelho parecia um erro em vez de "este plano não tem líderes".
  */
 export function PlanLimitRings() {
