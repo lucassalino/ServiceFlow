@@ -170,9 +170,9 @@ export function CalendarClient({ orgId }: Props) {
               </div>
 
               {/* Weeks */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {weeks.map((week, wi) => (
-                  <div key={wi} className="grid grid-cols-7 gap-1">
+                  <div key={wi} className="grid grid-cols-7 gap-1.5">
                     {week.map((date, di) => {
                       if (!date) return <div key={di} />;
                       const iso = toISODate(date);
@@ -188,9 +188,9 @@ export function CalendarClient({ orgId }: Props) {
                           style={{
                             position: 'relative',
                             aspectRatio: '1',
-                            borderRadius: '0.625rem',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-                            background: isSelected ? 'var(--wis-blue)' : isToday ? 'var(--wis-blue-soft)' : 'transparent',
+                            borderRadius: '0.75rem',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.25rem',
+                            background: isSelected ? '#fff' : 'var(--wis-surface-2)',
                             border: '1px solid transparent',
                             cursor: 'pointer', transition: 'background 0.12s',
                           }}
@@ -202,17 +202,23 @@ export function CalendarClient({ orgId }: Props) {
                             }} />
                           )}
                           <span style={{
-                            fontSize: '0.82rem', fontWeight: isToday || isSelected ? 700 : 500,
-                            color: isSelected ? 'var(--wis-canvas)' : isToday ? 'var(--wis-blue)' : 'var(--wis-text-2)',
+                            fontSize: '0.9rem', fontWeight: isSelected ? 700 : 500,
+                            color: isSelected ? '#0a0a0a' : 'var(--wis-text-2)',
                           }}>
                             {date.getDate()}
                           </span>
+                          {isToday && (
+                            <span style={{
+                              width: '4px', height: '4px', borderRadius: '9999px',
+                              background: isSelected ? '#0a0a0a' : 'var(--wis-blue)',
+                            }} />
+                          )}
                           {dayEvents.length > 0 && (
                             <div style={{ display: 'flex', gap: '0.15rem', position: 'absolute', bottom: '0.32rem' }}>
                               {dayEvents.slice(0, 3).map((e, i) => (
                                 <span key={i} style={{
                                   width: '0.55rem', height: '2px', borderRadius: '9999px',
-                                  background: isSelected ? 'var(--wis-canvas)' : (e.color ?? 'var(--wis-blue)'),
+                                  background: isSelected ? '#0a0a0a' : (e.color ?? 'var(--wis-blue)'),
                                 }} />
                               ))}
                             </div>
