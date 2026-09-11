@@ -190,8 +190,8 @@ export function CalendarClient({ orgId }: Props) {
                             aspectRatio: '1',
                             borderRadius: '0.75rem',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.25rem',
-                            background: isSelected ? '#fff' : 'var(--wis-surface-2)',
-                            border: '1px solid transparent',
+                            background: isSelected ? '#fff' : isToday ? 'var(--wis-blue-soft)' : 'var(--wis-surface-2)',
+                            border: isSelected && isToday ? '2px solid var(--wis-blue)' : '1px solid transparent',
                             cursor: 'pointer', transition: 'background 0.12s',
                           }}
                         >
@@ -202,17 +202,11 @@ export function CalendarClient({ orgId }: Props) {
                             }} />
                           )}
                           <span style={{
-                            fontSize: '0.9rem', fontWeight: isSelected ? 700 : 500,
-                            color: isSelected ? '#0a0a0a' : 'var(--wis-text-2)',
+                            fontSize: '0.9rem', fontWeight: isSelected || isToday ? 700 : 500,
+                            color: isSelected ? '#0a0a0a' : isToday ? 'var(--wis-blue)' : 'var(--wis-text-2)',
                           }}>
                             {date.getDate()}
                           </span>
-                          {isToday && (
-                            <span style={{
-                              width: '4px', height: '4px', borderRadius: '9999px',
-                              background: isSelected ? '#0a0a0a' : 'var(--wis-blue)',
-                            }} />
-                          )}
                           {dayEvents.length > 0 && (
                             <div style={{ display: 'flex', gap: '0.15rem', position: 'absolute', bottom: '0.32rem' }}>
                               {dayEvents.slice(0, 3).map((e, i) => (
@@ -236,32 +230,6 @@ export function CalendarClient({ orgId }: Props) {
           <div className="wis-section" style={{ paddingTop: 0 }}>
             <div className="pb-3">
               <p className="wis-eyebrow">{selectedLabel}</p>
-              {selectedDayUnavail.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-danger)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <CalendarOff className="h-3 w-3" />
-                    Indisponíveis
-                  </p>
-                  {selectedDayUnavail.map((u) => (
-                    <div key={u.entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <Avatar style={{ width: '1.75rem', height: '1.75rem', flexShrink: 0 }}>
-                        {u.avatarUrl && <AvatarImage src={u.avatarUrl} alt={u.name} />}
-                        <AvatarFallback style={{ fontSize: '0.65rem', background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)' }}>
-                          {getInitials(u.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {u.name}
-                        </p>
-                        <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {describeUnavailability(u.entry)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             {selectedEvents.length === 0 ? (
@@ -312,6 +280,33 @@ export function CalendarClient({ orgId }: Props) {
                     </Link>
                   );
                 })}
+              </div>
+            )}
+
+            {selectedDayUnavail.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--wis-border)' }}>
+                <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--wis-danger)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <CalendarOff className="h-3 w-3" />
+                  Indisponíveis
+                </p>
+                {selectedDayUnavail.map((u) => (
+                  <div key={u.entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <Avatar style={{ width: '1.75rem', height: '1.75rem', flexShrink: 0 }}>
+                      {u.avatarUrl && <AvatarImage src={u.avatarUrl} alt={u.name} />}
+                      <AvatarFallback style={{ fontSize: '0.65rem', background: 'var(--wis-danger-bg)', color: 'var(--wis-danger)' }}>
+                        {getInitials(u.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {u.name}
+                      </p>
+                      <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {describeUnavailability(u.entry)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
