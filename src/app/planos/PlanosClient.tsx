@@ -237,7 +237,8 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
               </span>
 
               <HandArrowDown
-                style={{ position: 'absolute', top: '18%', left: '24%', width: '3.2rem', color: PAPER, zIndex: 4 }}
+                className="wis-hero-arrow"
+                style={{ color: PAPER }}
               />
               <Sparkle style={{ position: 'absolute', bottom: '12%', right: '4%', width: '1.7rem', color: 'var(--yellow)', zIndex: 4 }} />
               <Sparkle style={{ position: 'absolute', bottom: '5%', right: '13%', width: '1rem', color: 'var(--yellow)', zIndex: 4 }} />

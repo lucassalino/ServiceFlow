@@ -277,6 +277,17 @@
   pointer-events: none;
 }
 
+/* Seta que liga a nota azul ao telemóvel — no ecrã estreito o telemóvel
+   ocupa mais largura relativa da composição e a mesma posição percentual
+   passava a cair em cima do ecrã do telemóvel em vez de no espaço vazio. */
+.wis-hero-arrow {
+  position: absolute;
+  top: 18%;
+  left: 24%;
+  width: 3.2rem;
+  z-index: 4;
+}
+
 .wis-halftone {
   position: absolute;
   inset: 0;
@@ -757,6 +768,7 @@
   .wis-burger { display: inline-flex; }
   .wis-hero { grid-template-columns: minmax(0, 1fr); gap: 3rem; }
   .wis-hero-art { min-height: 21rem; }
+  .wis-hero-arrow { top: 2%; left: 4%; width: 2.4rem; transform: rotate(-12deg); }
   .wis-feature-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .wis-metrics-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.5rem; }
   .wis-metric:nth-child(odd) { border-left: none; }
