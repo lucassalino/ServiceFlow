@@ -5,10 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** "YYYY-MM-DD" sem hora — new Date() trata-o como UTC meia-noite, o que em
+ *  fusos atrás do UTC (ex. Brasil) mostra o dia anterior. Ao acrescentar a
+ *  hora local isto passa a ser interpretado no fuso do dispositivo. */
+const PLAIN_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 export function formatDate(date: string | Date, opts?: Intl.DateTimeFormatOptions): string {
+  const parsed = typeof date === 'string'
+    ? new Date(PLAIN_DATE_RE.test(date) ? `${date}T00:00:00` : date)
+    : date;
   return new Intl.DateTimeFormat('pt-PT', {
     day: '2-digit', month: '2-digit', year: 'numeric', ...opts,
-  }).format(typeof date === 'string' ? new Date(date) : date);
+  }).format(parsed);
 }
 
 export function formatTime(time: string): string {
