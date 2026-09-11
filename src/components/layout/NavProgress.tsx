@@ -2,45 +2,72 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { LoadingRing } from '@/components/ui/LoadingRing';
+
+const MIN_VISIBLE_MS = 220;
+const FALLBACK_TIMEOUT_MS = 6000;
 
 /**
- * Barra fina no topo que pisca em cada mudança de ecrã, dando sinal visual
- * de que a app está a carregar a nova página.
+ * Overlay que aparece assim que o utilizador clica num link interno — não
+ * espera a navegação terminar — para dar feedback imediato de que o clique
+ * foi registado. Desaparece quando o novo ecrã termina de montar.
  */
 export function NavProgress() {
   const pathname = usePathname();
-  const [phase, setPhase] = useState<'idle' | 'loading' | 'done'>('idle');
-  const first = useRef(true);
+  const [visible, setVisible] = useState(false);
+  const shownAtRef = useRef(0);
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (first.current) { first.current = false; return; }
-    setPhase('loading');
-    const t1 = setTimeout(() => setPhase('done'), 450);
-    const t2 = setTimeout(() => setPhase('idle'), 750);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    function onClick(e: MouseEvent) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const anchor = (e.target as HTMLElement)?.closest?.('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href || !href.startsWith('/') || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+
+      const targetPath = href.split('?')[0].split('#')[0];
+      if (targetPath === window.location.pathname) return;
+
+      shownAtRef.current = Date.now();
+      setVisible(true);
+
+      if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      fallbackRef.current = setTimeout(() => setVisible(false), FALLBACK_TIMEOUT_MS);
+    }
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, []);
+
+  useEffect(() => {
+    setVisible((wasVisible) => {
+      if (!wasVisible) return wasVisible;
+      const elapsed = Date.now() - shownAtRef.current;
+      const remain = Math.max(0, MIN_VISIBLE_MS - elapsed);
+      const t = setTimeout(() => {
+        setVisible(false);
+        if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      }, remain);
+      fallbackRef.current && clearTimeout(fallbackRef.current);
+      fallbackRef.current = t;
+      return wasVisible;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  if (phase === 'idle') return null;
+  if (!visible) return null;
 
   return (
     <div
       aria-hidden
       style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: '2px',
-        zIndex: 200, pointerEvents: 'none',
-        background: 'var(--wis-surface-3)',
+        position: 'fixed', inset: 0, zIndex: 300,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'color-mix(in srgb, var(--wis-canvas) 78%, transparent)',
+        backdropFilter: 'blur(2px)',
       }}
     >
-      <div
-        style={{
-          height: '100%',
-          width: phase === 'loading' ? '85%' : '100%',
-          background: 'linear-gradient(90deg, var(--wis-blue-soft), var(--wis-success-bg))',
-          transition: phase === 'loading' ? 'width 0.45s ease-out' : 'width 0.2s ease-out, opacity 0.3s ease-out',
-          opacity: phase === 'done' ? 0 : 1,
-          boxShadow: '0 0 8px var(--wis-blue-soft)',
-        }}
-      />
+      <LoadingRing />
     </div>
   );
 }

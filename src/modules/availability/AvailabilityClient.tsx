@@ -14,9 +14,10 @@ type MemberWithProfile = OrganizationMember & {
 };
 
 export function AvailabilityClient() {
-  const { data: rawMembers = [] } = useOrgMembers();
+  const { data: rawMembers = [], isLoading: membersLoading } = useOrgMembers();
   const members = rawMembers as unknown as MemberWithProfile[];
-  const { data: unavailabilityByUser } = useOrgUnavailability();
+  const { data: unavailabilityByUser, isLoading: unavailLoading } = useOrgUnavailability();
+  const isLoading = membersLoading || unavailLoading;
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const isUpcoming = (e: { kind: string; endDate: string | null }) =>
@@ -50,7 +51,19 @@ export function AvailabilityClient() {
               Indisponibilidade da equipa
             </p>
           </div>
-          {membersWithUnavailability.length === 0 ? (
+          {isLoading ? (
+            <div className="px-5 pb-6 space-y-2.5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem' }}>
+                  <div className="wis-skeleton h-8 w-8 rounded-full shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="wis-skeleton h-3.5 w-32 rounded" />
+                    <div className="wis-skeleton h-3 w-48 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : membersWithUnavailability.length === 0 ? (
             <div className="px-5 pb-6">
               <p className="text-sm text-[color:var(--wis-text-3)]">Ninguém registou indisponibilidades ainda.</p>
             </div>
