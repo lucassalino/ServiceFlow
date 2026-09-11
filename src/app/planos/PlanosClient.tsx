@@ -11,7 +11,7 @@ import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { TearDivider, InkBlob, HandArrow, HandArrowDown, BrushUnderline, ScribbleCircle, Sparkle } from './Doodles';
+import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -236,10 +236,6 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                 Mais tempo para o que realmente importa.
               </span>
 
-              <HandArrowDown
-                className="wis-hero-arrow"
-                style={{ color: PAPER }}
-              />
               <Sparkle style={{ position: 'absolute', bottom: '12%', right: '4%', width: '1.7rem', color: 'var(--yellow)', zIndex: 4 }} />
               <Sparkle style={{ position: 'absolute', bottom: '5%', right: '13%', width: '1rem', color: 'var(--yellow)', zIndex: 4 }} />
             </div>
