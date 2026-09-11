@@ -59,7 +59,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
   const currentMonthName = MONTH_NAMES[new Date().getMonth()];
 
   return (
-    <div className="dash-purple-bg">
+    <div className="dash-purple-bg wis-dashboard-bg">
       <div className="wis-page px-5 md:px-8 pb-10">
 
         {/* ── Saudação ──────────────────────────────────── */}
