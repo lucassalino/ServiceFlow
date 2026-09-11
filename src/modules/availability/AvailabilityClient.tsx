@@ -18,7 +18,13 @@ export function AvailabilityClient() {
   const members = rawMembers as unknown as MemberWithProfile[];
   const { data: unavailabilityByUser } = useOrgUnavailability();
 
-  const membersWithUnavailability = members.filter((m) => (unavailabilityByUser?.[m.user_id]?.length ?? 0) > 0);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isUpcoming = (e: { kind: string; endDate: string | null }) =>
+    e.kind !== 'date_range' || !e.endDate || e.endDate >= todayStr;
+
+  const membersWithUnavailability = members
+    .map((m) => ({ m, entries: (unavailabilityByUser?.[m.user_id] ?? []).filter(isUpcoming) }))
+    .filter(({ entries }) => entries.length > 0);
 
   return (
     <div className="dash-purple-bg">
@@ -50,9 +56,8 @@ export function AvailabilityClient() {
             </div>
           ) : (
             <div className="px-5 pb-5 space-y-2.5">
-              {membersWithUnavailability.map((m) => {
+              {membersWithUnavailability.map(({ m, entries }) => {
                 const name = m.profile?.full_name ?? m.profile?.email ?? '?';
-                const entries = unavailabilityByUser?.[m.user_id] ?? [];
                 return (
                   <div key={m.user_id} style={{
                     display: 'flex', gap: '0.75rem',
