@@ -96,7 +96,7 @@ export function MemberHistoryPanel({ userId, memberName, memberAvatar, onBack }:
             gap: '0.75rem', marginBottom: '1.5rem',
           }}>
             <Stat label="Participações" value={String(s.total)} />
-            <Stat label="Confirmadas" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="var(--wis-success-bg)" />
+            <Stat label="Confirmadas" value={confirmRate !== null ? `${confirmRate}%` : '—'} accent="var(--wis-success)" />
             <Stat label="Ministérios" value={String(s.ministries)} />
             <Stat
               label="Último serviço"

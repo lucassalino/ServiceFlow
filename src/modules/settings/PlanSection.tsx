@@ -84,7 +84,7 @@ export function PlanSection({ orgId }: Props) {
               <span style={{
                 fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
                 padding: '0.18rem 0.55rem', borderRadius: '9999px',
-                background: 'var(--wis-blue-soft)', color: '#c9ecf7', border: '1px solid var(--wis-blue-border)',
+                background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)', border: '1px solid var(--wis-blue-border)',
               }}>{sourceLabel[sub?.source ?? 'free'] ?? sub?.source}</span>
             </div>
 
@@ -114,7 +114,7 @@ export function PlanSection({ orgId }: Props) {
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                 padding: '0.6rem 1rem', borderRadius: '0.625rem',
                 background: 'linear-gradient(135deg, #2c7fa8 0%, #14536f 100%)',
-                color: 'var(--wis-text)', border: 'none', cursor: 'pointer',
+                color: '#fff', border: 'none', cursor: 'pointer',
                 fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.01em',
                 boxShadow: '0 4px 14px var(--wis-blue-soft)',
               }}
