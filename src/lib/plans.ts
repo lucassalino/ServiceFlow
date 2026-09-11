@@ -12,7 +12,7 @@
  * ("permissão dev", source 'manual').
  */
 
-export type PlanKey = 'semente' | 'broto' | 'colheita' | 'celeiro';
+export type PlanKey = 'semente' | 'broto' | 'colheita';
 
 export interface PlanDef {
   key: PlanKey;
@@ -46,7 +46,7 @@ export const PLANS: Record<PlanKey, PlanDef> = {
   },
   broto: {
     key: 'broto',
-    label: 'Broto',
+    label: 'Plus',
     order: 1,
     maxPeople: 25,
     maxMinistries: 5,
@@ -61,35 +61,21 @@ export const PLANS: Record<PlanKey, PlanDef> = {
   },
   colheita: {
     key: 'colheita',
-    label: 'Colheita',
+    label: 'Pro',
     order: 2,
-    maxPeople: 60,
+    maxPeople: null,
     maxMinistries: null,
     maxAdmins: 1,
-    maxLeaders: 3,
-    priceMonthly: 19.99,
-    priceAnnual: 199.90,
+    maxLeaders: null,
+    priceMonthly: 25.99,
+    priceAnnual: 259.90,
     features: [
-      'Ministérios ilimitados',
+      'Pessoas, ministérios e líderes ilimitados',
       'Disponibilidade recorrente (ex.: "2ª terça do mês")',
       'Sincronização com o Google/Apple Calendar',
       'Roteiro do evento',
       'Ranking de músicas',
       'Exportar em PDF',
-    ],
-  },
-  celeiro: {
-    key: 'celeiro',
-    label: 'Celeiro',
-    order: 3,
-    maxPeople: null,
-    maxMinistries: null,
-    maxAdmins: 1,
-    maxLeaders: null,
-    priceMonthly: 39.99,
-    priceAnnual: 399.90,
-    features: [
-      'Pessoas ilimitadas e líderes ilimitados',
       'Avisos por email quando a escala é publicada',
       'Relatórios de engajamento',
       'Suporte prioritário',

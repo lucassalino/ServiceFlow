@@ -57,8 +57,7 @@ const FEATURE_LABELS: Record<string, string> = {
 const PLAN_TAGLINES: Record<string, string> = {
   semente: 'Para começar',
   broto: 'Para equipes em crescimento',
-  colheita: 'Para igrejas em expansão',
-  celeiro: 'Para igrejas sem limites',
+  colheita: 'Para igrejas sem limites',
 };
 
 const METRICS = [
