@@ -90,11 +90,16 @@ export async function grantPlanAction(
   }, { onConflict: 'org_id' });
   if (error) throw new Error(error.message);
 
+  // NOTA: check_plan_limit responde "posso adicionar mais um?" (allowed =
+  // used < limit) — para saber se a org já está acima do limite do plano
+  // (o que importa aqui) precisamos de `used > limit`, não de `allowed`.
+  // Usar `allowed` bloqueava qualquer org com exatamente 1 admin (o normal,
+  // já que "Admin é sempre 1, em qualquer plano" — ver AGENTS.md).
   let locked = false;
   for (const resource of ['people', 'ministry', 'admin', 'leader'] as const) {
     const { data } = await admin.rpc('check_plan_limit', { p_org_id: orgId, p_resource_type: resource });
     const row = Array.isArray(data) ? data[0] : data;
-    if (row && row.allowed === false) locked = true;
+    if (row && row.limit !== null && row.used > row.limit) locked = true;
   }
 
   await admin.from('org_subscriptions').update({ status: locked ? 'downgraded_locked' : 'active' }).eq('org_id', orgId);
