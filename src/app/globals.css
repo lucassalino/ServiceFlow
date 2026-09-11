@@ -794,8 +794,17 @@
   .no-print { display: none !important; }
 }
 
-/* Campos de data/hora ocupam toda a largura da célula (evita sobreposição no mobile) */
-input[type="date"], input[type="time"] { min-width: 0; width: 100%; box-sizing: border-box; }
+/* Campos de data/hora ocupam toda a largura da célula (evita sobreposição no mobile).
+   -webkit-appearance:none é necessário porque o Safari iOS ignora width/max-width
+   nestes campos e desenha o controlo nativo com a sua largura intrínseca, saindo
+   para fora do ecrã — remover a aparência nativa faz o Safari respeitar a caixa. */
+input[type="date"], input[type="time"] {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
 
 /* iOS dá zoom ao focar campos com letra < 16px — forçar 16px no mobile evita isso.
    Selectores específicos para vencer os overrides de .auth-glass / .dark-inputs. */
