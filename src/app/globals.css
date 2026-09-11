@@ -217,31 +217,22 @@
   color: var(--wis-text);
 }
 
-/* Luz ambiente: um sopro de azul/teal no topo, quase impercetível. Existe
-   para o fundo não ser um preto chapado — se se notar, está forte demais. */
+/* Fumo azul-marinho — o mesmo fundo dos ecrãs de entrada, em todas as
+   telas autenticadas. Opacidades bem mais baixas que no login: aqui há
+   conteúdo real por cima (cartões, texto), não pode competir com ele. */
 .dark .dash-purple-bg::before {
   content: '';
   position: absolute;
-  inset: 0 0 auto;
-  height: 60vh;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image:
-    radial-gradient(ellipse 70% 50% at 78% -8%, rgba(91, 140, 255, 0.06) 0%, transparent 62%),
-    radial-gradient(ellipse 45% 38% at 18% -4%, rgba(24, 124, 138, 0.045) 0%, transparent 58%);
-}
-.dash-purple-bg > * { position: relative; z-index: 1; }
-
-/* Painel (Início) — o mesmo fumo azul-marinho dos ecrãs de entrada, só
-   aqui. As outras telas ficam com a luz ambiente discreta de sempre. */
-.dark .dash-purple-bg.wis-dashboard-bg::before {
-  height: 100%;
   background-image:
     radial-gradient(ellipse 65% 45% at 12% 15%, rgba(30,64,175,0.22) 0%, transparent 62%),
     radial-gradient(ellipse 55% 60% at 88% 10%, rgba(37,99,235,0.18) 0%, transparent 65%),
     radial-gradient(ellipse 70% 55% at 78% 85%, rgba(29,78,216,0.20) 0%, transparent 60%),
     radial-gradient(ellipse 50% 45% at 15% 90%, rgba(59,130,246,0.11) 0%, transparent 55%);
 }
+.dash-purple-bg > * { position: relative; z-index: 1; }
 
 /* ── Superfícies ───────────────────────────────────────────────────── */
 
