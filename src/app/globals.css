@@ -362,6 +362,24 @@
 .sidebar-collapsed .sidebar-group-label,
 .sidebar-collapsed .sidebar-hide-collapsed { display: none; }
 
+/* O agrupamento do sino/tema no rodapé só existe fora do modo recolhido —
+   ver .sidebar-hide-collapsed acima, que tem prioridade quando recolhida. */
+.sidebar-footer-icons { display: contents; }
+
+/* Recolhida: cabeçalho e rodapé passam a coluna, centrados — em 4.25rem de
+   largura o logótipo e o botão de expandir (ou o avatar e o sair) não cabem
+   lado a lado sem se sobrepor/cortar. */
+.sidebar-collapsed .sidebar-header {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-inline: 0.5rem;
+}
+.sidebar-collapsed .sidebar-footer-row {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .sidebar-dark-btn {
   display: flex;
   align-items: center;

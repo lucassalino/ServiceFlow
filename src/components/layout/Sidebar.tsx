@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, Users, Music2, BookOpen,
-  Settings, Plus, LogOut, CalendarCheck, CalendarDays, CalendarOff, ChevronDown, X, KeyRound, Megaphone, QrCode,
+  Settings, Plus, LogOut, CalendarDays, CalendarOff, ChevronDown, X, KeyRound, Megaphone, QrCode,
   ClipboardList, PanelLeftClose, PanelLeftOpen, TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -34,7 +34,6 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: t
     items: [
       { href: 'members',    label: 'Pessoas',     icon: Users },
       { href: 'ministries', label: 'Ministérios', icon: Music2 },
-      { href: 'schedule',   label: 'Escalas',     icon: CalendarCheck },
       { href: 'reports',    label: 'Relatórios',  icon: TrendingUp, feature: 'engagement_reports', roles: ['admin', 'leader'] },
     ],
   },
@@ -108,7 +107,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
     <div className={cn('sidebar-dark', isCollapsed && 'sidebar-collapsed')}>
 
       {/* ── Brand ─────────────────────────────── */}
-      <div className="sidebar-dark-section flex items-center justify-between px-4 py-4">
+      <div className="sidebar-dark-section sidebar-header flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: 'linear-gradient(135deg, #0D3B66 0%, #0F5C6E 100%)', border: '1px solid var(--wis-border-strong)' }}>
@@ -116,7 +115,9 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
             <img src="/brand/wis-symbol-white.svg" alt="WIS" style={{ width: '1.15rem', height: 'auto' }} />
           </div>
           <span className="sidebar-hide-collapsed text-[color:var(--wis-text)] font-semibold text-sm tracking-tight shrink-0">WIS</span>
-          {planState && <span className="sidebar-hide-collapsed"><PlanBadge state={planState} /></span>}
+          {/* O selo "Cortesia" não aparece na barra lateral — é informação
+              de faturação, não algo que precise de estar sempre à vista. */}
+          {planState && !planState.courtesy && <span className="sidebar-hide-collapsed"><PlanBadge state={planState} /></span>}
         </div>
         <button
           onClick={onMobileClose}
@@ -232,7 +233,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
 
       {/* ── Footer ────────────────────────────── */}
       <div className="px-3 py-3" style={{ borderTop: '1px solid var(--wis-border)' }}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 sidebar-footer-row">
           <Link href={`/${orgId}/settings`} onClick={onMobileClose}
             className="flex items-center gap-2.5 flex-1 min-w-0 rounded-lg -mx-1 px-1 py-0.5 hover:bg-[var(--wis-surface-2)] transition-colors"
             aria-label="Abrir definições">
@@ -243,7 +244,7 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
                 {getInitials(activeMembership?.profile?.full_name ?? 'U')}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 sidebar-hide-collapsed">
               <p className="text-xs font-semibold truncate leading-tight" style={{ color: 'var(--wis-text)' }}>
                 {activeMembership?.profile?.full_name ?? '—'}
               </p>
@@ -253,8 +254,12 @@ export function Sidebar({ orgId, mobileOpen, onMobileClose }: Props) {
             </div>
           </Link>
           <div className="flex items-center shrink-0">
-            <ThemeToggle />
-            <NotificationBell orgId={orgId} />
+            {/* Escondidos quando a barra está recolhida — não há largura
+                para os três (sino, tema, sair) sem cortar. */}
+            <span className="sidebar-hide-collapsed sidebar-footer-icons">
+              <ThemeToggle />
+              <NotificationBell orgId={orgId} />
+            </span>
             <button
               onClick={handleSignOut}
               className="sidebar-dark-icon-btn hover:!text-red-400 hover:!bg-red-500/10"
