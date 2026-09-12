@@ -424,7 +424,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
       <section className="wis-cta-final wis-grain">
         <div className="wis-wrap">
           <h2 className="wis-display wis-h2" style={{ color: '#fff' }}>
-            Pronto para colocar<br />sua igreja em sintonia?
+            Domingo já vem aí. <span style={{ color: 'rgba(255,255,255,0.45)' }}>Organiza a equipa hoje.</span>
           </h2>
           <p>Comece hoje — o plano Semente é grátis.</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
