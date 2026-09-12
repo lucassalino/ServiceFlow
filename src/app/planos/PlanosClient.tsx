@@ -418,26 +418,6 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
         </div>
       </section>
 
-      {/* ── CTA final ──────────────────────────────────── */}
-      <section className="wis-cta-final wis-grain">
-        <div className="wis-wrap">
-          <h2 className="wis-display wis-h2" style={{ color: '#fff' }}>
-            Domingo já vem aí. <span style={{ color: 'rgba(255,255,255,0.45)' }}>Organiza a equipa hoje.</span>
-          </h2>
-          <p>Comece hoje — o plano Semente é grátis.</p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-            <Link href="/register" className="wis-btn wis-btn-ink" style={{ boxShadow: '4px 4px 0 rgba(5,5,5,0.45)' }}>
-              Começar agora <ArrowRight size={17} />
-            </Link>
-            <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="wis-btn wis-btn-outline" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.6)' }}>
-              Entrar na app
-            </a>
-          </div>
-          <Sparkle style={{ position: 'absolute', top: '18%', left: '8%', width: '2rem', color: 'var(--yellow)' }} />
-          <Sparkle style={{ position: 'absolute', bottom: '18%', right: '10%', width: '1.4rem', color: 'var(--yellow)' }} />
-        </div>
-      </section>
-
       {/* ── Rodapé ─────────────────────────────────────── */}
       <footer className="wis-footer">
         <div className="wis-wrap wis-footer-grid">

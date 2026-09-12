@@ -727,17 +727,6 @@
   box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.9);
 }
 
-/* ── CTA final ──────────────────────────────────────────────────────── */
-
-.wis-cta-final {
-  background: var(--blue);
-  color: #fff;
-  padding: clamp(3.5rem, 8vw, 6rem) 0;
-  text-align: center;
-  overflow: hidden;
-}
-.wis-cta-final p { font-size: 1rem; opacity: 0.85; margin: 1rem 0 2rem; }
-
 /* ── Rodapé ─────────────────────────────────────────────────────────── */
 
 .wis-footer {
