@@ -426,7 +426,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
           <h2 className="wis-display wis-h2" style={{ color: '#fff' }}>
             Pronto para colocar<br />sua igreja em sintonia?
           </h2>
-          <p>Comece hoje — o plano Semente é grátis para sempre.</p>
+          <p>Comece hoje — o plano Semente é grátis.</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
             <Link href="/register" className="wis-btn wis-btn-ink" style={{ boxShadow: '4px 4px 0 rgba(5,5,5,0.45)' }}>
               Começar agora <ArrowRight size={17} />
@@ -531,7 +531,7 @@ function PlanCard({ plan, tier, annual, previousFeatures, previousLabel, adminOr
       </p>
 
       {plan.priceMonthly === 0 ? (
-        <p className="wis-price-alt">Grátis para sempre</p>
+        <p className="wis-price-alt">Grátis</p>
       ) : (
         <p className="wis-price-alt">
           {annual
