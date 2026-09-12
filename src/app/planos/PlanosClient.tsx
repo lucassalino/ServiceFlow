@@ -347,7 +347,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
 
       <TearDivider fill={PAPER} />
 
-      {/* ── FAQ + instalação ───────────────────────────── */}
+      {/* ── FAQ ────────────────────────────────────────── */}
       <section id="faq" className="wis-paper wis-grain">
         <div className="wis-wrap" style={{ paddingTop: '3rem', paddingBottom: '3.5rem' }}>
           <Reveal>
@@ -360,7 +360,12 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
               {FAQ.map((item) => <FaqItem key={item.q} {...item} />)}
             </div>
           </Reveal>
+        </div>
+      </section>
 
+      {/* ── Instalação PWA ─────────────────────────────── */}
+      <section className="wis-install-section wis-grain">
+        <div className="wis-wrap">
           <Reveal>
             <div className="wis-install-dark">
               <div className="wis-install-dark-text">

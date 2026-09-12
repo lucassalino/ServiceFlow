@@ -664,19 +664,20 @@
 
 /* ── Instalação PWA ─────────────────────────────────────────────────── */
 
+.wis-install-section {
+  position: relative;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(20, 92, 255, 0.16), transparent 55%),
+    #0a0a0d;
+  padding: clamp(3.5rem, 8vw, 6rem) 0;
+  overflow: hidden;
+}
 .wis-install-dark {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 2.5rem;
   align-items: center;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(20, 92, 255, 0.16), transparent 55%),
-    #0a0a0d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.75rem;
-  padding: 3rem;
-  overflow: hidden;
 }
 .wis-install-dark-text { position: relative; z-index: 1; }
 
@@ -779,7 +780,7 @@
   .wis-plan[data-tier='2']:hover { transform: translateY(-5px); }
   .wis-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
   .wis-step:nth-child(2) .wis-step-arrow { display: none; }
-  .wis-install-dark { grid-template-columns: minmax(0, 1fr); padding: 2.25rem; }
+  .wis-install-dark { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 767px) {
@@ -794,7 +795,6 @@
   .wis-steps { grid-template-columns: minmax(0, 1fr); }
   .wis-step-arrow { display: none !important; }
   .wis-plan-grid { grid-template-columns: minmax(0, 1fr); }
-  .wis-install-dark { padding: 1.75rem; border-radius: 1.25rem; }
   .wis-metrics { transform: rotate(-1deg); }
 }
 
