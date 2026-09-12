@@ -45,7 +45,7 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
   const { activeMembership, activeOrg } = useOrgStore();
   const currentUserId = activeMembership?.user_id;
   const [tab, setTab] = useState<'team' | 'setlist' | 'roteiro' | 'historico'>('team');
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [selectedSong, setSelectedSong] = useState<(Song & { event_key?: string | null; event_note?: string | null }) | null>(null);
 
   const { data: eventMinistries = [], isLoading: ministriesLoading } = useEventMinistries(event.id);
   const { data: setlist = [], isLoading: setlistLoading } = useEventSetlist(event.id);

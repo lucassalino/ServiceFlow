@@ -6,7 +6,7 @@ import type { Song } from '@/types/models';
 import { youtubeThumbnail } from '@/lib/utils';
 
 interface Props {
-  song: (Song & { event_note?: string | null }) | null;
+  song: (Song & { event_note?: string | null; event_key?: string | null }) | null;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -21,9 +21,12 @@ export function SongInfoDialog({ song, onOpenChange }: Props) {
     { label: 'Letra', url: song.lyrics, icon: <FileText style={{ width: '0.9rem', height: '0.9rem' }} />, color: 'var(--wis-blue)' },
   ].filter((l) => !!l.url);
 
+  // Tom deste evento tem prioridade — só cai para o tom original da música se não foi definido um tom próprio.
+  const displayKey = song.event_key || song.musical_key;
+
   const stats = [
     song.bpm && { value: String(song.bpm), label: 'BPM' },
-    song.musical_key && { value: song.musical_key, label: 'Tom' },
+    displayKey && { value: displayKey, label: 'Tom' },
     song.duration && { value: song.duration, label: 'Duração' },
   ].filter(Boolean) as { value: string; label: string }[];
 
