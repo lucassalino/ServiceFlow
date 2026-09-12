@@ -118,14 +118,19 @@ function Reveal({ children, className = '', id }: { children: React.ReactNode; c
   return <div ref={attach} id={id} className={className}>{children}</div>;
 }
 
-interface Props { plans: PlanDef[]; adminOrgId: string | null }
+interface Props { plans: PlanDef[]; adminOrgId: string | null; initialCurrency?: Currency }
 
-export function PlanosClient({ plans, adminOrgId }: Props) {
+export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
   const [annual, setAnnual] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currency, setCurrency] = useState<Currency>('EUR');
+  // Preferimos a localização real por IP (vinda do servidor, via Cloudflare)
+  // — só cai para o idioma do navegador se, por algum motivo, não a tivermos
+  // (ex.: fora do Cloudflare, em dev local sem o header).
+  const [currency, setCurrency] = useState<Currency>(initialCurrency ?? 'EUR');
 
-  useEffect(() => { setCurrency(detectDefaultCurrency()); }, []);
+  useEffect(() => {
+    if (!initialCurrency) setCurrency(detectDefaultCurrency());
+  }, [initialCurrency]);
 
   return (
     <div className="wis-lp">
