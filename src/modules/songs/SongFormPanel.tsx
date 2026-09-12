@@ -140,12 +140,12 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
 
     if (isEditing && song) {
       updateSong.mutate({ id: song.id, ...payload }, {
-        onSuccess: () => { toast.success('Música actualizada.'); onSaved?.(); onBack(); },
+        onSuccess: (updated) => { toast.success('Música actualizada.'); onSaved?.(updated); onBack(); },
         onError: () => toast.error('Erro ao actualizar música.'),
       });
     } else {
       createSong.mutate(payload, {
-        onSuccess: () => { toast.success('Música criada.'); onSaved?.(); onBack(); },
+        onSuccess: (created) => { toast.success('Música criada.'); onSaved?.(created); onBack(); },
         onError: () => toast.error('Erro ao criar música.'),
       });
     }

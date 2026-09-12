@@ -29,7 +29,7 @@ import { isOrgFeatureEnabled } from '@/lib/org-features';
 import type { Event, EventMinistry, Ministry, EventSchedule, Song } from '@/types/models';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLiturgies } from '@/hooks/useLiturgies';
-import { SongDetailPanel } from '@/modules/songs/SongDetailPanel';
+import { SongInfoDialog } from '@/modules/songs/SongInfoDialog';
 import { ConfirmAttendanceDialog } from '@/components/ConfirmAttendanceDialog';
 import { NotifyScheduleButton } from './NotifyScheduleButton';
 
@@ -68,19 +68,6 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
   }
 
   const color = event.color ?? 'var(--wis-blue)';
-
-  if (selectedSong) {
-    return (
-      <SongDetailPanel
-        song={selectedSong}
-        eventNote={(selectedSong as Song & { event_note?: string | null }).event_note}
-        onBack={() => setSelectedSong(null)}
-        isAdmin={false}
-        onEdit={() => {}}
-        onDelete={() => {}}
-      />
-    );
-  }
 
   return (
     <div className="dash-purple-bg" style={{ minHeight: '100%' }}>
@@ -352,6 +339,8 @@ export function EventDetailPanel({ event, onBack, isAdmin, canManage = isAdmin, 
         </div>
 
       </div>
+
+      <SongInfoDialog song={selectedSong} onOpenChange={(open) => { if (!open) setSelectedSong(null); }} />
     </div>
   );
 }

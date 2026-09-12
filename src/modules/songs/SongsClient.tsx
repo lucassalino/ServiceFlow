@@ -15,9 +15,9 @@ import { SongFormPanel } from './SongFormPanel';
 import { SongDetailPanel } from './SongDetailPanel';
 import { SongCsvImportDialog } from './SongCsvImportDialog';
 
-function Chip({ children }: { children: React.ReactNode }) {
+function Chip({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
-    <span style={{
+    <span title={title} style={{
       fontSize: '0.7rem', fontWeight: 600, padding: '0.15rem 0.55rem',
       borderRadius: '9999px', letterSpacing: '0.04em',
       background: 'var(--wis-surface-3)',
@@ -86,11 +86,8 @@ export function SongsClient() {
       <SongFormPanel
         song={formSong === 'new' ? null : formSong}
         onBack={() => setFormSong(null)}
-        onSaved={() => {
-          if (formSong !== 'new' && detailSong) {
-            const updated = songs.find((s) => s.id === (formSong as Song).id);
-            if (updated) setDetailSong(updated);
-          }
+        onSaved={(saved) => {
+          if (formSong !== 'new' && detailSong && saved) setDetailSong(saved);
         }}
       />
     );
@@ -438,7 +435,7 @@ function SongRow({
           {song.name}
         </p>
         <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
-          {song.artist ?? '—'}
+          {song.artist ?? '—'}{song.duration && ` · ${song.duration}`}
         </p>
       </div>
 
@@ -446,6 +443,15 @@ function SongRow({
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, maxWidth: '45%', flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
         {song.musical_key && <Chip>{song.musical_key}</Chip>}
         {song.bpm && <span className="hidden sm:inline-flex"><Chip>{song.bpm} BPM</Chip></span>}
+        {song.bible_reference && (
+          <span className="hidden lg:inline-flex" style={{ maxWidth: '9rem' }}>
+            <Chip title={song.bible_reference}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', maxWidth: '8.5rem' }}>
+                {song.bible_reference}
+              </span>
+            </Chip>
+          </span>
+        )}
         {ministryName && (
           <span className="hidden md:inline-flex">
             <Chip>{ministryName}</Chip>

@@ -100,19 +100,22 @@ export async function createSongAction(orgId: string, payload: SongPayload): Pro
   return data as Song;
 }
 
-export async function updateSongAction(id: string, payload: SongPayload): Promise<void> {
+export async function updateSongAction(id: string, payload: SongPayload): Promise<Song> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
   // Atualiza a cópia da igreja (cada igreja tem a sua versão).
   const { data: updated, error } = await supabase.from('songs')
     .update({ ...payload, updated_at: new Date().toISOString() } as never)
-    .eq('id', id).select('org_id').single();
+    .eq('id', id).select('*').single();
   if (error) throw new Error(error.message);
+  const row = updated as Song;
   // Contribui campos vazios de volta ao catálogo e mantém a ligação certa.
-  const orgId = (updated as { org_id: string }).org_id;
-  const catalogId = await resolveCatalog(supabase, payload, orgId, user.id);
-  if (catalogId) await supabase.from('songs').update({ catalog_song_id: catalogId }).eq('id', id);
+  const catalogId = await resolveCatalog(supabase, payload, row.org_id, user.id);
+  if (catalogId && catalogId !== row.catalog_song_id) {
+    await supabase.from('songs').update({ catalog_song_id: catalogId }).eq('id', id);
+  }
+  return { ...row, catalog_song_id: catalogId ?? row.catalog_song_id };
 }
 
 export async function deleteSongAction(id: string): Promise<void> {
