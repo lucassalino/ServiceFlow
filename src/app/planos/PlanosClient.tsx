@@ -76,7 +76,7 @@ const STEPS = [
 
 const FAQ: { q: string; a: string }[] = [
   { q: 'Posso cancelar quando quiser?', a: 'Sim. A assinatura é gerida por você no portal de faturamento e pode ser cancelada a qualquer momento — o plano continua ativo até o fim do período já pago, e depois sua organização volta ao plano gratuito sem perder os dados.' },
-  { q: 'Existe período de teste?', a: 'O plano Semente é gratuito para sempre e não pede cartão, então você pode usar o WIS de verdade com sua equipe antes de decidir. Quando precisar de mais pessoas, ministérios ou recursos, é só mudar de plano.' },
+  { q: 'Existe período de teste?', a: 'O plano Semente é gratuito e não pede cartão, então você pode usar o WIS de verdade com sua equipe antes de decidir. Quando precisar de mais pessoas, ministérios ou recursos, é só mudar de plano.' },
   { q: 'Como funciona o upgrade de plano?', a: 'Você escolhe o novo plano aqui mesmo e o pagamento é feito de forma segura via Stripe. Os novos limites e recursos passam a valer imediatamente — não é preciso recriar nada.' },
   { q: 'Posso mudar de plano depois?', a: 'Pode subir ou descer de plano quando quiser. Ao descer, confira antes se sua igreja está dentro dos limites do plano menor (pessoas, ministérios e líderes).' },
   { q: 'Os dados da minha igreja estão seguros?', a: 'Cada organização só enxerga os próprios dados, com regras de acesso aplicadas no banco de dados e não apenas na interface. Os pagamentos passam pelo Stripe — nenhum dado de cartão chega aos nossos servidores.' },
