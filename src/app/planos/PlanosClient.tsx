@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   CalendarCheck, Music2, Users, Bell, ListChecks, Building2,
-  BarChart3, Layers, Smartphone, Monitor, Apple, ArrowRight, Check, Loader2, Menu, X,
+  BarChart3, Layers, Apple, Play, ArrowRight, ArrowUpRight, Check, Loader2, Menu, X,
 } from 'lucide-react';
 import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
@@ -87,16 +87,6 @@ function fmtPrice(v: number): string {
   return v === 0 ? '0€' : `${v.toFixed(2).replace('.', ',')}€`;
 }
 
-type Platform = 'ios' | 'android' | 'desktop';
-
-function detectPlatform(): Platform {
-  if (typeof navigator === 'undefined') return 'desktop';
-  const ua = navigator.userAgent;
-  if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
-  if (/Android/.test(ua)) return 'android';
-  return 'desktop';
-}
-
 /**
  * Revela o bloco ao entrar no ecrã. O estado escondido é aplicado pelo
  * próprio JS na montagem (ref callback, antes da pintura) — sem JS, ou se o
@@ -131,10 +121,7 @@ interface Props { plans: PlanDef[]; adminOrgId: string | null }
 
 export function PlanosClient({ plans, adminOrgId }: Props) {
   const [annual, setAnnual] = useState(false);
-  const [platform, setPlatform] = useState<Platform>('desktop');
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => { setPlatform(detectPlatform()); }, []);
 
   return (
     <div className="wis-lp">
@@ -374,46 +361,57 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
             </div>
           </Reveal>
 
-          <Reveal className="wis-install" >
-            <div style={{ paddingTop: '3.5rem' }}>
-              <h2 className="wis-display wis-h2">
-                Instale o WIS<br />e leve <span className="wis-boxed">no bolso</span>
-              </h2>
-              <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'rgba(5,5,5,0.68)', margin: '1.25rem 0 0', maxWidth: '30rem' }}>
-                O WIS é uma app web progressiva. Instale no seu dispositivo e tenha acesso
-                rápido, como um app nativo — sem passar por loja nenhuma.
-              </p>
+          <Reveal>
+            <div className="wis-install-dark">
+              <div className="wis-install-dark-text">
+                <h2 className="wis-display wis-h2" style={{ color: '#fff' }}>
+                  Domingo já vem aí. <span style={{ color: 'rgba(255,255,255,0.45)' }}>Organize sua equipe hoje.</span>
+                </h2>
+                <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.6)', margin: '1.25rem 0 0', maxWidth: '30rem' }}>
+                  Descarrega para iOS ou Android — ou usa já no navegador. O WIS instala-se
+                  no ecrã inicial sem passar por nenhuma loja e continua a abrir sem rede.
+                </p>
 
-              <div className="wis-install-opts">
-                <div className={`wis-install-opt${platform === 'ios' ? ' is-you' : ''}`}>
-                  <Apple size={20} strokeWidth={1.6} aria-hidden />
-                  <b>iPhone / iPad</b>
-                  <span>Adicionar à Tela de Início</span>
+                <div className="wis-store-row">
+                  <span className="wis-store-btn">
+                    <Apple size={18} strokeWidth={1.8} aria-hidden />
+                    App Store
+                  </span>
+                  <span className="wis-store-btn">
+                    <Play size={16} strokeWidth={1.8} aria-hidden />
+                    Google Play
+                  </span>
+                  <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="wis-store-btn wis-store-btn-solid">
+                    Entrar na PWA <ArrowUpRight size={16} />
+                  </a>
                 </div>
-                <div className={`wis-install-opt${platform === 'android' ? ' is-you' : ''}`}>
-                  <Smartphone size={20} strokeWidth={1.6} aria-hidden />
-                  <b>Android</b>
-                  <span>Adicionar à Tela Inicial</span>
-                </div>
-                <div className={`wis-install-opt${platform === 'desktop' ? ' is-you' : ''}`}>
-                  <Monitor size={20} strokeWidth={1.6} aria-hidden />
-                  <b>Desktop</b>
-                  <span>Instalar no navegador</span>
-                </div>
+                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.75rem' }}>
+                  [ links das lojas a definir ]
+                </p>
               </div>
-            </div>
 
-            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', paddingTop: '3rem' }}>
-              <InkBlob className="wis-ink-blob wis-blue" />
-              <div className="wis-phone" style={{ transform: 'rotate(3deg)', width: 'min(14rem, 70%)' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/screenshots/mobile-setlist.webp"
-                  alt="Setlist de um culto no WIS pelo celular, com tom e BPM de cada música"
-                  loading="lazy"
-                  width={390}
-                  height={792}
-                />
+              <div className="wis-phones-duo">
+                <InkBlob className="wis-ink-blob wis-blue" />
+                <div className="wis-phone wis-phone-back">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/screenshots/mobile-eventos-equipa.webp"
+                    alt="Tela do WIS no celular, com a equipe escalada de um culto"
+                    loading="lazy"
+                    width={390}
+                    height={792}
+                  />
+                </div>
+                <div className="wis-phone wis-phone-front">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/screenshots/mobile-setlist.webp"
+                    alt="Setlist de um culto no WIS pelo celular, com tom e BPM de cada música"
+                    loading="lazy"
+                    width={390}
+                    height={792}
+                  />
+                </div>
               </div>
             </div>
           </Reveal>

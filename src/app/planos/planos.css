@@ -664,27 +664,68 @@
 
 /* ── Instalação PWA ─────────────────────────────────────────────────── */
 
-.wis-install {
+.wis-install-dark {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 2.5rem;
   align-items: center;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(20, 92, 255, 0.16), transparent 55%),
+    #0a0a0d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.75rem;
+  padding: 3rem;
+  overflow: hidden;
 }
-.wis-install-opts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+.wis-install-dark-text { position: relative; z-index: 1; }
+
+.wis-store-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
   margin-top: 1.75rem;
 }
-.wis-install-opt {
-  border: 2px solid rgba(5, 5, 5, 0.2);
-  padding: 0.9rem;
-  background: rgba(255, 255, 255, 0.5);
+.wis-store-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  text-decoration: none;
+  cursor: default;
 }
-.wis-install-opt.is-you { border-color: var(--blue); background: rgba(20, 92, 255, 0.08); }
-.wis-install-opt b { display: block; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.wis-install-opt span { display: block; font-size: 0.75rem; color: rgba(5, 5, 5, 0.6); margin-top: 0.2rem; }
-.wis-install-opt svg { color: var(--blue); margin-bottom: 0.5rem; }
+.wis-store-btn-solid {
+  background: #fff;
+  color: #050505;
+  border-color: #fff;
+  cursor: pointer;
+}
+
+.wis-phones-duo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+.wis-phone-back {
+  width: min(11rem, 55%);
+  transform: translateX(28%) rotate(-4deg);
+  filter: brightness(0.75);
+}
+.wis-phone-front {
+  width: min(12.5rem, 62%);
+  margin-left: -18%;
+  transform: rotate(4deg);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.9);
+}
 
 /* ── CTA final ──────────────────────────────────────────────────────── */
 
@@ -749,7 +790,7 @@
   .wis-plan[data-tier='2']:hover { transform: translateY(-5px); }
   .wis-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
   .wis-step:nth-child(2) .wis-step-arrow { display: none; }
-  .wis-install { grid-template-columns: minmax(0, 1fr); }
+  .wis-install-dark { grid-template-columns: minmax(0, 1fr); padding: 2.25rem; }
 }
 
 @media (max-width: 767px) {
@@ -764,7 +805,7 @@
   .wis-steps { grid-template-columns: minmax(0, 1fr); }
   .wis-step-arrow { display: none !important; }
   .wis-plan-grid { grid-template-columns: minmax(0, 1fr); }
-  .wis-install-opts { grid-template-columns: minmax(0, 1fr); }
+  .wis-install-dark { padding: 1.75rem; border-radius: 1.25rem; }
   .wis-metrics { transform: rotate(-1deg); }
 }
 
