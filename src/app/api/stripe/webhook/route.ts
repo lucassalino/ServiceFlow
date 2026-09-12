@@ -51,6 +51,10 @@ async function findPlanByPriceId(admin: any, priceId: string): Promise<{ slug: s
   if (monthly) return { slug: monthly.slug, cycle: 'monthly' };
   const { data: annual } = await admin.from('plans').select('slug').eq('stripe_price_id_annual', priceId).maybeSingle();
   if (annual) return { slug: annual.slug, cycle: 'annual' };
+  const { data: monthlyBrl } = await admin.from('plans').select('slug').eq('stripe_price_id_monthly_brl', priceId).maybeSingle();
+  if (monthlyBrl) return { slug: monthlyBrl.slug, cycle: 'monthly' };
+  const { data: annualBrl } = await admin.from('plans').select('slug').eq('stripe_price_id_annual_brl', priceId).maybeSingle();
+  if (annualBrl) return { slug: annualBrl.slug, cycle: 'annual' };
   return null;
 }
 

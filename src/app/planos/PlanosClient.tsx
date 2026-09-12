@@ -7,7 +7,7 @@ import {
   CalendarCheck, Music2, Users, Bell, ListChecks, Building2,
   BarChart3, Layers, Apple, Play, ArrowRight, ArrowUpRight, Check, Loader2, Menu, X,
 } from 'lucide-react';
-import { annualSavingsPercent, type PlanDef } from '@/lib/plans';
+import { annualSavingsPercent, detectDefaultCurrency, type PlanDef, type Currency } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
@@ -83,8 +83,9 @@ const FAQ: { q: string; a: string }[] = [
   { q: 'Posso gerenciar mais de uma igreja?', a: 'Sim. Uma conta pode participar de várias organizações, e você troca entre elas dentro do app sem precisar sair e entrar de novo.' },
 ];
 
-function fmtPrice(v: number): string {
-  return v === 0 ? '0€' : `${v.toFixed(2).replace('.', ',')}€`;
+function fmtPrice(v: number, currency: Currency = 'EUR'): string {
+  const n = v.toFixed(2).replace('.', ',');
+  return currency === 'BRL' ? `R$ ${n}` : `${n}€`;
 }
 
 /**
@@ -122,6 +123,9 @@ interface Props { plans: PlanDef[]; adminOrgId: string | null }
 export function PlanosClient({ plans, adminOrgId }: Props) {
   const [annual, setAnnual] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [currency, setCurrency] = useState<Currency>('EUR');
+
+  useEffect(() => { setCurrency(detectDefaultCurrency()); }, []);
 
   return (
     <div className="wis-lp">
@@ -315,9 +319,15 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}>
-              <div className="wis-toggle" role="group" aria-label="Periodicidade da cobrança">
-                <button type="button" onClick={() => setAnnual(false)} aria-pressed={!annual}>Mensal</button>
-                <button type="button" onClick={() => setAnnual(true)} aria-pressed={annual}>Anual</button>
+              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                <div className="wis-toggle" role="group" aria-label="Periodicidade da cobrança">
+                  <button type="button" onClick={() => setAnnual(false)} aria-pressed={!annual}>Mensal</button>
+                  <button type="button" onClick={() => setAnnual(true)} aria-pressed={annual}>Anual</button>
+                </div>
+                <div className="wis-toggle" role="group" aria-label="Moeda">
+                  <button type="button" onClick={() => setCurrency('EUR')} aria-pressed={currency === 'EUR'}>€ EUR</button>
+                  <button type="button" onClick={() => setCurrency('BRL')} aria-pressed={currency === 'BRL'}>R$ BRL</button>
+                </div>
               </div>
               <p className="wis-hand" style={{ fontSize: '0.86rem', color: 'var(--yellow)', margin: 0, maxWidth: '15rem' }}>
                 No plano anual você paga 10 meses e usa 12!
@@ -332,6 +342,7 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                 plan={plan}
                 tier={i}
                 annual={annual}
+                currency={currency}
                 previousFeatures={i > 0 ? plans[i - 1].features : []}
                 previousLabel={i > 0 ? plans[i - 1].label : null}
                 adminOrgId={adminOrgId}
@@ -462,20 +473,22 @@ function FooterCol({ title, links }: { title: string; links: { href: string; lab
 
 // ── Cartão de plano ─────────────────────────────────────────────────────────
 
-function PlanCard({ plan, tier, annual, previousFeatures, previousLabel, adminOrgId }: {
-  plan: PlanDef; tier: number; annual: boolean;
+function PlanCard({ plan, tier, annual, currency, previousFeatures, previousLabel, adminOrgId }: {
+  plan: PlanDef; tier: number; annual: boolean; currency: Currency;
   previousFeatures: string[]; previousLabel: string | null; adminOrgId: string | null;
 }) {
   const [loading, setLoading] = useState(false);
-  const price = annual ? plan.priceAnnual : plan.priceMonthly;
-  const savings = annualSavingsPercent(plan);
+  const monthlyPrice = currency === 'BRL' ? plan.priceMonthlyBRL : plan.priceMonthly;
+  const annualPrice = currency === 'BRL' ? plan.priceAnnualBRL : plan.priceAnnual;
+  const price = annual ? annualPrice : monthlyPrice;
+  const savings = annualSavingsPercent(plan, currency);
   const popular = plan.key === 'colheita';
 
   async function handleAssinar() {
     if (!adminOrgId) return;
     setLoading(true);
     try {
-      const result = await createCheckoutSessionAction(adminOrgId, plan.key, annual ? 'annual' : 'monthly');
+      const result = await createCheckoutSessionAction(adminOrgId, plan.key, annual ? 'annual' : 'monthly', currency);
       if (result.ok) {
         window.location.href = result.url;
         return;
@@ -506,17 +519,17 @@ function PlanCard({ plan, tier, annual, previousFeatures, previousLabel, adminOr
       <p className="wis-plan-tagline">{PLAN_TAGLINES[plan.key] ?? ''}</p>
 
       <p className="wis-price">
-        {fmtPrice(price)}
+        {fmtPrice(price, currency)}
         <small>/{annual ? 'ano' : 'mês'}</small>
       </p>
 
-      {plan.priceMonthly === 0 ? (
+      {monthlyPrice === 0 ? (
         <p className="wis-price-alt">Grátis</p>
       ) : (
         <p className="wis-price-alt">
           {annual
-            ? `${fmtPrice(plan.priceMonthly)} se pagar ao mês`
-            : `${fmtPrice(plan.priceAnnual)} no plano anual`}
+            ? `${fmtPrice(monthlyPrice, currency)} se pagar ao mês`
+            : `${fmtPrice(annualPrice, currency)} no plano anual`}
           {savings > 0 && <span className="wis-save-tag">{savings}% off</span>}
         </p>
       )}

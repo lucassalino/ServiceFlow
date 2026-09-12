@@ -28,6 +28,9 @@ export interface PlanDef {
   /** Preços em euros. */
   priceMonthly: number;
   priceAnnual: number;
+  /** Preços em reais — não é a conversão direta do EUR, ver AGENTS.md. */
+  priceMonthlyBRL: number;
+  priceAnnualBRL: number;
   features: string[];
 }
 
@@ -42,6 +45,8 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxLeaders: 0,
     priceMonthly: 0,
     priceAnnual: 0,
+    priceMonthlyBRL: 0,
+    priceAnnualBRL: 0,
     features: ['Escala simples', 'Acesso do voluntário à app'],
   },
   broto: {
@@ -54,6 +59,8 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxLeaders: 1,
     priceMonthly: 9.99,
     priceAnnual: 99.90,
+    priceMonthlyBRL: 49.90,
+    priceAnnualBRL: 499.90,
     features: [
       'Histórico de participações do voluntário',
       'Notificações na app',
@@ -69,6 +76,8 @@ export const PLANS: Record<PlanKey, PlanDef> = {
     maxLeaders: null,
     priceMonthly: 25.99,
     priceAnnual: 259.90,
+    priceMonthlyBRL: 99.90,
+    priceAnnualBRL: 999.90,
     features: [
       'Pessoas, ministérios e líderes ilimitados',
       'Disponibilidade recorrente (ex.: "2ª terça do mês")',
@@ -96,11 +105,30 @@ export function withinLimit(n: number, limit: number | null): boolean {
   return limit === null || n < limit;
 }
 
+export type Currency = 'EUR' | 'BRL';
+
 /** Poupança (%) de escolher o preço anual em vez de 12x o mensal. */
-export function annualSavingsPercent(plan: PlanDef): number {
-  if (plan.priceMonthly === 0) return 0;
-  const fullYear = plan.priceMonthly * 12;
-  return Math.round((1 - plan.priceAnnual / fullYear) * 100);
+export function annualSavingsPercent(plan: PlanDef, currency: Currency = 'EUR'): number {
+  const monthly = currency === 'BRL' ? plan.priceMonthlyBRL : plan.priceMonthly;
+  const annual = currency === 'BRL' ? plan.priceAnnualBRL : plan.priceAnnual;
+  if (monthly === 0) return 0;
+  const fullYear = monthly * 12;
+  return Math.round((1 - annual / fullYear) * 100);
+}
+
+/**
+ * Deteta se o visitante deve ver preços em BRL por omissão, a partir do
+ * locale do navegador (pt-BR, ou qualquer idioma com região BR). O
+ * utilizador pode sempre trocar manualmente na página de planos.
+ */
+export function detectDefaultCurrency(): Currency {
+  if (typeof navigator === 'undefined') return 'EUR';
+  const locales = navigator.languages && navigator.languages.length > 0 ? navigator.languages : [navigator.language];
+  for (const loc of locales) {
+    if (!loc) continue;
+    if (/-BR$/i.test(loc) || loc.toUpperCase() === 'BR') return 'BRL';
+  }
+  return 'EUR';
 }
 
 export interface OrgSubscription {

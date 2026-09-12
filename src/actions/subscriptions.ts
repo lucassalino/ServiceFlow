@@ -167,7 +167,7 @@ export async function fetchPublicPlansAction(): Promise<PlanDef[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const from = supabase.from.bind(supabase) as any;
   const { data, error } = await from('plans')
-    .select('slug, name, max_people, max_ministries, max_admins, max_leaders, price_monthly, price_annual, features, sort_order')
+    .select('slug, name, max_people, max_ministries, max_admins, max_leaders, price_monthly, price_annual, price_monthly_brl, price_annual_brl, features, sort_order')
     .eq('is_active', true)
     .order('sort_order');
 
@@ -184,6 +184,8 @@ export async function fetchPublicPlansAction(): Promise<PlanDef[]> {
     maxLeaders: row.max_leaders,
     priceMonthly: Number(row.price_monthly),
     priceAnnual: Number(row.price_annual),
+    priceMonthlyBRL: Number(row.price_monthly_brl ?? 0),
+    priceAnnualBRL: Number(row.price_annual_brl ?? 0),
     features: (row.features as string[] | null) ?? [],
   }));
 }

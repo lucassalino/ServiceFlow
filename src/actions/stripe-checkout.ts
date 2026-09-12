@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { getStripe, isStripeConfigured } from '@/lib/stripe/client';
-import { getPlan, type PlanKey } from '@/lib/plans';
+import { getPlan, type PlanKey, type Currency } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +77,7 @@ export type CheckoutResult =
  * (nunca cria um segundo customer para a mesma org).
  */
 export async function createCheckoutSessionAction(
-  orgId: string, plan: PlanKey, cycle: 'monthly' | 'annual',
+  orgId: string, plan: PlanKey, cycle: 'monthly' | 'annual', currency: Currency = 'EUR',
 ): Promise<CheckoutResult> {
   if (!isStripeConfigured()) {
     return { ok: false, reason: 'STRIPE_NOT_CONFIGURED', message: 'Pagamentos ainda não estão configurados.' };
@@ -96,8 +96,11 @@ export async function createCheckoutSessionAction(
   }
 
   const { data: planRow } = await admin.from('plans')
-    .select('stripe_price_id_monthly, stripe_price_id_annual').eq('slug', plan).single();
-  const priceId = cycle === 'monthly' ? planRow?.stripe_price_id_monthly : planRow?.stripe_price_id_annual;
+    .select('stripe_price_id_monthly, stripe_price_id_annual, stripe_price_id_monthly_brl, stripe_price_id_annual_brl')
+    .eq('slug', plan).single();
+  const priceId = currency === 'BRL'
+    ? (cycle === 'monthly' ? planRow?.stripe_price_id_monthly_brl : planRow?.stripe_price_id_annual_brl)
+    : (cycle === 'monthly' ? planRow?.stripe_price_id_monthly : planRow?.stripe_price_id_annual);
   if (!priceId) {
     return { ok: false, reason: 'PLAN_NOT_PAYABLE', message: 'Este plano ainda não tem preço configurado no Stripe.' };
   }
@@ -146,9 +149,9 @@ export async function createCheckoutSessionAction(
       cancel_url: `${APP_URL}/planos`,
       client_reference_id: orgId,
       subscription_data: {
-        metadata: { org_id: orgId, plan, cycle },
+        metadata: { org_id: orgId, plan, cycle, currency },
       },
-      metadata: { org_id: orgId, plan, cycle },
+      metadata: { org_id: orgId, plan, cycle, currency },
     });
     if (!session.url) {
       return { ok: false, reason: 'UNKNOWN', message: 'O Stripe não devolveu um URL de checkout.' };
