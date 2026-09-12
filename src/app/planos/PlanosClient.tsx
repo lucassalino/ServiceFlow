@@ -390,9 +390,6 @@ export function PlanosClient({ plans, adminOrgId }: Props) {
                     Entrar na PWA <ArrowUpRight size={16} />
                   </a>
                 </div>
-                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.75rem' }}>
-                  [ links das lojas a definir ]
-                </p>
               </div>
 
               <div className="wis-phones-duo">
