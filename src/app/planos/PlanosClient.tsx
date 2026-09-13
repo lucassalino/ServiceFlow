@@ -324,15 +324,9 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-                <div className="wis-toggle" role="group" aria-label="Periodicidade da cobrança">
-                  <button type="button" onClick={() => setAnnual(false)} aria-pressed={!annual}>Mensal</button>
-                  <button type="button" onClick={() => setAnnual(true)} aria-pressed={annual}>Anual</button>
-                </div>
-                <div className="wis-toggle" role="group" aria-label="Moeda">
-                  <button type="button" onClick={() => setCurrency('EUR')} aria-pressed={currency === 'EUR'}>€ EUR</button>
-                  <button type="button" onClick={() => setCurrency('BRL')} aria-pressed={currency === 'BRL'}>R$ BRL</button>
-                </div>
+              <div className="wis-toggle" role="group" aria-label="Periodicidade da cobrança">
+                <button type="button" onClick={() => setAnnual(false)} aria-pressed={!annual}>Mensal</button>
+                <button type="button" onClick={() => setAnnual(true)} aria-pressed={annual}>Anual</button>
               </div>
               <p className="wis-hand" style={{ fontSize: '0.86rem', color: 'var(--yellow)', margin: 0, maxWidth: '15rem' }}>
                 No plano anual você paga 10 meses e usa 12!
