@@ -233,21 +233,6 @@
     radial-gradient(ellipse 50% 45% at 15% 90%, rgba(59,130,246,0.11) 0%, transparent 55%);
 }
 
-/* Mesma ideia no claro — manchas suaves de cor em vez do cinza plano,
-   com opacidades bem mais baixas (fundo claro satura muito mais depressa
-   que o escuro) para não brigar com cartões/texto por cima. */
-:root:not(.dark) .dash-purple-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    radial-gradient(ellipse 90% 75% at 15% 10%, rgba(20,92,255,0.16) 0%, transparent 78%),
-    radial-gradient(ellipse 85% 80% at 90% 8%, rgba(20,112,128,0.13) 0%, transparent 80%),
-    radial-gradient(ellipse 95% 85% at 80% 90%, rgba(20,92,255,0.15) 0%, transparent 78%),
-    radial-gradient(ellipse 80% 70% at 10% 95%, rgba(255,193,79,0.10) 0%, transparent 72%);
-}
 .dash-purple-bg > * { position: relative; z-index: 1; }
 
 /* ── Superfícies ───────────────────────────────────────────────────── */
