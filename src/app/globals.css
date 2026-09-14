@@ -170,7 +170,7 @@
   --wis-gradient: linear-gradient(135deg, #0d3b66 0%, #0f5c6e 46%, #145cff 100%);
 
   /* Superfícies */
-  --wis-canvas:      #f6f7f9;   /* fundo da aplicação */
+  --wis-canvas:      #eef2fb;   /* fundo da aplicação — azul bem clarinho */
   --wis-surface:     #ffffff;   /* cards e painéis */
   --wis-surface-2:   #f3f5f8;   /* zonas subtis dentro de um card */
   --wis-surface-3:   #eaeef3;
@@ -243,10 +243,10 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    radial-gradient(ellipse 65% 45% at 12% 15%, rgba(20,92,255,0.10) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 60% at 88% 10%, rgba(20,112,128,0.08) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 55% at 78% 85%, rgba(20,92,255,0.09) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 45% at 15% 90%, rgba(255,193,79,0.10) 0%, transparent 55%);
+    radial-gradient(ellipse 90% 75% at 15% 10%, rgba(20,92,255,0.16) 0%, transparent 78%),
+    radial-gradient(ellipse 85% 80% at 90% 8%, rgba(20,112,128,0.13) 0%, transparent 80%),
+    radial-gradient(ellipse 95% 85% at 80% 90%, rgba(20,92,255,0.15) 0%, transparent 78%),
+    radial-gradient(ellipse 80% 70% at 10% 95%, rgba(255,193,79,0.10) 0%, transparent 72%);
 }
 .dash-purple-bg > * { position: relative; z-index: 1; }
 
