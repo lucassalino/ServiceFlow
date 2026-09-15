@@ -16,6 +16,8 @@ import { useCreateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useSongs } from '@/hooks/useSongs';
 import { useOrgUnavailability } from '@/hooks/useAvailability';
+import { useOrgFamilies } from '@/hooks/useFamily';
+import { FamilySchedulingHints } from './FamilySchedulingHints';
 import { uploadEventImageAction } from '@/actions/events';
 import { setupEventScheduleAction, setupEventSetlistAction, setupEventTimelineAction } from '@/actions/schedule';
 import { unwrapLockGuarded } from '@/lib/downgrade-lock';
@@ -199,6 +201,7 @@ interface Props { onBack: () => void }
 export function EventCreatePanel({ onBack }: Props) {
   const { activeOrg } = useOrgStore();
   const qc = useQueryClient();
+  const { data: familyLinks } = useOrgFamilies(activeOrg?.id);
   const createEvent = useCreateEvent();
   const { data: ministries = [] } = useMinistries();
   const { data: songs = [] } = useSongs();
@@ -654,6 +657,13 @@ export function EventCreatePanel({ onBack }: Props) {
                       <span style={{ color: 'var(--wis-text)', fontWeight: 600 }}>{totalSelectedMembers}</span> membro{totalSelectedMembers !== 1 ? 's' : ''} selecionado{totalSelectedMembers !== 1 ? 's' : ''}
                     </p>
                   )}
+                  <FamilySchedulingHints
+                    familyLinks={familyLinks}
+                    membersByMinistry={membersByMinistry}
+                    ministryRoster={ministryRoster}
+                    ministries={(ministries as unknown as Ministry[]).map((m) => ({ id: m.id, name: m.name }))}
+                    onAdd={(ministryId, userId) => toggleMember(ministryId, userId)}
+                  />
                   <div className="ep-member-grid">
                     {selectedMinistryIds.map((ministryId) => {
                       const ministry = (ministries as unknown as Ministry[]).find((m) => m.id === ministryId);

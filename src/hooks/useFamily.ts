@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchMyFamilyAction,
+  fetchOrgFamiliesAction,
   createFamilyAction,
   addFamilyMemberAction,
   respondToFamilyInviteAction,
@@ -22,9 +23,21 @@ export function useMyFamily(orgId: string) {
   });
 }
 
+/** Famílias já confirmadas da organização — para sugerir/avisar ao montar a escala. */
+export function useOrgFamilies(orgId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['org-families', orgId],
+    queryFn: () => fetchOrgFamiliesAction(orgId!),
+    enabled: !!orgId,
+  });
+}
+
 function useInvalidateFamily(orgId: string) {
   const qc = useQueryClient();
-  return () => qc.invalidateQueries({ queryKey: keyFor(orgId) });
+  return () => {
+    qc.invalidateQueries({ queryKey: keyFor(orgId) });
+    qc.invalidateQueries({ queryKey: ['org-families', orgId] });
+  };
 }
 
 export function useCreateFamily(orgId: string) {

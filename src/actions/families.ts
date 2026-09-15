@@ -79,6 +79,47 @@ export async function fetchMyFamilyAction(orgId: string): Promise<MyFamily | nul
   };
 }
 
+export interface OrgFamilyLink {
+  userId: string;
+  name: string;
+  preference: FamilyPreference;
+  /** Só os outros membros já ACEITES desta família (pendentes não contam para os avisos de escala). */
+  partners: { userId: string; name: string }[];
+}
+
+/**
+ * Todas as famílias já confirmadas (ambos os lados aceitaram) desta
+ * organização — usado para sugerir/avisar na hora de montar a escala de um
+ * evento. Membros ainda pendentes não entram aqui.
+ */
+export async function fetchOrgFamiliesAction(orgId: string): Promise<OrgFamilyLink[]> {
+  const { supabase } = await requireUser();
+
+  const { data: rows } = await supabase.from('family_members')
+    .select('family_id, user_id').eq('org_id', orgId).eq('status', 'accepted');
+  const members = (rows ?? []) as { family_id: string; user_id: string }[];
+  if (members.length === 0) return [];
+
+  const familyIds = [...new Set(members.map((m) => m.family_id))];
+  const { data: families } = await supabase.from('families').select('id, preference').in('id', familyIds);
+  const prefById = new Map<string, FamilyPreference>(
+    (families ?? []).map((f: { id: string; preference: FamilyPreference }) => [f.id, f.preference]),
+  );
+  const profiles = await profilesByIds(supabase, members.map((m) => m.user_id));
+
+  const byFamily = new Map<string, string[]>();
+  for (const m of members) byFamily.set(m.family_id, [...(byFamily.get(m.family_id) ?? []), m.user_id]);
+
+  return members.map((m) => ({
+    userId: m.user_id,
+    name: profiles.get(m.user_id)?.full_name ?? 'Sem nome',
+    preference: prefById.get(m.family_id) ?? 'indiferente',
+    partners: (byFamily.get(m.family_id) ?? [])
+      .filter((uid) => uid !== m.user_id)
+      .map((uid) => ({ userId: uid, name: profiles.get(uid)?.full_name ?? 'Sem nome' })),
+  }));
+}
+
 /** Cria uma família com quem a está a criar (já aceite) e convida os outros (pendentes). */
 export async function createFamilyAction(
   orgId: string, preference: FamilyPreference, memberUserIds: string[],
