@@ -9,8 +9,8 @@ interface Props {
   familyLinks: OrgFamilyLink[] | undefined;
   /** userIds já selecionados, agrupados por ministério deste evento. */
   membersByMinistry: Record<string, { userId: string }[]>;
-  /** Elenco de cada ministério selecionado — para saber onde a pessoa sugerida serve. */
-  ministryRoster: Record<string, { userId: string }[]>;
+  /** Elenco de cada ministério selecionado — para saber onde a pessoa sugerida serve e o nome de quem já está selecionado. */
+  ministryRoster: Record<string, { userId: string; name?: string }[]>;
   ministries: MinistryOption[];
   onAdd: (ministryId: string, userId: string) => void;
 }
@@ -18,8 +18,10 @@ interface Props {
 /**
  * Avisos de família no passo de escalar um evento: sugere adicionar quem
  * prefere servir junto (e ainda não está no evento) e avisa quando duas
- * pessoas que preferem servir separadas acabaram as duas escaladas.
- * Não bloqueia nada — quem escala decide.
+ * pessoas que preferem servir separadas acabaram as duas escaladas. A
+ * preferência é por par de pessoas, não por grupo — dá para ter "junto"
+ * com uma pessoa e "separado" com outra ao mesmo tempo. Não bloqueia nada
+ * — quem escala decide.
  */
 export function FamilySchedulingHints({ familyLinks, membersByMinistry, ministryRoster, ministries, onAdd }: Props) {
   if (!familyLinks || familyLinks.length === 0) return null;
@@ -28,8 +30,20 @@ export function FamilySchedulingHints({ familyLinks, membersByMinistry, ministry
   for (const members of Object.values(membersByMinistry)) for (const m of members) selected.add(m.userId);
   if (selected.size === 0) return null;
 
-  const byUserId = new Map(familyLinks.map((f) => [f.userId, f]));
+  const linksByUserId = new Map<string, OrgFamilyLink[]>();
+  for (const link of familyLinks) {
+    linksByUserId.set(link.userId, [...(linksByUserId.get(link.userId) ?? []), link]);
+  }
+
   const selectedMinistryIds = Object.keys(ministryRoster);
+
+  function nameOf(userId: string): string | null {
+    for (const mid of selectedMinistryIds) {
+      const found = (ministryRoster[mid] ?? []).find((rm) => rm.userId === userId);
+      if (found?.name) return found.name;
+    }
+    return null;
+  }
 
   function ministriesFor(userId: string): MinistryOption[] {
     return selectedMinistryIds
@@ -44,24 +58,20 @@ export function FamilySchedulingHints({ familyLinks, membersByMinistry, ministry
   const apart: { aName: string; bName: string }[] = [];
 
   for (const userId of selected) {
-    const info = byUserId.get(userId);
-    if (!info) continue;
+    const links = linksByUserId.get(userId);
+    if (!links) continue;
+    const forName = nameOf(userId) ?? '';
 
-    if (info.preference === 'junto') {
-      for (const p of info.partners) {
-        if (selected.has(p.userId) || suggestedPartnerIds.has(p.userId)) continue;
-        suggestedPartnerIds.add(p.userId);
-        together.push({ forName: info.name, partnerId: p.userId, partnerName: p.name, options: ministriesFor(p.userId) });
+    for (const link of links) {
+      if (link.preference === 'junto' && !selected.has(link.otherUserId) && !suggestedPartnerIds.has(link.otherUserId)) {
+        suggestedPartnerIds.add(link.otherUserId);
+        together.push({ forName, partnerId: link.otherUserId, partnerName: link.otherName, options: ministriesFor(link.otherUserId) });
       }
-    }
-
-    if (info.preference === 'separado') {
-      for (const p of info.partners) {
-        if (!selected.has(p.userId)) continue;
-        const key = [userId, p.userId].sort().join(':');
+      if (link.preference === 'separado' && selected.has(link.otherUserId)) {
+        const key = [userId, link.otherUserId].sort().join(':');
         if (apartSeen.has(key)) continue;
         apartSeen.add(key);
-        apart.push({ aName: info.name, bName: p.name });
+        apart.push({ aName: forName, bName: link.otherName });
       }
     }
   }

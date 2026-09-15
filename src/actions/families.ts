@@ -4,26 +4,26 @@ import { createClient } from '@/lib/supabase/server';
 
 export type FamilyPreference = 'junto' | 'separado' | 'indiferente';
 
-export interface FamilyMemberInfo {
+export interface FamilyRelationship {
   rowId: string;
-  userId: string;
-  name: string;
-  avatarUrl: string | null;
-  status: 'pending' | 'accepted';
-  isMe: boolean;
-}
-
-export interface MyFamily {
-  id: string;
+  otherUserId: string;
+  otherName: string;
+  otherAvatarUrl: string | null;
   preference: FamilyPreference;
-  isCreator: boolean;
-  members: FamilyMemberInfo[];
-  /** Só definido quando a minha linha ainda está pendente. */
-  myInvitedByName: string | null;
+  status: 'pending' | 'accepted';
+  /** true se fui eu que propus esta preferência (por isso estou à espera da outra pessoa). */
+  isRequester: boolean;
 }
 
-// `families`/`family_members` são tabelas novas, ainda sem tipos gerados
-// (ver migração 047) — daí o `as any` no cliente devolvido aqui.
+export interface OrgFamilyLink {
+  userId: string;
+  otherUserId: string;
+  otherName: string;
+  preference: FamilyPreference;
+}
+
+// `family_relationships` é uma tabela nova, ainda sem tipos gerados (ver
+// migração 048) — daí o `as any` no cliente devolvido aqui.
 async function requireUser() {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -43,150 +43,111 @@ async function profilesByIds(supabase: any, userIds: string[]): Promise<Map<stri
   return map;
 }
 
-/** A minha família nesta organização (como criador ou como membro aceite/pendente), ou null. */
-export async function fetchMyFamilyAction(orgId: string): Promise<MyFamily | null> {
+function normalizePair(a: string, b: string): [string, string] {
+  return a < b ? [a, b] : [b, a];
+}
+
+/** Todas as minhas relações de família nesta organização (pendentes e aceites, dos dois lados). */
+export async function fetchMyFamilyRelationshipsAction(orgId: string): Promise<FamilyRelationship[]> {
   const { supabase, userId } = await requireUser();
 
-  const { data: myRow } = await supabase.from('family_members')
-    .select('family_id, status, invited_by').eq('org_id', orgId).eq('user_id', userId).maybeSingle();
-  if (!myRow) return null;
-  const my = myRow as { family_id: string; status: 'pending' | 'accepted'; invited_by: string };
+  const { data: rows } = await supabase.from('family_relationships')
+    .select('id, user_id_1, user_id_2, preference, requested_by, status')
+    .eq('org_id', orgId)
+    .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+    .order('created_at');
+  const relationships = (rows ?? []) as {
+    id: string; user_id_1: string; user_id_2: string;
+    preference: FamilyPreference; requested_by: string; status: 'pending' | 'accepted';
+  }[];
+  if (relationships.length === 0) return [];
 
-  const familyId = my.family_id;
-  const { data: family } = await supabase.from('families')
-    .select('id, preference, created_by').eq('id', familyId).single();
-  if (!family) return null;
-  const f = family as { id: string; preference: FamilyPreference; created_by: string };
+  const otherIds = relationships.map((r) => (r.user_id_1 === userId ? r.user_id_2 : r.user_id_1));
+  const profiles = await profilesByIds(supabase, otherIds);
 
-  const { data: rows } = await supabase.from('family_members')
-    .select('id, user_id, status').eq('family_id', familyId).order('created_at');
-  const memberRows = (rows ?? []) as { id: string; user_id: string; status: 'pending' | 'accepted' }[];
-  const profiles = await profilesByIds(supabase, [...memberRows.map((m) => m.user_id), my.invited_by]);
-
-  return {
-    id: f.id,
-    preference: f.preference,
-    isCreator: f.created_by === userId,
-    members: memberRows.map((m) => ({
-      rowId: m.id,
-      userId: m.user_id,
-      name: profiles.get(m.user_id)?.full_name ?? 'Sem nome',
-      avatarUrl: profiles.get(m.user_id)?.avatar_url ?? null,
-      status: m.status,
-      isMe: m.user_id === userId,
-    })),
-    myInvitedByName: my.status === 'pending' ? (profiles.get(my.invited_by)?.full_name ?? 'Alguém') : null,
-  };
+  return relationships.map((r) => {
+    const otherUserId = r.user_id_1 === userId ? r.user_id_2 : r.user_id_1;
+    return {
+      rowId: r.id,
+      otherUserId,
+      otherName: profiles.get(otherUserId)?.full_name ?? 'Sem nome',
+      otherAvatarUrl: profiles.get(otherUserId)?.avatar_url ?? null,
+      preference: r.preference,
+      status: r.status,
+      isRequester: r.requested_by === userId,
+    };
+  });
 }
 
-export interface OrgFamilyLink {
-  userId: string;
-  name: string;
-  preference: FamilyPreference;
-  /** Só os outros membros já ACEITES desta família (pendentes não contam para os avisos de escala). */
-  partners: { userId: string; name: string }[];
-}
-
-/**
- * Todas as famílias já confirmadas (ambos os lados aceitaram) desta
- * organização — usado para sugerir/avisar na hora de montar a escala de um
- * evento. Membros ainda pendentes não entram aqui.
- */
-export async function fetchOrgFamiliesAction(orgId: string): Promise<OrgFamilyLink[]> {
-  const { supabase } = await requireUser();
-
-  const { data: rows } = await supabase.from('family_members')
-    .select('family_id, user_id').eq('org_id', orgId).eq('status', 'accepted');
-  const members = (rows ?? []) as { family_id: string; user_id: string }[];
-  if (members.length === 0) return [];
-
-  const familyIds = [...new Set(members.map((m) => m.family_id))];
-  const { data: families } = await supabase.from('families').select('id, preference').in('id', familyIds);
-  const prefById = new Map<string, FamilyPreference>(
-    (families ?? []).map((f: { id: string; preference: FamilyPreference }) => [f.id, f.preference]),
-  );
-  const profiles = await profilesByIds(supabase, members.map((m) => m.user_id));
-
-  const byFamily = new Map<string, string[]>();
-  for (const m of members) byFamily.set(m.family_id, [...(byFamily.get(m.family_id) ?? []), m.user_id]);
-
-  return members.map((m) => ({
-    userId: m.user_id,
-    name: profiles.get(m.user_id)?.full_name ?? 'Sem nome',
-    preference: prefById.get(m.family_id) ?? 'indiferente',
-    partners: (byFamily.get(m.family_id) ?? [])
-      .filter((uid) => uid !== m.user_id)
-      .map((uid) => ({ userId: uid, name: profiles.get(uid)?.full_name ?? 'Sem nome' })),
-  }));
-}
-
-/** Cria uma família com quem a está a criar (já aceite) e convida os outros (pendentes). */
-export async function createFamilyAction(
-  orgId: string, preference: FamilyPreference, memberUserIds: string[],
+/** Propõe uma preferência com outra pessoa — fica pendente até ela confirmar. */
+export async function proposeFamilyRelationshipAction(
+  orgId: string, otherUserId: string, preference: FamilyPreference,
 ): Promise<void> {
   const { supabase, userId } = await requireUser();
-  const invitees = [...new Set(memberUserIds)].filter((id) => id !== userId);
-  if (invitees.length === 0) throw new Error('Escolhe pelo menos uma pessoa para convidar.');
+  if (otherUserId === userId) throw new Error('Não podes escolher a ti próprio.');
+  const [user_id_1, user_id_2] = normalizePair(userId, otherUserId);
 
-  const { data: family, error } = await supabase.from('families')
-    .insert({ org_id: orgId, preference, created_by: userId } as never).select('id').single();
-  if (error) throw new Error(error.message);
-  const familyId = (family as { id: string }).id;
-
-  const { error: selfError } = await supabase.from('family_members')
-    .insert({ family_id: familyId, org_id: orgId, user_id: userId, status: 'accepted', invited_by: userId } as never);
-  if (selfError) throw new Error(selfError.message);
-
-  const { error: inviteError } = await supabase.from('family_members').insert(
-    invitees.map((uid) => ({ family_id: familyId, org_id: orgId, user_id: uid, status: 'pending', invited_by: userId })) as never,
-  );
-  if (inviteError) {
-    if (inviteError.code === '23505') throw new Error('Uma das pessoas convidadas já faz parte de outra família nesta organização.');
-    throw new Error(inviteError.message);
-  }
-}
-
-/** O criador convida mais uma pessoa para a família já existente. */
-export async function addFamilyMemberAction(familyId: string, orgId: string, userId: string): Promise<void> {
-  const { supabase, userId: me } = await requireUser();
-  const { error } = await supabase.from('family_members')
-    .insert({ family_id: familyId, org_id: orgId, user_id: userId, status: 'pending', invited_by: me } as never);
+  const { error } = await supabase.from('family_relationships').insert({
+    org_id: orgId, user_id_1, user_id_2, preference, requested_by: userId, status: 'pending',
+  } as never);
   if (error) {
-    if (error.code === '23505') throw new Error('Esta pessoa já faz parte de outra família nesta organização.');
+    if (error.code === '23505') throw new Error('Já existe uma preferência definida com essa pessoa — edita a que já existe.');
     throw new Error(error.message);
   }
 }
 
-/** Responde a um convite de família: aceita (fica visível para todos) ou recusa (o convite desaparece). */
-export async function respondToFamilyInviteAction(rowId: string, accept: boolean): Promise<void> {
+/** Responde a uma proposta: aceita (passa a valer) ou recusa (desaparece). */
+export async function respondToFamilyRelationshipAction(rowId: string, accept: boolean): Promise<void> {
   const { supabase } = await requireUser();
   if (accept) {
-    const { error } = await supabase.from('family_members').update({ status: 'accepted' } as never).eq('id', rowId);
+    const { error } = await supabase.from('family_relationships')
+      .update({ status: 'accepted', updated_at: new Date().toISOString() } as never).eq('id', rowId);
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await supabase.from('family_members').delete().eq('id', rowId);
+    const { error } = await supabase.from('family_relationships').delete().eq('id', rowId);
     if (error) throw new Error(error.message);
   }
 }
 
-/** Remove um membro da família (o próprio a sair, ou o criador a remover alguém). */
-export async function removeFamilyMemberAction(rowId: string): Promise<void> {
-  const { supabase } = await requireUser();
-  const { error } = await supabase.from('family_members').delete().eq('id', rowId);
+/**
+ * Muda a preferência de uma relação já existente — sempre volta a ficar
+ * pendente, à espera que a outra pessoa confirme o novo valor.
+ */
+export async function updateFamilyRelationshipAction(rowId: string, preference: FamilyPreference): Promise<void> {
+  const { supabase, userId } = await requireUser();
+  const { error } = await supabase.from('family_relationships').update({
+    preference, status: 'pending', requested_by: userId, updated_at: new Date().toISOString(),
+  } as never).eq('id', rowId);
   if (error) throw new Error(error.message);
 }
 
-/** Só o criador pode mudar a preferência da família. */
-export async function updateFamilyPreferenceAction(familyId: string, preference: FamilyPreference): Promise<void> {
+/** Remove a relação (qualquer um dos dois lados pode). */
+export async function removeFamilyRelationshipAction(rowId: string): Promise<void> {
   const { supabase } = await requireUser();
-  const { error } = await supabase.from('families')
-    .update({ preference, updated_at: new Date().toISOString() } as never).eq('id', familyId);
+  const { error } = await supabase.from('family_relationships').delete().eq('id', rowId);
   if (error) throw new Error(error.message);
 }
 
-/** Só o criador pode desfazer a família por completo. */
-export async function disbandFamilyAction(familyId: string): Promise<void> {
+/**
+ * Todas as relações já CONFIRMADAS (os dois lados aceitaram) desta
+ * organização — usado para sugerir/avisar na hora de montar a escala.
+ * Devolve as duas direções de cada par, já com o nome da outra pessoa.
+ */
+export async function fetchOrgFamiliesAction(orgId: string): Promise<OrgFamilyLink[]> {
   const { supabase } = await requireUser();
-  const { error } = await supabase.from('families').delete().eq('id', familyId);
-  if (error) throw new Error(error.message);
+
+  const { data: rows } = await supabase.from('family_relationships')
+    .select('user_id_1, user_id_2, preference').eq('org_id', orgId).eq('status', 'accepted');
+  const relationships = (rows ?? []) as { user_id_1: string; user_id_2: string; preference: FamilyPreference }[];
+  if (relationships.length === 0) return [];
+
+  const allIds = [...new Set(relationships.flatMap((r) => [r.user_id_1, r.user_id_2]))];
+  const profiles = await profilesByIds(supabase, allIds);
+
+  const links: OrgFamilyLink[] = [];
+  for (const r of relationships) {
+    links.push({ userId: r.user_id_1, otherUserId: r.user_id_2, otherName: profiles.get(r.user_id_2)?.full_name ?? 'Sem nome', preference: r.preference });
+    links.push({ userId: r.user_id_2, otherUserId: r.user_id_1, otherName: profiles.get(r.user_id_1)?.full_name ?? 'Sem nome', preference: r.preference });
+  }
+  return links;
 }

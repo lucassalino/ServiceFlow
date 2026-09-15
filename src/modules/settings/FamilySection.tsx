@@ -2,17 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, X, Check, Users } from 'lucide-react';
+import { Plus, X, Check } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useOrgMembers } from '@/hooks/useMembers';
 import {
-  useMyFamily, useCreateFamily, useAddFamilyMember, useRespondToFamilyInvite,
-  useRemoveFamilyMember, useUpdateFamilyPreference, useDisbandFamily,
+  useMyFamilyRelationships, useProposeFamilyRelationship, useRespondToFamilyRelationship,
+  useUpdateFamilyRelationship, useRemoveFamilyRelationship,
 } from '@/hooks/useFamily';
 import type { FamilyPreference } from '@/actions/families';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
@@ -25,8 +24,8 @@ const PREFERENCE_LABEL: Record<FamilyPreference, string> = {
   indiferente: 'Indiferente',
 };
 const PREFERENCE_HINT: Record<FamilyPreference, string> = {
-  junto: 'Ao escalar um de vocês, sugerimos escalar os outros também.',
-  separado: 'Avisamos quem escala se vocês acabarem no mesmo evento.',
+  junto: 'Ao escalar um dos dois, sugerimos escalar o outro também.',
+  separado: 'Avisamos quem escala se os dois acabarem no mesmo evento.',
   indiferente: 'Não fazemos nenhum aviso especial.',
 };
 
@@ -54,43 +53,23 @@ function PreferencePicker({ value, onChange, disabled }: { value: FamilyPreferen
   );
 }
 
-function MemberRow({ name, avatarUrl, right }: { name: string; avatarUrl?: string | null; right?: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem 0' }}>
-      <Avatar className="h-8 w-8 shrink-0">
-        {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
-        <AvatarFallback className="text-xs" style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>
-          {getInitials(name)}
-        </AvatarFallback>
-      </Avatar>
-      <p style={{ flex: 1, fontSize: '0.85rem', color: 'var(--wis-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {name}
-      </p>
-      {right}
-    </div>
-  );
-}
-
 export function FamilySection({ orgId }: { orgId: string }) {
   const { user } = useAuthStore();
-  const { data: family, isLoading } = useMyFamily(orgId);
+  const { data: relationships = [], isLoading } = useMyFamilyRelationships(orgId);
   const { data: rawMembers = [] } = useOrgMembers();
   const members = rawMembers as unknown as OrgMemberish[];
 
-  const createFamily = useCreateFamily(orgId);
-  const addMember = useAddFamilyMember(orgId);
-  const respond = useRespondToFamilyInvite(orgId);
-  const removeMember = useRemoveFamilyMember(orgId);
-  const updatePreference = useUpdateFamilyPreference(orgId);
-  const disband = useDisbandFamily(orgId);
+  const propose = useProposeFamilyRelationship(orgId);
+  const respond = useRespondToFamilyRelationship(orgId);
+  const update = useUpdateFamilyRelationship(orgId);
+  const remove = useRemoveFamilyRelationship(orgId);
 
-  const [createOpen, setCreateOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [pickedUserId, setPickedUserId] = useState<string | null>(null);
   const [newPreference, setNewPreference] = useState<FamilyPreference>('junto');
 
-  const existingIds = new Set(family?.members.map((m) => m.userId) ?? []);
+  const existingIds = new Set(relationships.map((r) => r.otherUserId));
   const pickableMembers = useMemo(() => {
     const q = search.trim().toLowerCase();
     return members
@@ -99,233 +78,153 @@ export function FamilySection({ orgId }: { orgId: string }) {
       .slice(0, 30);
   }, [members, search, user?.id, existingIds]);
 
-  function toggleSelected(userId: string) {
-    setSelectedIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
-  }
-
-  async function handleCreate() {
+  async function handlePropose() {
+    if (!pickedUserId) return;
     try {
-      await createFamily.mutateAsync({ preference: newPreference, memberUserIds: selectedIds });
-      toast.success('Família criada — a aguardar confirmação de quem convidaste.');
-      setCreateOpen(false);
-      setSelectedIds([]);
+      await propose.mutateAsync({ otherUserId: pickedUserId, preference: newPreference });
+      toast.success('Preferência enviada — a aguardar confirmação.');
+      setAddOpen(false);
+      setPickedUserId(null);
       setSearch('');
       setNewPreference('junto');
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao criar família');
+      toast.error(e instanceof Error ? e.message : 'Erro ao enviar');
     }
   }
 
-  async function handleAddSelected() {
-    if (!family) return;
-    try {
-      for (const userId of selectedIds) {
-        // eslint-disable-next-line no-await-in-loop
-        await addMember.mutateAsync({ familyId: family.id, userId });
-      }
-      toast.success('Convite enviado.');
-      setAddOpen(false);
-      setSelectedIds([]);
-      setSearch('');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao convidar');
-    }
-  }
+  const pending = relationships.filter((r) => r.status === 'pending');
+  const accepted = relationships.filter((r) => r.status === 'accepted');
 
-  if (isLoading) {
-    return <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-3)' }}>A carregar…</p>;
-  }
-
-  const me = family?.members.find((m) => m.isMe);
-
-  // ── Sem família ainda ──────────────────────────────────────────────────
-  if (!family) {
-    return (
-      <div className="space-y-3">
-        <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', lineHeight: 1.6 }}>
-          Adiciona quem da tua família também serve nesta organização e diz se
-          preferem ser escalados juntos, separados, ou se é indiferente.
-        </p>
-        <button type="button" className="dark-primary-btn" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4" /> Criar família
-        </button>
-
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Criar família</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)', marginBottom: '0.5rem' }}>Preferência</p>
-                <PreferencePicker value={newPreference} onChange={setNewPreference} />
-                <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', marginTop: '0.4rem' }}>{PREFERENCE_HINT[newPreference]}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)', marginBottom: '0.5rem' }}>Quem é da família?</p>
-                <Input placeholder="Procurar pessoa…" value={search} onChange={(e) => setSearch(e.target.value)} className="dark-inputs" style={{ marginBottom: '0.5rem' }} />
-                <div style={{ maxHeight: '14rem', overflowY: 'auto', border: '1px solid var(--wis-border)', borderRadius: '0.625rem' }}>
-                  {pickableMembers.length === 0 ? (
-                    <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', padding: '0.75rem' }}>Ninguém encontrado.</p>
-                  ) : pickableMembers.map((m) => (
-                    <label key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid var(--wis-border)' }}>
-                      <Checkbox checked={selectedIds.includes(m.user_id)} onCheckedChange={() => toggleSelected(m.user_id)} />
-                      <span style={{ fontSize: '0.85rem', color: 'var(--wis-text)' }}>{m.profile?.full_name ?? 'Sem nome'}</span>
-                    </label>
-                  ))}
-                </div>
-                {selectedIds.length > 0 && (
-                  <p style={{ fontSize: '0.75rem', color: 'var(--wis-text-3)', marginTop: '0.4rem' }}>{selectedIds.length} pessoa(s) selecionada(s) — vão receber um convite para confirmar.</p>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
-              <button type="button" className="dark-primary-btn" disabled={selectedIds.length === 0 || createFamily.isPending} onClick={handleCreate}>
-                {createFamily.isPending ? 'A criar…' : 'Criar e convidar'}
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
-
-  // ── Convite pendente para mim ────────────────────────────────────────
-  if (me?.status === 'pending') {
-    const others = family.members.filter((m) => !m.isMe);
-    return (
-      <div style={{
-        background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
-        borderRadius: '0.875rem', padding: '1rem 1.1rem',
-      }}>
-        <p style={{ fontSize: '0.85rem', color: 'var(--wis-text)', marginBottom: '0.5rem' }}>
-          <strong>{family.myInvitedByName}</strong> convidou-te para uma família
-          {others.length > 0 && <> com {others.map((o) => o.name).join(', ')}</>} —
-          preferência: <strong>{PREFERENCE_LABEL[family.preference]}</strong>.
-        </p>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            type="button" className="dark-primary-btn"
-            disabled={respond.isPending}
-            onClick={async () => {
-              try { await respond.mutateAsync({ rowId: me.rowId, accept: true }); toast.success('Convite aceite'); }
-              catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
-            }}
-          >
-            <Check className="h-4 w-4" /> Aceitar
-          </button>
-          <Button
-            type="button" variant="outline"
-            disabled={respond.isPending}
-            onClick={async () => {
-              try { await respond.mutateAsync({ rowId: me.rowId, accept: false }); toast.success('Convite recusado'); }
-              catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
-            }}
-          >
-            <X className="h-4 w-4" /> Recusar
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Já sou membro aceite ────────────────────────────────────────────
   return (
     <div className="space-y-4">
-      <div>
-        <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)', marginBottom: '0.5rem' }}>Preferência</p>
-        <PreferencePicker
-          value={family.preference}
-          disabled={!family.isCreator || updatePreference.isPending}
-          onChange={async (p) => {
-            try { await updatePreference.mutateAsync({ familyId: family.id, preference: p }); }
-            catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
-          }}
-        />
-        {!family.isCreator && (
-          <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', marginTop: '0.4rem' }}>Só quem criou a família pode mudar a preferência.</p>
-        )}
-      </div>
+      <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-2)', lineHeight: 1.6 }}>
+        Diz, pessoa a pessoa, se preferem ser escalados juntos, separados, ou se é
+        indiferente — dá para ter preferências diferentes com pessoas diferentes
+        (ex.: junto com a tua filha, separado da tua esposa).
+      </p>
 
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-          <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)' }}>
-            <Users className="h-3.5 w-3.5" style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: '-2px' }} />
-            Membros
-          </p>
-          {family.isCreator && (
-            <button type="button" onClick={() => setAddOpen(true)} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--wis-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>
-              + Adicionar
-            </button>
+      {isLoading ? (
+        <p style={{ fontSize: '0.82rem', color: 'var(--wis-text-3)' }}>A carregar…</p>
+      ) : (
+        <>
+          {pending.filter((r) => !r.isRequester).length > 0 && (
+            <div className="space-y-2">
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
+                À tua espera
+              </p>
+              {pending.filter((r) => !r.isRequester).map((r) => (
+                <div key={r.rowId} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap',
+                  background: 'var(--wis-blue-soft)', border: '1px solid var(--wis-blue-border)',
+                  borderRadius: '0.75rem', padding: '0.6rem 0.85rem',
+                }}>
+                  <Avatar className="h-8 w-8 shrink-0">
+                    {r.otherAvatarUrl && <AvatarImage src={r.otherAvatarUrl} alt={r.otherName} />}
+                    <AvatarFallback className="text-xs" style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>{getInitials(r.otherName)}</AvatarFallback>
+                  </Avatar>
+                  <p style={{ flex: 1, fontSize: '0.85rem', color: 'var(--wis-text)', minWidth: '10rem' }}>
+                    <strong>{r.otherName}</strong> propôs: <strong>{PREFERENCE_LABEL[r.preference]}</strong>
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <Button size="sm" disabled={respond.isPending} onClick={async () => {
+                      try { await respond.mutateAsync({ rowId: r.rowId, accept: true }); toast.success('Confirmado'); }
+                      catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
+                    }}>
+                      <Check className="h-3.5 w-3.5" /> Aceitar
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={respond.isPending} onClick={async () => {
+                      try { await respond.mutateAsync({ rowId: r.rowId, accept: false }); toast.success('Recusado'); }
+                      catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
+                    }}>
+                      <X className="h-3.5 w-3.5" /> Recusar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-        </div>
-        <div>
-          {family.members.map((m) => (
-            <MemberRow
-              key={m.rowId}
-              name={m.isMe ? `${m.name} (tu)` : m.name}
-              avatarUrl={m.avatarUrl}
-              right={(
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {m.status === 'pending' && (
+
+          {(accepted.length > 0 || pending.some((r) => r.isRequester)) && (
+            <div className="space-y-2">
+              <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--wis-text-3)' }}>
+                Minhas preferências
+              </p>
+              {[...accepted, ...pending.filter((r) => r.isRequester)].map((r) => (
+                <div key={r.rowId} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap',
+                  padding: '0.6rem 0.1rem', borderBottom: '1px solid var(--wis-border)',
+                }}>
+                  <Avatar className="h-8 w-8 shrink-0">
+                    {r.otherAvatarUrl && <AvatarImage src={r.otherAvatarUrl} alt={r.otherName} />}
+                    <AvatarFallback className="text-xs" style={{ background: 'var(--wis-surface-4)', color: 'var(--wis-text)' }}>{getInitials(r.otherName)}</AvatarFallback>
+                  </Avatar>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--wis-text)', minWidth: '8rem' }}>{r.otherName}</p>
+                  <div style={{ flex: 1, minWidth: '12rem' }}>
+                    <PreferencePicker
+                      value={r.preference}
+                      disabled={update.isPending}
+                      onChange={async (p) => {
+                        try { await update.mutateAsync({ rowId: r.rowId, preference: p }); toast.success('Enviado para reconfirmação'); }
+                        catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
+                      }}
+                    />
+                  </div>
+                  {r.status === 'pending' && (
                     <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--wis-warning)', background: 'var(--wis-warning-bg)', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>
                       Por confirmar
                     </span>
                   )}
-                  {(m.isMe || family.isCreator) && (
-                    <button
-                      type="button"
-                      title={m.isMe ? 'Sair da família' : 'Remover'}
-                      disabled={removeMember.isPending}
-                      onClick={async () => {
-                        try {
-                          await removeMember.mutateAsync(m.rowId);
-                          toast.success(m.isMe ? 'Saíste da família' : 'Removido da família');
-                        } catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
-                      }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wis-text-4)', padding: '0.2rem' }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    title="Remover"
+                    disabled={remove.isPending}
+                    onClick={async () => {
+                      try { await remove.mutateAsync(r.rowId); toast.success('Removido'); }
+                      catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
+                    }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wis-text-4)', padding: '0.2rem' }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              )}
-            />
-          ))}
-        </div>
-      </div>
-
-      {family.isCreator && (
-        <button
-          type="button"
-          disabled={disband.isPending}
-          onClick={async () => {
-            try { await disband.mutateAsync(family.id); toast.success('Família desfeita'); }
-            catch (e) { toast.error(e instanceof Error ? e.message : 'Erro'); }
-          }}
-          style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--wis-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-        >
-          Desfazer família
-        </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
+
+      <button type="button" className="dark-primary-btn" onClick={() => setAddOpen(true)}>
+        <Plus className="h-4 w-4" /> Adicionar familiar
+      </button>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Adicionar à família</DialogTitle></DialogHeader>
-          <Input placeholder="Procurar pessoa…" value={search} onChange={(e) => setSearch(e.target.value)} className="dark-inputs" style={{ marginBottom: '0.5rem' }} />
-          <div style={{ maxHeight: '14rem', overflowY: 'auto', border: '1px solid var(--wis-border)', borderRadius: '0.625rem' }}>
-            {pickableMembers.length === 0 ? (
-              <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', padding: '0.75rem' }}>Ninguém encontrado.</p>
-            ) : pickableMembers.map((m) => (
-              <label key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid var(--wis-border)' }}>
-                <Checkbox checked={selectedIds.includes(m.user_id)} onCheckedChange={() => toggleSelected(m.user_id)} />
-                <span style={{ fontSize: '0.85rem', color: 'var(--wis-text)' }}>{m.profile?.full_name ?? 'Sem nome'}</span>
-              </label>
-            ))}
+          <DialogHeader><DialogTitle>Adicionar familiar</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)', marginBottom: '0.5rem' }}>Quem?</p>
+              <Input placeholder="Procurar pessoa…" value={search} onChange={(e) => setSearch(e.target.value)} className="dark-inputs" style={{ marginBottom: '0.5rem' }} />
+              <div style={{ maxHeight: '12rem', overflowY: 'auto', border: '1px solid var(--wis-border)', borderRadius: '0.625rem' }}>
+                {pickableMembers.length === 0 ? (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-3)', padding: '0.75rem' }}>Ninguém encontrado.</p>
+                ) : pickableMembers.map((m) => (
+                  <label key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid var(--wis-border)', background: pickedUserId === m.user_id ? 'var(--wis-blue-soft)' : 'transparent' }}>
+                    <input type="radio" name="family-pick" checked={pickedUserId === m.user_id} onChange={() => setPickedUserId(m.user_id)} />
+                    <span style={{ fontSize: '0.85rem', color: 'var(--wis-text)' }}>{m.profile?.full_name ?? 'Sem nome'}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--wis-text-2)', marginBottom: '0.5rem' }}>Preferência</p>
+              <PreferencePicker value={newPreference} onChange={setNewPreference} />
+              <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-3)', marginTop: '0.4rem' }}>{PREFERENCE_HINT[newPreference]}</p>
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
-            <button type="button" className="dark-primary-btn" disabled={selectedIds.length === 0 || addMember.isPending} onClick={handleAddSelected}>
-              {addMember.isPending ? 'A convidar…' : 'Convidar'}
+            <button type="button" className="dark-primary-btn" disabled={!pickedUserId || propose.isPending} onClick={handlePropose}>
+              {propose.isPending ? 'A enviar…' : 'Enviar'}
             </button>
           </DialogFooter>
         </DialogContent>

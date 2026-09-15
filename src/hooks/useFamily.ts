@@ -2,31 +2,30 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchMyFamilyAction,
+  fetchMyFamilyRelationshipsAction,
   fetchOrgFamiliesAction,
-  createFamilyAction,
-  addFamilyMemberAction,
-  respondToFamilyInviteAction,
-  removeFamilyMemberAction,
-  updateFamilyPreferenceAction,
-  disbandFamilyAction,
+  proposeFamilyRelationshipAction,
+  respondToFamilyRelationshipAction,
+  updateFamilyRelationshipAction,
+  removeFamilyRelationshipAction,
   type FamilyPreference,
 } from '@/actions/families';
 
-const keyFor = (orgId: string) => ['my-family', orgId] as const;
+const keyFor = (orgId: string) => ['my-family-relationships', orgId] as const;
+const orgKeyFor = (orgId: string | null | undefined) => ['org-families', orgId] as const;
 
-export function useMyFamily(orgId: string) {
+export function useMyFamilyRelationships(orgId: string) {
   return useQuery({
     queryKey: keyFor(orgId),
-    queryFn: () => fetchMyFamilyAction(orgId),
+    queryFn: () => fetchMyFamilyRelationshipsAction(orgId),
     enabled: !!orgId,
   });
 }
 
-/** Famílias já confirmadas da organização — para sugerir/avisar ao montar a escala. */
+/** Relações já confirmadas da organização — para sugerir/avisar ao montar a escala. */
 export function useOrgFamilies(orgId: string | null | undefined) {
   return useQuery({
-    queryKey: ['org-families', orgId],
+    queryKey: orgKeyFor(orgId),
     queryFn: () => fetchOrgFamiliesAction(orgId!),
     enabled: !!orgId,
   });
@@ -36,57 +35,40 @@ function useInvalidateFamily(orgId: string) {
   const qc = useQueryClient();
   return () => {
     qc.invalidateQueries({ queryKey: keyFor(orgId) });
-    qc.invalidateQueries({ queryKey: ['org-families', orgId] });
+    qc.invalidateQueries({ queryKey: orgKeyFor(orgId) });
   };
 }
 
-export function useCreateFamily(orgId: string) {
+export function useProposeFamilyRelationship(orgId: string) {
   const invalidate = useInvalidateFamily(orgId);
   return useMutation({
-    mutationFn: ({ preference, memberUserIds }: { preference: FamilyPreference; memberUserIds: string[] }) =>
-      createFamilyAction(orgId, preference, memberUserIds),
+    mutationFn: ({ otherUserId, preference }: { otherUserId: string; preference: FamilyPreference }) =>
+      proposeFamilyRelationshipAction(orgId, otherUserId, preference),
     onSuccess: invalidate,
   });
 }
 
-export function useAddFamilyMember(orgId: string) {
+export function useRespondToFamilyRelationship(orgId: string) {
   const invalidate = useInvalidateFamily(orgId);
   return useMutation({
-    mutationFn: ({ familyId, userId }: { familyId: string; userId: string }) =>
-      addFamilyMemberAction(familyId, orgId, userId),
+    mutationFn: ({ rowId, accept }: { rowId: string; accept: boolean }) => respondToFamilyRelationshipAction(rowId, accept),
     onSuccess: invalidate,
   });
 }
 
-export function useRespondToFamilyInvite(orgId: string) {
+export function useUpdateFamilyRelationship(orgId: string) {
   const invalidate = useInvalidateFamily(orgId);
   return useMutation({
-    mutationFn: ({ rowId, accept }: { rowId: string; accept: boolean }) => respondToFamilyInviteAction(rowId, accept),
+    mutationFn: ({ rowId, preference }: { rowId: string; preference: FamilyPreference }) =>
+      updateFamilyRelationshipAction(rowId, preference),
     onSuccess: invalidate,
   });
 }
 
-export function useRemoveFamilyMember(orgId: string) {
+export function useRemoveFamilyRelationship(orgId: string) {
   const invalidate = useInvalidateFamily(orgId);
   return useMutation({
-    mutationFn: (rowId: string) => removeFamilyMemberAction(rowId),
-    onSuccess: invalidate,
-  });
-}
-
-export function useUpdateFamilyPreference(orgId: string) {
-  const invalidate = useInvalidateFamily(orgId);
-  return useMutation({
-    mutationFn: ({ familyId, preference }: { familyId: string; preference: FamilyPreference }) =>
-      updateFamilyPreferenceAction(familyId, preference),
-    onSuccess: invalidate,
-  });
-}
-
-export function useDisbandFamily(orgId: string) {
-  const invalidate = useInvalidateFamily(orgId);
-  return useMutation({
-    mutationFn: (familyId: string) => disbandFamilyAction(familyId),
+    mutationFn: (rowId: string) => removeFamilyRelationshipAction(rowId),
     onSuccess: invalidate,
   });
 }
