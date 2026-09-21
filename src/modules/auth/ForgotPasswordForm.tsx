@@ -11,6 +11,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import type { AuthError } from '@supabase/supabase-js';
+
+/**
+ * O Supabase às vezes devolve erros com uma mensagem inútil (ex.: "{}")
+ * quando o problema é do lado do servidor — sobretudo no limite de envio
+ * do email padrão deles (poucos por hora, sem SMTP próprio configurado).
+ */
+function describeAuthError(error: AuthError, fallback: string): string {
+  if (error.status === 429 || /rate limit/i.test(error.message ?? '')) {
+    return 'Muitos pedidos seguidos — o envio de email está temporariamente limitado. Espera um pouco e tenta de novo.';
+  }
+  const msg = error.message?.trim();
+  if (!msg || msg === '{}' || msg.length < 4) return fallback;
+  return msg;
+}
 
 const emailSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -38,7 +53,7 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
       const supabase = createClient();
       const { error } = await supabase.auth.resetPasswordForEmail(values.email);
       if (error) {
-        toast.error(error.message || 'Não foi possível enviar o email. Tenta mais tarde.');
+        toast.error(describeAuthError(error, 'Não foi possível enviar o email. Tenta mais tarde.'));
         return;
       }
       setEmail(values.email);
@@ -59,12 +74,12 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
         email, token: values.code, type: 'recovery',
       });
       if (verifyError) {
-        toast.error('Código inválido ou expirado. Pede um novo.');
+        toast.error(describeAuthError(verifyError, 'Código inválido ou expirado. Pede um novo.'));
         return;
       }
       const { error: updateError } = await supabase.auth.updateUser({ password: values.password });
       if (updateError) {
-        toast.error(updateError.message || 'Não foi possível definir a nova password.');
+        toast.error(describeAuthError(updateError, 'Não foi possível definir a nova password.'));
         return;
       }
       toast.success('Password redefinida!');
@@ -81,7 +96,7 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email);
-      if (error) { toast.error(error.message || 'Não foi possível reenviar.'); return; }
+      if (error) { toast.error(describeAuthError(error, 'Não foi possível reenviar.')); return; }
       toast.success('Novo código enviado.');
     } finally {
       setLoading(false);
