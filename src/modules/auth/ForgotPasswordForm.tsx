@@ -107,7 +107,7 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
           <Label htmlFor="code">Código</Label>
           <Input
             id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={10}
-            placeholder="Código recebido por email" style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.1rem' }}
+            placeholder="00000000" style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.1rem' }}
             {...resetForm.register('code')}
           />
           {resetForm.formState.errors.code && (
@@ -168,6 +168,23 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Enviar código
       </Button>
+
+      <button
+        type="button"
+        onClick={() => {
+          const value = emailForm.getValues('email');
+          if (!emailSchema.safeParse({ email: value }).success) {
+            emailForm.setFocus('email');
+            toast.error('Escreve o teu email primeiro');
+            return;
+          }
+          setEmail(value);
+          setStep('code');
+        }}
+        className="text-sm text-muted-foreground hover:text-foreground"
+      >
+        Já tenho um código
+      </button>
     </form>
   );
 }
