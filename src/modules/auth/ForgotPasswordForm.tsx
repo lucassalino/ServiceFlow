@@ -18,7 +18,7 @@ const emailSchema = z.object({
 type EmailValues = z.infer<typeof emailSchema>;
 
 const resetSchema = z.object({
-  code: z.string().min(6, 'O código tem 6 dígitos').max(6, 'O código tem 6 dígitos'),
+  code: z.string().min(6, 'Código demasiado curto').max(10, 'Código demasiado longo'),
   password: z.string().min(6, 'A password deve ter pelo menos 6 caracteres'),
   confirm: z.string(),
 }).refine((v) => v.password === v.confirm, { message: 'As passwords não coincidem', path: ['confirm'] });
@@ -100,14 +100,14 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
         </button>
 
         <p className="text-sm text-muted-foreground">
-          Enviámos um código de 6 dígitos para <strong>{email}</strong>. Introduz o código e a tua nova password.
+          Enviámos um código para <strong>{email}</strong>. Introduz o código e a tua nova password.
         </p>
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="code">Código</Label>
           <Input
-            id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
-            placeholder="000000" style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.1rem' }}
+            id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={10}
+            placeholder="Código recebido por email" style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.1rem' }}
             {...resetForm.register('code')}
           />
           {resetForm.formState.errors.code && (
