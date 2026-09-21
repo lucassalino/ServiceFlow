@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
               Recuperar password
             </h1>
             <p className="text-[13px] text-white/40 mt-1">
-              Enviamos-te um email com um link para definir uma nova password.
+              Enviamos-te um código por email para definires uma nova password.
             </p>
           </div>
 
