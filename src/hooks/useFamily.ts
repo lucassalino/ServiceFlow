@@ -9,6 +9,7 @@ import {
   updateFamilyRelationshipAction,
   removeFamilyRelationshipAction,
   type FamilyPreference,
+  type FamilyRelationship,
 } from '@/actions/families';
 
 const keyFor = (orgId: string) => ['my-family-relationships', orgId] as const;
@@ -31,45 +32,57 @@ export function useOrgFamilies(orgId: string | null | undefined) {
   });
 }
 
-function useInvalidateFamily(orgId: string) {
+/**
+ * Atualiza a lista localmente (sem esperar por um novo pedido ao servidor)
+ * e só depois pede dados frescos em segundo plano — o resultado aparece na
+ * hora em vez de ficar uns segundos com ar de que não gravou.
+ */
+function usePatchFamilyCache(orgId: string) {
   const qc = useQueryClient();
-  return () => {
+  return (patch: (list: FamilyRelationship[]) => FamilyRelationship[]) => {
+    qc.setQueryData(keyFor(orgId), (prev: FamilyRelationship[] | undefined) => patch(prev ?? []));
     qc.invalidateQueries({ queryKey: keyFor(orgId) });
     qc.invalidateQueries({ queryKey: orgKeyFor(orgId) });
   };
 }
 
 export function useProposeFamilyRelationship(orgId: string) {
-  const invalidate = useInvalidateFamily(orgId);
+  const patch = usePatchFamilyCache(orgId);
   return useMutation({
     mutationFn: ({ otherUserId, preference }: { otherUserId: string; preference: FamilyPreference }) =>
       proposeFamilyRelationshipAction(orgId, otherUserId, preference),
-    onSuccess: invalidate,
+    onSuccess: (created) => patch((list) => [...list, created]),
   });
 }
 
 export function useRespondToFamilyRelationship(orgId: string) {
-  const invalidate = useInvalidateFamily(orgId);
+  const patch = usePatchFamilyCache(orgId);
   return useMutation({
     mutationFn: ({ rowId, accept }: { rowId: string; accept: boolean }) => respondToFamilyRelationshipAction(rowId, accept),
-    onSuccess: invalidate,
+    onSuccess: (_data, { rowId, accept }) => patch((list) => (
+      accept
+        ? list.map((r) => (r.rowId === rowId ? { ...r, status: 'accepted' as const } : r))
+        : list.filter((r) => r.rowId !== rowId)
+    )),
   });
 }
 
 export function useUpdateFamilyRelationship(orgId: string) {
-  const invalidate = useInvalidateFamily(orgId);
+  const patch = usePatchFamilyCache(orgId);
   return useMutation({
     mutationFn: ({ rowId, preference }: { rowId: string; preference: FamilyPreference }) =>
       updateFamilyRelationshipAction(rowId, preference),
-    onSuccess: invalidate,
+    onSuccess: (_data, { rowId, preference }) => patch((list) => list.map((r) => (
+      r.rowId === rowId ? { ...r, preference, status: 'pending' as const, isRequester: true } : r
+    ))),
   });
 }
 
 export function useRemoveFamilyRelationship(orgId: string) {
-  const invalidate = useInvalidateFamily(orgId);
+  const patch = usePatchFamilyCache(orgId);
   return useMutation({
     mutationFn: (rowId: string) => removeFamilyRelationshipAction(rowId),
-    onSuccess: invalidate,
+    onSuccess: (_data, rowId) => patch((list) => list.filter((r) => r.rowId !== rowId)),
   });
 }
 

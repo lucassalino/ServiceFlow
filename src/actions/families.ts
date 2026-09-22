@@ -82,18 +82,29 @@ export async function fetchMyFamilyRelationshipsAction(orgId: string): Promise<F
 /** Propõe uma preferência com outra pessoa — fica pendente até ela confirmar. */
 export async function proposeFamilyRelationshipAction(
   orgId: string, otherUserId: string, preference: FamilyPreference,
-): Promise<void> {
+): Promise<FamilyRelationship> {
   const { supabase, userId } = await requireUser();
   if (otherUserId === userId) throw new Error('Não podes escolher a ti próprio.');
   const [user_id_1, user_id_2] = normalizePair(userId, otherUserId);
 
-  const { error } = await supabase.from('family_relationships').insert({
+  const { data: row, error } = await supabase.from('family_relationships').insert({
     org_id: orgId, user_id_1, user_id_2, preference, requested_by: userId, status: 'pending',
-  } as never);
+  } as never).select('id').single();
   if (error) {
     if (error.code === '23505') throw new Error('Já existe uma preferência definida com essa pessoa — edita a que já existe.');
     throw new Error(error.message);
   }
+
+  const profiles = await profilesByIds(supabase, [otherUserId]);
+  return {
+    rowId: (row as { id: string }).id,
+    otherUserId,
+    otherName: profiles.get(otherUserId)?.full_name ?? 'Sem nome',
+    otherAvatarUrl: profiles.get(otherUserId)?.avatar_url ?? null,
+    preference,
+    status: 'pending',
+    isRequester: true,
+  };
 }
 
 /** Responde a uma proposta: aceita (passa a valer) ou recusa (desaparece). */
