@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Youtube, Music, FileText, Guitar, Search, Loader2 } from 'lucide-react';
 import { useCreateSong, useUpdateSong } from '@/hooks/useSongs';
 import { searchCatalogSongsAction, type CatalogSuggestion } from '@/actions/songs';
+import { searchExternalSongsAction, fetchExternalSongDetailsAction, type ExternalSongSuggestion } from '@/actions/song-lookup';
 import type { Song } from '@/types/models';
 import { SONG_KEYS } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
@@ -90,12 +91,22 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const [nameFocused, setNameFocused] = useState(false);
   const skipSearchRef = useRef(false);
 
+  // ── Sugestões externas (Deezer) — complemento quando não está no catálogo ──
+  const [externalResults, setExternalResults] = useState<ExternalSongSuggestion[]>([]);
+  const [searchingExternal, setSearchingExternal] = useState(false);
+  const [fillingExternalId, setFillingExternalId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!nameFocused) return;
     if (skipSearchRef.current) { skipSearchRef.current = false; return; }
     const q = (nameValue ?? '').trim();
-    if (q.length < 2) { setCatalogResults([]); setSearchingSongs(false); return; }
+    if (q.length < 2) {
+      setCatalogResults([]); setSearchingSongs(false);
+      setExternalResults([]); setSearchingExternal(false);
+      return;
+    }
     setSearchingSongs(true);
+    setSearchingExternal(true);
     const t = setTimeout(async () => {
       try {
         const catalog = await searchCatalogSongsAction(q);
@@ -103,6 +114,11 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
         setShowSuggestions(true);
       } finally {
         setSearchingSongs(false);
+      }
+      try {
+        setExternalResults(await searchExternalSongsAction(q));
+      } finally {
+        setSearchingExternal(false);
       }
     }, 350);
     return () => clearTimeout(t);
@@ -120,7 +136,34 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
     setValue('bpm', c.bpm ?? null);
     setShowSuggestions(false);
     setCatalogResults([]);
+    setExternalResults([]);
     toast.success('Preenchido a partir do catálogo');
+  }
+
+  // Resultado externo (Deezer): nome/artista na hora, BPM/duração num 2º pedido
+  // (só o Deezer devolve isso na ficha da faixa, não na busca). Tom, letra,
+  // cifra e referência bíblica continuam manuais — o Deezer não tem isso.
+  async function selectExternal(ext: ExternalSongSuggestion) {
+    skipSearchRef.current = true;
+    setValue('name', ext.name);
+    setValue('artist', ext.artist);
+    setShowSuggestions(false);
+    setCatalogResults([]);
+    setExternalResults([]);
+
+    setFillingExternalId(ext.id);
+    try {
+      const details = await fetchExternalSongDetailsAction(ext.id);
+      if (details.bpm) setValue('bpm', details.bpm);
+      if (details.duration) setValue('duration', details.duration);
+      toast.success(
+        details.bpm || details.duration
+          ? 'Preenchido a partir do Deezer — confirma o tom e os links.'
+          : 'Nome e artista preenchidos — o Deezer não tinha BPM/duração para esta faixa.',
+      );
+    } finally {
+      setFillingExternalId(null);
+    }
   }
 
   async function onSubmit(values: SongFormValues) {
@@ -258,6 +301,58 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                           </div>
                         </button>
                       ))}
+
+                      {/* Sugestões externas (Deezer) — nome/artista na hora, BPM/duração ao selecionar */}
+                      {(searchingExternal || externalResults.length > 0) && (
+                        <>
+                          <p style={{
+                            padding: '0.5rem 0.75rem 0.3rem', margin: 0,
+                            fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+                            color: 'var(--wis-text-4)', borderTop: '1px solid var(--wis-border)',
+                          }}>
+                            Sugestões (Deezer)
+                          </p>
+                          {searchingExternal && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.75rem 0.6rem', fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>
+                              <Loader2 className="animate-spin" style={{ width: '0.85rem', height: '0.85rem' }} /> A procurar…
+                            </div>
+                          )}
+                          {!searchingExternal && externalResults.map((ext, i) => (
+                            <button
+                              key={`ext-${ext.id}`}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => selectExternal(ext)}
+                              disabled={fillingExternalId !== null}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', textAlign: 'left',
+                                padding: '0.5rem 0.75rem', background: 'none', border: 'none',
+                                cursor: fillingExternalId !== null ? 'wait' : 'pointer',
+                                opacity: fillingExternalId !== null && fillingExternalId !== ext.id ? 0.5 : 1,
+                                borderBottom: i < externalResults.length - 1 ? '1px solid var(--wis-border)' : 'none',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--wis-surface-3)')}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                            >
+                              {ext.coverUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={ext.coverUrl} alt="" style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: '2rem', height: '2rem', borderRadius: '0.3rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--wis-surface-3)' }}>
+                                  <Music style={{ width: '1rem', height: '1rem', color: 'var(--wis-text-3)' }} />
+                                </div>
+                              )}
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <p style={{ fontSize: '0.82rem', color: 'var(--wis-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ext.name}</p>
+                                <p style={{ fontSize: '0.72rem', color: 'var(--wis-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ext.artist || 'Sem artista'}</p>
+                              </div>
+                              {fillingExternalId === ext.id && (
+                                <Loader2 className="animate-spin" style={{ width: '0.8rem', height: '0.8rem', color: 'var(--wis-text-3)', flexShrink: 0 }} />
+                              )}
+                            </button>
+                          ))}
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

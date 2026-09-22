@@ -23,6 +23,8 @@ import { useUpdateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useSongs } from '@/hooks/useSongs';
 import { useOrgUnavailability } from '@/hooks/useAvailability';
+import { useOrgFamilies } from '@/hooks/useFamily';
+import { FamilySchedulingHints } from './FamilySchedulingHints';
 import { uploadEventImageAction } from '@/actions/events';
 import { fetchEventSetupAction, replaceEventSetupAction } from '@/actions/schedule';
 import { unwrapLockGuarded } from '@/lib/downgrade-lock';
@@ -215,6 +217,7 @@ interface Props { event: Event; onBack: () => void }
 
 export function EventEditPanel({ event, onBack }: Props) {
   const qc = useQueryClient();
+  const { data: familyLinks } = useOrgFamilies(event.org_id);
   const updateEvent = useUpdateEvent();
   const { data: ministries = [] } = useMinistries();
   const { data: songs = [] } = useSongs();
@@ -705,6 +708,13 @@ export function EventEditPanel({ event, onBack }: Props) {
                       <span style={{ color: 'var(--wis-text)', fontWeight: 600 }}>{totalSelectedMembers}</span> membro{totalSelectedMembers !== 1 ? 's' : ''} selecionado{totalSelectedMembers !== 1 ? 's' : ''}
                     </p>
                   )}
+                  <FamilySchedulingHints
+                    familyLinks={familyLinks}
+                    membersByMinistry={membersByMinistry}
+                    ministryRoster={ministryRoster}
+                    ministries={(ministries as unknown as Ministry[]).map((m) => ({ id: m.id, name: m.name }))}
+                    onAdd={(ministryId, userId) => toggleMember(ministryId, userId)}
+                  />
                   <div className="ep-member-grid">
                     {selectedMinistryIds.map((ministryId) => {
                       const ministry = (ministries as unknown as Ministry[]).find((m) => m.id === ministryId);

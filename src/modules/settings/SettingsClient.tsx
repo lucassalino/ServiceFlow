@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getInitials } from '@/lib/utils';
 import { MyFunctionsSection } from './MyFunctionsSection';
+import { FamilySection } from './FamilySection';
 import { EmailPreferencesSection } from './EmailPreferencesSection';
 import { CalendarSyncSection } from './CalendarSyncSection';
 import { PlanSection } from './PlanSection';
@@ -501,6 +502,13 @@ export function SettingsClient({ orgId }: Props) {
         {activeOrg && (
           <Section title="Os meus ministérios e funções">
             <MyFunctionsSection orgId={orgId} />
+          </Section>
+        )}
+
+        {/* ── Família ───────────────────────────────────── */}
+        {activeOrg && (
+          <Section title="Família">
+            <FamilySection orgId={orgId} />
           </Section>
         )}
 

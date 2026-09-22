@@ -5,67 +5,166 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import type { AuthError } from '@supabase/supabase-js';
 
-const forgotSchema = z.object({
+/**
+ * O Supabase às vezes devolve erros com uma mensagem inútil (ex.: "{}")
+ * quando o problema é do lado do servidor — sobretudo no limite de envio
+ * do email padrão deles (poucos por hora, sem SMTP próprio configurado).
+ */
+function describeAuthError(error: AuthError, fallback: string): string {
+  if (error.status === 429 || /rate limit/i.test(error.message ?? '')) {
+    return 'Muitos pedidos seguidos — o envio de email está temporariamente limitado. Espera um pouco e tenta de novo.';
+  }
+  const msg = error.message?.trim();
+  if (!msg || msg === '{}' || msg.length < 4) return fallback;
+  return msg;
+}
+
+const emailSchema = z.object({
   email: z.string().email('Email inválido'),
 });
+type EmailValues = z.infer<typeof emailSchema>;
 
-type ForgotValues = z.infer<typeof forgotSchema>;
+const resetSchema = z.object({
+  code: z.string().min(6, 'Código demasiado curto').max(10, 'Código demasiado longo'),
+  password: z.string().min(6, 'A password deve ter pelo menos 6 caracteres'),
+  confirm: z.string(),
+}).refine((v) => v.password === v.confirm, { message: 'As passwords não coincidem', path: ['confirm'] });
+type ResetValues = z.infer<typeof resetSchema>;
 
 export function ForgotPasswordForm({ className }: { className?: string }) {
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotValues>({
-    resolver: zodResolver(forgotSchema),
-  });
+  const emailForm = useForm<EmailValues>({ resolver: zodResolver(emailSchema) });
+  const resetForm = useForm<ResetValues>({ resolver: zodResolver(resetSchema) as never });
 
-  const onSubmit = async (values: ForgotValues) => {
+  async function sendCode(values: EmailValues) {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: window.location.origin + '/auth/callback?next=/definir-password',
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email);
       if (error) {
-        toast.error(error.message || 'Não foi possível enviar o email. Verifica a configuração de email (SMTP) ou tenta mais tarde.');
+        toast.error(describeAuthError(error, 'Não foi possível enviar o email. Tenta mais tarde.'));
         return;
       }
-      setSent(true);
+      setEmail(values.email);
+      setStep('code');
+      toast.success('Código enviado — verifica o teu email.');
     } catch {
       toast.error('Ocorreu um erro inesperado');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  if (sent) {
+  async function confirmReset(values: ResetValues) {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email, token: values.code, type: 'recovery',
+      });
+      if (verifyError) {
+        toast.error(describeAuthError(verifyError, 'Código inválido ou expirado. Pede um novo.'));
+        return;
+      }
+      const { error: updateError } = await supabase.auth.updateUser({ password: values.password });
+      if (updateError) {
+        toast.error(describeAuthError(updateError, 'Não foi possível definir a nova password.'));
+        return;
+      }
+      toast.success('Password redefinida!');
+      window.location.href = '/';
+    } catch {
+      toast.error('Ocorreu um erro inesperado');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendCode() {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) { toast.error(describeAuthError(error, 'Não foi possível reenviar.')); return; }
+      toast.success('Novo código enviado.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (step === 'code') {
     return (
-      <div className="flex flex-col items-center gap-3 py-4 text-center">
-        <CheckCircle className="h-10 w-10 text-green-500" />
-        <p className="font-medium">Email enviado!</p>
+      <form onSubmit={resetForm.handleSubmit(confirmReset)} className={cn('flex flex-col gap-4', className)}>
+        <button
+          type="button"
+          onClick={() => setStep('email')}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground w-fit"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Trocar email
+        </button>
+
         <p className="text-sm text-muted-foreground">
-          Verifica o teu email e clica no link para recuperar a tua password.
+          Enviámos um código para <strong>{email}</strong>. Introduz o código e a tua nova password.
         </p>
-      </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="code">Código</Label>
+          <Input
+            id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={10}
+            placeholder="00000000" style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.1rem' }}
+            {...resetForm.register('code')}
+          />
+          {resetForm.formState.errors.code && (
+            <p className="text-sm text-destructive">{resetForm.formState.errors.code.message}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="new-password">Nova password</Label>
+          <Input id="new-password" type="password" placeholder="••••••••" autoComplete="new-password" {...resetForm.register('password')} />
+          {resetForm.formState.errors.password && (
+            <p className="text-sm text-destructive">{resetForm.formState.errors.password.message}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="confirm-password">Confirmar password</Label>
+          <Input id="confirm-password" type="password" placeholder="••••••••" autoComplete="new-password" {...resetForm.register('confirm')} />
+          {resetForm.formState.errors.confirm && (
+            <p className="text-sm text-destructive">{resetForm.formState.errors.confirm.message}</p>
+          )}
+        </div>
+
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Redefinir password
+        </Button>
+
+        <button
+          type="button"
+          onClick={resendCode}
+          disabled={loading}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Não recebeste? Reenviar código
+        </button>
+      </form>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className={cn('flex flex-col gap-4', className)}
-    >
+    <form onSubmit={emailForm.handleSubmit(sendCode)} className={cn('flex flex-col gap-4', className)}>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -73,17 +172,34 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
           type="email"
           placeholder="email@exemplo.com"
           autoComplete="email"
-          {...register('email')}
+          {...emailForm.register('email')}
         />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
+        {emailForm.formState.errors.email && (
+          <p className="text-sm text-destructive">{emailForm.formState.errors.email.message}</p>
         )}
       </div>
 
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Enviar email de recuperação
+        Enviar código
       </Button>
+
+      <button
+        type="button"
+        onClick={() => {
+          const value = emailForm.getValues('email');
+          if (!emailSchema.safeParse({ email: value }).success) {
+            emailForm.setFocus('email');
+            toast.error('Escreve o teu email primeiro');
+            return;
+          }
+          setEmail(value);
+          setStep('code');
+        }}
+        className="text-sm text-muted-foreground hover:text-foreground"
+      >
+        Já tenho um código
+      </button>
     </form>
   );
 }
