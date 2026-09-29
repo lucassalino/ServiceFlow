@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthUser } from '@/lib/supabase/server';
 import { DashboardClient } from '@/modules/dashboard/DashboardClient';
 import type { Event } from '@/types/models';
 
@@ -10,7 +10,7 @@ export default async function DashboardPage({ params }: Props) {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getAuthUser();
 
   // Papel do utilizador nesta organização
   const { data: membership } = await supabase

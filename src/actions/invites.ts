@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthUser } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { APP_URL } from '@/lib/app-url';
@@ -154,8 +154,7 @@ export async function deleteInviteAction(orgId: string, inviteId: string): Promi
  * Deve ser chamada após o login (ex.: na página inicial).
  */
 export async function acceptPendingInvitesAction(): Promise<number> {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await getAuthUser();
   if (authError || !user?.email) return 0;
   const admin = getAdmin();
   const email = user.email.toLowerCase();
