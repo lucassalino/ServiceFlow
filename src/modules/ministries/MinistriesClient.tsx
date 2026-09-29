@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutGrid, Plus, Lock } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { LayoutGrid, Plus, Lock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import {
@@ -12,9 +13,15 @@ import { useDowngradeLock } from '@/hooks/useDowngradeLock';
 import { DOWNGRADE_LOCK_MESSAGE } from '@/lib/downgrade-lock';
 import type { Ministry } from '@/types/models';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { MinistryMembersPanel } from './MinistryMembersPanel';
-import { MinistryDetailPanel } from './MinistryDetailPanel';
-import { MinistryFormPanel } from './MinistryFormPanel';
+
+const PanelLoading = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-3)' }} />
+  </div>
+);
+const MinistryMembersPanel = dynamic(() => import('./MinistryMembersPanel').then((m) => m.MinistryMembersPanel), { loading: PanelLoading, ssr: false });
+const MinistryDetailPanel = dynamic(() => import('./MinistryDetailPanel').then((m) => m.MinistryDetailPanel), { loading: PanelLoading, ssr: false });
+const MinistryFormPanel = dynamic(() => import('./MinistryFormPanel').then((m) => m.MinistryFormPanel), { loading: PanelLoading, ssr: false });
 
 type Tab = 'active' | 'inactive' | 'all';
 

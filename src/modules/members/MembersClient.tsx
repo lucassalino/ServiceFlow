@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Plus, Trash2, Check, Users, Share2, Mail, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Copy, Plus, Trash2, Check, Users, Share2, Mail, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrgStore } from '@/stores/orgStore';
 import { RoleBadge, ROLE_LABEL } from '@/components/RoleBadge';
@@ -18,7 +19,13 @@ import { Button } from '@/components/ui/button';
 import { usePlanLimitDialog } from '@/hooks/usePlanLimit';
 import { PlanLimitDialog } from '@/components/PlanLimitDialog';
 import { getInitials } from '@/lib/utils';
-import { MemberDetailPanel } from './MemberDetailPanel';
+
+const PanelLoading = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-3)' }} />
+  </div>
+);
+const MemberDetailPanel = dynamic(() => import('./MemberDetailPanel').then((m) => m.MemberDetailPanel), { loading: PanelLoading, ssr: false });
 
 import { APP_URL } from '@/lib/app-url';
 

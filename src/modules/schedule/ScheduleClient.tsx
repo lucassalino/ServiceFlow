@@ -409,8 +409,11 @@ function MinistrySlot({ em, eventId, isAdmin, eventName, eventDate, eventTime }:
       {expanded && (
         <div>
           {isLoading ? (
-            <div style={{ padding: '0.5rem 0 0.9rem 0.9rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>
-              A carregar…
+            <div style={{ padding: '0.5rem 0.9rem 0.9rem' }} className="space-y-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="h-9 animate-pulse rounded-lg"
+                  style={{ background: 'var(--wis-surface-2)' }} />
+              ))}
             </div>
           ) : schedules.length === 0 ? (
             <div style={{ padding: '0.5rem 0 0.9rem 0.9rem', fontSize: '0.875rem', color: 'var(--wis-text-3)' }}>

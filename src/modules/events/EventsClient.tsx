@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
-import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays } from 'lucide-react';
+import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEvents, useDeleteEvent } from '@/hooks/useEvents';
 import { useOrgStore } from '@/stores/orgStore';
@@ -12,9 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { formatTime, eventPeriod } from '@/lib/utils';
-import { EventCreatePanel } from './EventCreatePanel';
-import { EventDetailPanel } from './EventDetailPanel';
-import { EventEditPanel } from './EventEditPanel';
+
+// Painéis só carregados quando abertos — poupa JS no carregamento inicial da lista.
+const PanelLoading = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-3)' }} />
+  </div>
+);
+const EventCreatePanel = dynamic(() => import('./EventCreatePanel').then((m) => m.EventCreatePanel), { loading: PanelLoading, ssr: false });
+const EventDetailPanel = dynamic(() => import('./EventDetailPanel').then((m) => m.EventDetailPanel), { loading: PanelLoading, ssr: false });
+const EventEditPanel = dynamic(() => import('./EventEditPanel').then((m) => m.EventEditPanel), { loading: PanelLoading, ssr: false });
 
 interface Props { orgId: string }
 

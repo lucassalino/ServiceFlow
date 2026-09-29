@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic, FileUp } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic, FileUp, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSongs, useSongsRanking, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -11,9 +12,15 @@ import type { Song } from '@/types/models';
 import type { SongRankingEntry } from '@/actions/songs';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { SongFormPanel } from './SongFormPanel';
-import { SongDetailPanel } from './SongDetailPanel';
-import { SongCsvImportDialog } from './SongCsvImportDialog';
+
+const PanelLoading = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-3)' }} />
+  </div>
+);
+const SongFormPanel = dynamic(() => import('./SongFormPanel').then((m) => m.SongFormPanel), { loading: PanelLoading, ssr: false });
+const SongDetailPanel = dynamic(() => import('./SongDetailPanel').then((m) => m.SongDetailPanel), { loading: PanelLoading, ssr: false });
+const SongCsvImportDialog = dynamic(() => import('./SongCsvImportDialog').then((m) => m.SongCsvImportDialog), { ssr: false });
 
 function Chip({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
