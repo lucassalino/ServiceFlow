@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthUser } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { OrgSelectionClient } from '@/modules/organizations/OrgSelectionClient';
@@ -9,7 +9,7 @@ type MemberWithOrg = OrganizationMember & { organization: Organization };
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getAuthUser();
   if (!user) redirect('/login');
 
   // Processa convites pendentes para o email desta pessoa (adiciona-a às organizações).

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
@@ -14,7 +14,7 @@ interface Props {
 export default async function OrgLayout({ children, params }: Props) {
   const { orgId } = await params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getAuthUser();
   if (!user) redirect('/login');
 
   const { data: membership } = await supabase
