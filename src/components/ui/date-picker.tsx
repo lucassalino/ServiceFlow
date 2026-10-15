@@ -89,7 +89,13 @@ export function DateRangePicker({
   const [open, setOpen] = React.useState(false);
   const from = parseDateStr(startValue);
   const to = parseDateStr(endValue);
-  const range: DateRange | undefined = from ? { from, to } : undefined;
+  const committed: DateRange | undefined = from ? { from, to } : undefined;
+
+  // Draft state: only pushed to the parent when the user presses "Aplicar".
+  // react-day-picker v9 sets `to = from` on the very first tap (its default
+  // `min=0` behaviour), so without a draft + explicit apply step the range
+  // would look "complete" after one tap and close the popover immediately.
+  const [draft, setDraft] = React.useState<DateRange | undefined>(committed);
 
   function label() {
     if (from && to) return `${formatDisplay(from)} – ${formatDisplay(to)}`;
@@ -98,7 +104,13 @@ export function DateRangePicker({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setDraft(committed);
+        setOpen(next);
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -112,18 +124,32 @@ export function DateRangePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="range"
-          selected={range}
-          defaultMonth={from}
-          numberOfMonths={2}
-          onSelect={(next) => {
-            if (!next?.from) return;
-            onChange({
-              start: formatDateStr(next.from),
-              end: formatDateStr(next.to ?? next.from),
-            });
-            if (next.to) setOpen(false);
-          }}
+          required
+          selected={draft}
+          defaultMonth={draft?.from ?? from}
+          numberOfMonths={1}
+          onSelect={setDraft}
         />
+        <div className="flex items-center justify-end gap-2 border-t p-2">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!draft?.from}
+            onClick={() => {
+              if (!draft?.from) return;
+              onChange({
+                start: formatDateStr(draft.from),
+                end: draft.to ? formatDateStr(draft.to) : formatDateStr(draft.from),
+              });
+              setOpen(false);
+            }}
+          >
+            Aplicar
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
