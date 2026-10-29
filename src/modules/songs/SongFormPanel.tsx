@@ -84,6 +84,18 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
   const nameField = register('name');
   const isPending = createSong.isPending || updateSong.isPending || isSubmitting;
 
+  // Tags livres (ex.: "louvor", "adoração") — usadas na seleção automática de repertório.
+  const [tags, setTags] = useState<string[]>(song?.tags ?? []);
+  const [tagInput, setTagInput] = useState('');
+  useEffect(() => { setTags(song?.tags ?? []); }, [song?.id, song?.tags]);
+  function addTag() {
+    const t = tagInput.trim().toLowerCase();
+    if (!t || tags.includes(t)) { setTagInput(''); return; }
+    setTags((prev) => [...prev, t]);
+    setTagInput('');
+  }
+  function removeTag(t: string) { setTags((prev) => prev.filter((x) => x !== t)); }
+
   // ── Pesquisa no catálogo (banco de dados) por nome ou artista ──────────────
   const [catalogResults, setCatalogResults] = useState<CatalogSuggestion[]>([]);
   const [searchingSongs, setSearchingSongs] = useState(false);
@@ -179,6 +191,7 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
       lyrics: values.lyrics || null,
       duration: values.duration || null,
       bible_reference: values.bible_reference || null,
+      tags,
     };
 
     if (isEditing && song) {
@@ -381,6 +394,43 @@ export function SongFormPanel({ song, onBack, onSaved }: Props) {
                   <Input id="sf-bpm" type="number" placeholder="120" min={1} max={300} {...register('bpm')} />
                   {errors.bpm && <p style={{ fontSize: '0.75rem', color: 'var(--wis-danger)', margin: 0 }}>{errors.bpm.message}</p>}
                 </div>
+              </div>
+
+              {/* Tags (ex.: louvor, adoração) — usadas na seleção automática de repertório */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <Label style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)' }}>Tags</Label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Input
+                    placeholder="ex.: louvor, adoração…" value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                  />
+                  <button type="button" onClick={addTag}
+                    style={{
+                      padding: '0.5rem 0.9rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600,
+                      background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                      color: 'var(--wis-text-2)', cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    Adicionar
+                  </button>
+                </div>
+                {tags.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.25rem' }}>
+                    {tags.map((t) => (
+                      <span key={t} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                        padding: '0.25rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600,
+                        background: 'var(--wis-blue-soft)', color: 'var(--wis-blue)', border: '1px solid var(--wis-blue-border)',
+                      }}>
+                        {t}
+                        <button type="button" onClick={() => removeTag(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex' }}>
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Duração + Referência bíblica */}

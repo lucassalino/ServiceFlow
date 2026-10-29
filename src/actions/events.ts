@@ -76,8 +76,11 @@ export async function updateEventAction(id: string, payload: EventPayload): Prom
     .select('org_id, name, date, time, location').eq('id', id).maybeSingle();
   // RLS ("events: admins/leaders can update") impede editar eventos de
   // organizações onde não se é admin/líder.
+  // `recurrence_reviewed`: ao editar um evento gerado por recorrência,
+  // consideramos que já foi revisto — o badge "por rever" desaparece.
   const { error } = await supabase.from('events')
-    .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ ...payload, recurrence_reviewed: true, updated_at: new Date().toISOString() } as any).eq('id', id);
   if (error) throw new Error(error.message);
 
   const prevRow = prev as { org_id: string; name: string; date: string; time: string; location: string | null } | null;
@@ -129,7 +132,8 @@ export async function publishEventAction(id: string, publish: boolean): Promise<
   const { data: prev } = await supabase.from('events').select('org_id').eq('id', id).maybeSingle();
   // RLS ("events: admins/leaders can update") cobre também o toggle de publicação.
   const { error } = await supabase.from('events')
-    .update({ is_published: publish, updated_at: new Date().toISOString() }).eq('id', id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ is_published: publish, recurrence_reviewed: true, updated_at: new Date().toISOString() } as any).eq('id', id);
   if (error) throw new Error(error.message);
   const orgId = (prev as { org_id?: string } | null)?.org_id;
   if (orgId) {

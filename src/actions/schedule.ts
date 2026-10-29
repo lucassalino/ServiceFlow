@@ -227,6 +227,8 @@ export async function replaceEventSetupAction(
   }
 
   await logEventActivity(supabase, orgId, eventId, user.id, messages);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await supabase.from('events').update({ recurrence_reviewed: true } as any).eq('id', eventId);
 
   return { ok: true, data: undefined };
 }

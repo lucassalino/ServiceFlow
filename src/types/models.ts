@@ -34,6 +34,8 @@ export interface Event {
   location: string | null; color: string | null; cover_image_url: string | null;
   description: string | null; observations: string | null; is_published: boolean;
   created_by: string; created_at: string; updated_at: string;
+  recurrence_id?: string | null;
+  recurrence_reviewed?: boolean;
 }
 export interface EventActivityLogEntry {
   id: string; org_id: string; event_id: string;
@@ -81,6 +83,7 @@ export interface Song {
   duration: string | null; bible_reference: string | null; cover_image_url: string | null;
   catalog_song_id: string | null;
   created_at: string; updated_at: string;
+  tags?: string[];
 }
 /** Entrada do catálogo GLOBAL, partilhada por todas as organizações. */
 export interface CatalogSong {

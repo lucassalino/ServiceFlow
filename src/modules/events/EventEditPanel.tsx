@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
-  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp, GripVertical, AlertTriangle,
+  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp, GripVertical, AlertTriangle, Shuffle,
 } from 'lucide-react';
 import {
   DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors,
@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateEvent } from '@/hooks/useEvents';
 import { useMinistries } from '@/hooks/useMinistries';
 import { useSongs } from '@/hooks/useSongs';
+import { pickRandomSetlistAction } from '@/actions/songs';
 import { useOrgUnavailability } from '@/hooks/useAvailability';
 import { useOrgFamilies } from '@/hooks/useFamily';
 import { FamilySchedulingHints } from './FamilySchedulingHints';
@@ -389,6 +390,25 @@ export function EventEditPanel({ event, onBack }: Props) {
       if (oldIndex === -1 || newIndex === -1) return prev;
       return arrayMove(prev, oldIndex, newIndex);
     });
+  }
+
+  const [autoCount, setAutoCount] = useState(4);
+  const [autoPicking, setAutoPicking] = useState(false);
+  async function handleAutoPick() {
+    if (autoCount <= 0) return;
+    setAutoPicking(true);
+    try {
+      const picked = await pickRandomSetlistAction(event.org_id, autoCount);
+      setSelectedSongIds(picked.map((s) => s.id));
+      const keys: Record<string, string> = {};
+      for (const s of picked) if (s.musical_key) keys[s.id] = s.musical_key;
+      setSongKeys((k) => ({ ...k, ...keys }));
+      toast.success(`${picked.length} música(s) selecionada(s)`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao selecionar músicas');
+    } finally {
+      setAutoPicking(false);
+    }
   }
 
   function toggleSong(songId: string) {
@@ -818,6 +838,28 @@ export function EventEditPanel({ event, onBack }: Props) {
                       }}
                     >
                       <FileUp style={{ width: '0.9rem', height: '0.9rem' }} /> Importar CSV
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} className="dark-inputs">
+                    <Input
+                      type="number" min={1} max={30} value={autoCount}
+                      onChange={(e) => setAutoCount(Number(e.target.value))}
+                      style={{ width: '4.5rem', flexShrink: 0 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAutoPick}
+                      disabled={autoPicking}
+                      title="Escolhe músicas priorizando as menos tocadas recentemente"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+                        padding: '0.5rem 0.85rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600,
+                        background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                        color: 'var(--wis-text-2)', cursor: autoPicking ? 'default' : 'pointer',
+                      }}
+                    >
+                      <Shuffle style={{ width: '0.9rem', height: '0.9rem' }} />
+                      {autoPicking ? 'A selecionar…' : 'Selecionar automaticamente'}
                     </button>
                   </div>
                   <div style={{ ...card, maxHeight: '22rem', overflowY: 'auto' }}>

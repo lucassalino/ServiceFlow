@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEvents, useDeleteEvent } from '@/hooks/useEvents';
+import { useGenerateRecurrenceEvents } from '@/hooks/useRecurrences';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event } from '@/types/models';
 import { Input } from '@/components/ui/input';
@@ -86,6 +87,14 @@ export function EventsClient({ orgId: _orgId }: Props) {
     const found = events.find((e) => e.id === eventParam);
     if (found) setDetailEvent(found);
   }, [events]);
+
+  // Gera (se faltarem) os eventos das recorrências ativas deste mês/mês
+  // seguinte, sempre como rascunho — só uma vez por visita à tela.
+  const generateRecurrenceEvents = useGenerateRecurrenceEvents();
+  useEffect(() => {
+    if (canManage) generateRecurrenceEvents.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage]);
 
   function handleNew() { setCreateMode(true); }
   function handleEdit(_e: Event) { setEditMode(true); }
@@ -262,6 +271,11 @@ export function EventsClient({ orgId: _orgId }: Props) {
                             {event.name}
                           </span>
                           {!event.is_published && <span className="wis-pill">Rascunho</span>}
+                          {event.recurrence_id && !event.recurrence_reviewed && (
+                            <span className="wis-pill" style={{ background: 'var(--wis-warning-bg)', color: 'var(--wis-warning)' }}>
+                              Gerado automaticamente · por rever
+                            </span>
+                          )}
                           {period && <span className="wis-pill wis-pill-accent">{period.label}</span>}
                         </span>
                         <span style={{

@@ -9,6 +9,7 @@ export interface SongPayload {
   bpm: number | null; lyrics: string | null; chords: string | null;
   youtube_url: string | null; spotify_url: string | null; ministry_id: string | null;
   duration: string | null; bible_reference: string | null;
+  tags?: string[];
 }
 
 export async function fetchSongsAction(orgId: string): Promise<Song[]> {
