@@ -66,6 +66,49 @@ export async function fetchSongsRankingAction(orgId: string): Promise<SongRankin
     .sort((a, b) => b.timesPlayed - a.timesPlayed || a.name.localeCompare(b.name));
 }
 
+/**
+ * Escolhe `count` músicas do catálogo da organização para uma setlist,
+ * priorizando as menos tocadas recentemente (nunca tocadas primeiro),
+ * com um desempate aleatório para não repetir sempre a mesma ordem.
+ * `tags`, se vier preenchido, restringe às músicas que tenham pelo menos
+ * uma das tags pedidas.
+ */
+export async function pickRandomSetlistAction(
+  orgId: string,
+  count: number,
+  tags: string[] = [],
+): Promise<Song[]> {
+  if (count <= 0) return [];
+  const supabase = await createClient();
+
+  let query = supabase.from('songs').select('*').eq('org_id', orgId);
+  if (tags.length > 0) query = query.overlaps('tags', tags);
+  const { data: songs, error } = await query;
+  if (error) throw new Error(error.message);
+  const songList = (songs ?? []) as Song[];
+  if (songList.length === 0) return [];
+
+  const { data: setlistRows } = await supabase
+    .from('event_setlists')
+    .select('song_id, event:events(date)')
+    .in('song_id', songList.map((s) => s.id));
+  const lastPlayedBySong = new Map<string, string>();
+  for (const row of (setlistRows ?? []) as { song_id: string; event: { date: string } | null }[]) {
+    if (!row.event?.date) continue;
+    const prev = lastPlayedBySong.get(row.song_id);
+    if (!prev || row.event.date > prev) lastPlayedBySong.set(row.song_id, row.event.date);
+  }
+
+  const shuffled = [...songList].sort(() => Math.random() - 0.5);
+  shuffled.sort((a, b) => {
+    const lastA = lastPlayedBySong.get(a.id) ?? '';
+    const lastB = lastPlayedBySong.get(b.id) ?? '';
+    return lastA.localeCompare(lastB); // nunca tocadas ('') e mais antigas primeiro
+  });
+
+  return shuffled.slice(0, count);
+}
+
 // ── Catálogo global partilhado ─────────────────────────────────────────────
 // A lógica de dedup vive em '@/lib/songs-catalog' (partilhada com o importador).
 
