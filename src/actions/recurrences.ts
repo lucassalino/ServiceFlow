@@ -21,6 +21,14 @@ async function requireAdminOrLeader(orgId: string) {
   return { supabase: supabase as any, userId: user.id };
 }
 
+export interface RecurrenceMinistry {
+  ministryId: string;
+  /** Funções desse ministério necessárias neste evento — a escala automática
+   * atribui no máximo uma pessoa por função. Vazio = nenhuma sugestão
+   * automática para este ministério (o admin escala manualmente na revisão). */
+  functions: string[];
+}
+
 export interface EventRecurrence {
   id: string;
   orgId: string;
@@ -32,7 +40,7 @@ export interface EventRecurrence {
   color: string | null;
   description: string | null;
   active: boolean;
-  ministryIds: string[];
+  ministries: RecurrenceMinistry[];
 }
 
 export interface RecurrencePayload {
@@ -43,7 +51,7 @@ export interface RecurrencePayload {
   location?: string | null;
   color?: string | null;
   description?: string | null;
-  ministryIds: string[];
+  ministries: RecurrenceMinistry[];
 }
 
 export async function fetchRecurrencesAction(orgId: string): Promise<EventRecurrence[]> {
@@ -51,7 +59,7 @@ export async function fetchRecurrencesAction(orgId: string): Promise<EventRecurr
   const supabase = (await createClient()) as any;
   const { data, error } = await supabase
     .from('event_recurrences')
-    .select('*, event_recurrence_ministries(ministry_id)')
+    .select('*, event_recurrence_ministries(ministry_id, functions)')
     .eq('org_id', orgId)
     .order('weekday').order('time');
   if (error) throw new Error(error.message);
@@ -60,13 +68,13 @@ export async function fetchRecurrencesAction(orgId: string): Promise<EventRecurr
     id: string; org_id: string; name: string; weekday: number; time: string;
     arrival_time: string | null; location: string | null; color: string | null;
     description: string | null; active: boolean;
-    event_recurrence_ministries: { ministry_id: string }[];
+    event_recurrence_ministries: { ministry_id: string; functions: string[] }[];
   };
   return ((data ?? []) as unknown as Row[]).map((r) => ({
     id: r.id, orgId: r.org_id, name: r.name, weekday: r.weekday, time: r.time,
     arrivalTime: r.arrival_time, location: r.location, color: r.color,
     description: r.description, active: r.active,
-    ministryIds: r.event_recurrence_ministries.map((m) => m.ministry_id),
+    ministries: r.event_recurrence_ministries.map((m) => ({ ministryId: m.ministry_id, functions: m.functions ?? [] })),
   }));
 }
 
@@ -80,8 +88,8 @@ export async function createRecurrenceAction(orgId: string, payload: RecurrenceP
   }).select().single();
   if (error) throw new Error(error.message);
 
-  if (payload.ministryIds.length > 0) {
-    const rows = payload.ministryIds.map((ministryId) => ({ recurrence_id: data.id, ministry_id: ministryId }));
+  if (payload.ministries.length > 0) {
+    const rows = payload.ministries.map((m) => ({ recurrence_id: data.id, ministry_id: m.ministryId, functions: m.functions }));
     const { error: linkError } = await supabase.from('event_recurrence_ministries').insert(rows);
     if (linkError) throw new Error(linkError.message);
   }
@@ -90,7 +98,7 @@ export async function createRecurrenceAction(orgId: string, payload: RecurrenceP
     id: data.id, orgId, name: payload.name, weekday: payload.weekday, time: payload.time,
     arrivalTime: payload.arrivalTime ?? null, location: payload.location ?? null,
     color: payload.color ?? null, description: payload.description ?? null, active: true,
-    ministryIds: payload.ministryIds,
+    ministries: payload.ministries,
   };
 }
 
@@ -105,8 +113,8 @@ export async function updateRecurrenceAction(id: string, orgId: string, payload:
   if (error) throw new Error(error.message);
 
   await supabase.from('event_recurrence_ministries').delete().eq('recurrence_id', id);
-  if (payload.ministryIds.length > 0) {
-    const rows = payload.ministryIds.map((ministryId) => ({ recurrence_id: id, ministry_id: ministryId }));
+  if (payload.ministries.length > 0) {
+    const rows = payload.ministries.map((m) => ({ recurrence_id: id, ministry_id: m.ministryId, functions: m.functions }));
     const { error: linkError } = await supabase.from('event_recurrence_ministries').insert(rows);
     if (linkError) throw new Error(linkError.message);
   }
@@ -160,14 +168,14 @@ export async function generateUpcomingRecurrenceEventsAction(orgId: string): Pro
 
   const { data: recRows, error: recError } = await supabase
     .from('event_recurrences')
-    .select('*, event_recurrence_ministries(ministry_id)')
+    .select('*, event_recurrence_ministries(ministry_id, functions)')
     .eq('org_id', orgId).eq('active', true);
   if (recError) throw new Error(recError.message);
 
   type RecRow = {
     id: string; name: string; weekday: number; time: string; arrival_time: string | null;
     location: string | null; color: string | null; description: string | null;
-    event_recurrence_ministries: { ministry_id: string }[];
+    event_recurrence_ministries: { ministry_id: string; functions: string[] }[];
   };
   const recurrences = (recRows ?? []) as unknown as RecRow[];
   if (recurrences.length === 0) return [];
@@ -190,8 +198,8 @@ export async function generateUpcomingRecurrenceEventsAction(orgId: string): Pro
       }).select('id').single();
       if (eventError) continue; // já pode existir (corrida entre pedidos) — ignora e segue
 
-      const ministryIds = rec.event_recurrence_ministries.map((m) => m.ministry_id);
-      await suggestScheduleForEvent(supabase, orgId, event.id, ministryIds, date, rec.time);
+      const ministries = rec.event_recurrence_ministries.map((m) => ({ ministryId: m.ministry_id, functions: m.functions ?? [] }));
+      await suggestScheduleForEvent(supabase, orgId, event.id, ministries, date, rec.time);
       await logEventActivity(supabase, orgId, event.id, user.id, [`gerou o evento a partir da recorrência "${rec.name}"`]);
       created.push({ date, eventId: event.id, recurrenceName: rec.name });
     }
@@ -204,20 +212,24 @@ export async function generateUpcomingRecurrenceEventsAction(orgId: string): Pro
 type SupabaseAny = any;
 
 /**
- * Sugere quem escalar em cada ministério: entre os membros ativos, exclui
- * quem está indisponível nessa data/hora e, quando duas pessoas têm
- * preferência "separado", mantém só a que há mais tempo não serve (fica
- * sempre reversível — o admin ajusta na revisão antes de publicar).
+ * Sugere quem escalar em cada ministério: uma pessoa por função pedida na
+ * recorrência (nunca mais do que uma — se for preciso mais gente na mesma
+ * função, o admin acrescenta na revisão). Entre os membros que têm essa
+ * função, exclui quem está indisponível nessa data/hora e prioriza quem há
+ * mais tempo não serve; quando duas pessoas têm preferência "separado",
+ * mantém só a que há mais tempo não serve. Ministérios sem funções
+ * escolhidas na recorrência ficam sem sugestão — só o ministério é
+ * adicionado ao evento, para o admin escalar manualmente.
  */
 async function suggestScheduleForEvent(
   supabase: SupabaseAny,
   orgId: string,
   eventId: string,
-  ministryIds: string[],
+  ministries: RecurrenceMinistry[],
   date: string,
   time: string,
 ): Promise<void> {
-  if (ministryIds.length === 0) return;
+  if (ministries.length === 0) return;
 
   const { data: familyRows } = await supabase
     .from('family_relationships').select('user_id_1, user_id_2, preference')
@@ -225,19 +237,20 @@ async function suggestScheduleForEvent(
   const separatedPairs = ((familyRows ?? []) as { user_id_1: string; user_id_2: string; preference: FamilyPreference }[])
     .filter((r) => r.preference === 'separado');
 
-  for (const ministryId of ministryIds) {
+  for (const { ministryId, functions } of ministries) {
+    const { data: em, error: emError } = await supabase
+      .from('event_ministries').insert({ event_id: eventId, ministry_id: ministryId }).select().single();
+    if (emError || functions.length === 0) continue;
+
     const { data: memberRows } = await supabase
-      .from('ministry_members').select('user_id').eq('ministry_id', ministryId);
-    const candidateIds = ((memberRows ?? []) as { user_id: string }[]).map((m) => m.user_id);
-    if (candidateIds.length === 0) {
-      await supabase.from('event_ministries').insert({ event_id: eventId, ministry_id: ministryId });
-      continue;
-    }
+      .from('ministry_members').select('user_id, functions').eq('ministry_id', ministryId).eq('is_active', true);
+    const members = (memberRows ?? []) as { user_id: string; functions: string[] }[];
+    if (members.length === 0) continue;
 
     const { data: unavailRows } = await supabase
       .from('member_unavailability')
       .select('user_id, id, kind, start_date, end_date, weekday, nth, period, reason')
-      .eq('org_id', orgId).in('user_id', candidateIds);
+      .eq('org_id', orgId).in('user_id', members.map((m) => m.user_id));
     const unavailByUser = new Map<string, UnavailabilityEntry[]>();
     for (const r of (unavailRows ?? []) as (UnavailabilityEntry & { user_id: string })[]) {
       const { user_id, ...entry } = r as unknown as UnavailabilityEntry & { user_id: string };
@@ -245,16 +258,15 @@ async function suggestScheduleForEvent(
       list.push(entry);
       unavailByUser.set(user_id, list);
     }
-
-    let available = candidateIds.filter((uid) =>
-      !findConflictingUnavailability(unavailByUser.get(uid), date, time),
+    const availableMembers = members.filter((m) =>
+      !findConflictingUnavailability(unavailByUser.get(m.user_id), date, time),
     );
+    if (availableMembers.length === 0) continue;
 
-    // "Separado": entre cada par, fica só quem há mais tempo não serve.
     const { data: lastServedRows } = await supabase
       .from('event_schedules')
       .select('user_id, event_ministry:event_ministries!inner(event:events!inner(date, org_id))')
-      .in('user_id', available);
+      .in('user_id', availableMembers.map((m) => m.user_id));
     const lastServedByUser = new Map<string, string>(); // user_id -> data mais recente em que serviu
     for (const row of (lastServedRows ?? []) as unknown as
       { user_id: string; event_ministry: { event: { date: string; org_id: string } | null } | null }[]) {
@@ -263,22 +275,28 @@ async function suggestScheduleForEvent(
       const prev = lastServedByUser.get(row.user_id);
       if (!prev || ev.date > prev) lastServedByUser.set(row.user_id, ev.date);
     }
-    const availableSet = new Set(available);
+
+    // "Separado": entre cada par, o que serviu mais recentemente fica fora da escolha.
+    const excluded = new Set<string>();
+    const availableIds = new Set(availableMembers.map((m) => m.user_id));
     for (const pair of separatedPairs) {
-      if (!availableSet.has(pair.user_id_1) || !availableSet.has(pair.user_id_2)) continue;
+      if (!availableIds.has(pair.user_id_1) || !availableIds.has(pair.user_id_2)) continue;
       const lastA = lastServedByUser.get(pair.user_id_1) ?? '';
       const lastB = lastServedByUser.get(pair.user_id_2) ?? '';
-      // Remove quem serviu mais recentemente (prioriza quem há mais tempo não serve).
-      const drop = lastA >= lastB ? pair.user_id_1 : pair.user_id_2;
-      availableSet.delete(drop);
+      excluded.add(lastA >= lastB ? pair.user_id_1 : pair.user_id_2);
     }
-    available = [...availableSet];
 
-    const { data: em, error: emError } = await supabase
-      .from('event_ministries').insert({ event_id: eventId, ministry_id: ministryId }).select().single();
-    if (emError || available.length === 0) continue;
-
-    const rows = available.map((userId) => ({ event_ministry_id: em.id, user_id: userId, functions: [] }));
-    await supabase.from('event_schedules').insert(rows);
+    const assignedUserIds = new Set<string>(); // uma pessoa só numa função, dentro deste ministério
+    const rows: { event_ministry_id: string; user_id: string; functions: string[] }[] = [];
+    for (const fn of functions) {
+      const candidates = availableMembers
+        .filter((m) => m.functions.includes(fn) && !excluded.has(m.user_id) && !assignedUserIds.has(m.user_id))
+        .sort((a, b) => (lastServedByUser.get(a.user_id) ?? '').localeCompare(lastServedByUser.get(b.user_id) ?? ''));
+      const picked = candidates[0];
+      if (!picked) continue; // ninguém disponível com esta função — fica por preencher na revisão
+      assignedUserIds.add(picked.user_id);
+      rows.push({ event_ministry_id: em.id, user_id: picked.user_id, functions: [fn] });
+    }
+    if (rows.length > 0) await supabase.from('event_schedules').insert(rows);
   }
 }
