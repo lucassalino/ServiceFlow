@@ -65,6 +65,14 @@ segundo padrão. O OpenNext popula `process.env` a partir dos Secrets do Worker.
    Não o removas.
 3. O erro do `npm ci` no painel aparece truncado: as linhas úteis estão logo a
    seguir a `npm error code EUSAGE`, no **início** do bloco.
+4. **O build falha sozinho quando o Next.js sai da janela de suporte**
+   (2 anos desde o lançamento da major), mesmo sem nenhuma alteração nossa —
+   `@opennextjs/cloudflare` recusa compilar e o erro no log é
+   `ERROR Next.js version X is not supported by the Next.js team`. Fix
+   imediato (nos dois Workers, campo "Build command" no painel, **não** é
+   algo do repositório): acrescentar `--dangerouslyUseUnsupportedNextVersion`
+   a `npx opennextjs-cloudflare build`. Fix definitivo: upgrade do Next.js
+   para a major seguinte (planear à parte, é um upgrade maior).
 
 ---
 
