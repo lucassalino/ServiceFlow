@@ -88,6 +88,18 @@ export function EventsClient({ orgId: _orgId }: Props) {
     if (found) setDetailEvent(found);
   }, [events]);
 
+  // Abre o painel de criação direto, vindo da Dashboard (?create=1) — sem
+  // precisar de chegar à lista e clicar em "Novo Evento".
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('create') !== '1') return;
+    setCreateMode(true);
+    // Limpa o parâmetro para não reabrir ao navegar de volta a esta tela.
+    params.delete('create');
+    const query = params.toString();
+    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+  }, []);
+
   // Gera (se faltarem) os eventos das recorrências ativas deste mês/mês
   // seguinte, sempre como rascunho — só uma vez por visita à tela.
   const generateRecurrenceEvents = useGenerateRecurrenceEvents();
