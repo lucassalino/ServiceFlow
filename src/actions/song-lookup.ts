@@ -31,7 +31,7 @@ export async function searchExternalSongsAction(term: string): Promise<ExternalS
   if (q.length < 2) return [];
 
   try {
-    const res = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=6`, {
+    const res = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=15`, {
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return [];

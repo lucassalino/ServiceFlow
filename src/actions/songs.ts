@@ -128,7 +128,7 @@ export async function searchCatalogSongsAction(term: string): Promise<CatalogSug
   const { data, error } = await supabase.from('catalog_songs')
     .select('id, name, artist, lyrics, chords, youtube_url, spotify_url, bpm')
     .or(`name.ilike.${like},artist.ilike.${like}`)
-    .order('name').limit(10);
+    .order('name').limit(20);
   if (error) return [];
   return (data ?? []) as CatalogSuggestion[];
 }
