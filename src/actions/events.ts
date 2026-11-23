@@ -35,7 +35,8 @@ export async function fetchEventsAction(orgId: string): Promise<Event[]> {
   const { data: membership } = await supabase
     .from('organization_members').select('role')
     .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
-  const isAdmin = (membership as { role?: string } | null)?.role === 'admin';
+  const role = (membership as { role?: string } | null)?.role;
+  const canManage = role === 'admin' || role === 'leader';
 
   // RLS ("events: org members can read") já restringe às organizações do
   // utilizador — o filtro de orgId abaixo é só para a query, não é ele que
@@ -46,8 +47,8 @@ export async function fetchEventsAction(orgId: string): Promise<Event[]> {
   if (error) throw new Error(error.message);
   const all = (data ?? []) as Event[];
 
-  // Admin vê tudo (incluindo rascunhos)
-  if (isAdmin) return all;
+  // Admin e líder veem tudo (incluindo rascunhos)
+  if (canManage) return all;
 
   // Não-admin: apenas eventos publicados + eventos onde está escalado
   const scheduledIds = await scheduledEventIdSet(supabase, user.id);
@@ -76,8 +77,11 @@ export async function updateEventAction(id: string, payload: EventPayload): Prom
     .select('org_id, name, date, time, location').eq('id', id).maybeSingle();
   // RLS ("events: admins/leaders can update") impede editar eventos de
   // organizações onde não se é admin/líder.
+  // `recurrence_reviewed`: ao editar um evento gerado por recorrência,
+  // consideramos que já foi revisto — o badge "por rever" desaparece.
   const { error } = await supabase.from('events')
-    .update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ ...payload, recurrence_reviewed: true, updated_at: new Date().toISOString() } as any).eq('id', id);
   if (error) throw new Error(error.message);
 
   const prevRow = prev as { org_id: string; name: string; date: string; time: string; location: string | null } | null;
@@ -129,7 +133,8 @@ export async function publishEventAction(id: string, publish: boolean): Promise<
   const { data: prev } = await supabase.from('events').select('org_id').eq('id', id).maybeSingle();
   // RLS ("events: admins/leaders can update") cobre também o toggle de publicação.
   const { error } = await supabase.from('events')
-    .update({ is_published: publish, updated_at: new Date().toISOString() }).eq('id', id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ is_published: publish, recurrence_reviewed: true, updated_at: new Date().toISOString() } as any).eq('id', id);
   if (error) throw new Error(error.message);
   const orgId = (prev as { org_id?: string } | null)?.org_id;
   if (orgId) {

@@ -547,7 +547,7 @@ export function EventDialog({ event, open, onOpenChange }: Props) {
                           ) : (
                             <div className="divide-y">
                               {activeMembers.map((member) => {
-                                const name = member.profile?.full_name || member.profile?.email || '?';
+                                const name = member.profile?.full_name || '?';
                                 const checked = isMemberSelected(ministryId, member.user_id);
                                 const fns = getMemberFunctions(ministryId, member.user_id);
                                 return (

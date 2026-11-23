@@ -20,16 +20,18 @@ type MemberWithProfile = OrganizationMember & {
 interface Props {
   member: MemberWithProfile;
   isAdmin: boolean;
+  /** Email só é mostrado a admin/líder — membros só veem nome e foto. */
+  canSeeEmail?: boolean;
   onBack: () => void;
 }
 
-export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
+export function MemberDetailPanel({ member, isAdmin, canSeeEmail = isAdmin, onBack }: Props) {
   const [showMinistriesPanel, setShowMinistriesPanel] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const { data: assignments = [], isLoading } = useMemberMinistries(member.user_id);
   const { data: allMinistries = [] } = useMinistries();
 
-  const memberLabel = member.profile?.full_name ?? member.profile?.email ?? '?';
+  const memberLabel = member.profile?.full_name ?? '?';
 
   if (showMinistriesPanel) {
     return (
@@ -54,7 +56,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
   }
 
   const role = member.role as OrgRole;
-  const name = member.profile?.full_name ?? (isAdmin ? member.profile?.email : undefined) ?? '?';
+  const name = member.profile?.full_name ?? (canSeeEmail ? member.profile?.email : undefined) ?? '?';
   const joinedDate = new Date(member.joined_at).toLocaleDateString('pt-PT', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
@@ -170,7 +172,7 @@ export function MemberDetailPanel({ member, isAdmin, onBack }: Props) {
                 width: '100%', paddingTop: '0.875rem',
                 borderTop: '1px solid var(--wis-border)',
               }}>
-                {isAdmin && (
+                {canSeeEmail && (
                   <p style={{ fontSize: '0.8rem', color: 'var(--wis-text-2)', margin: '0 0 0.25rem', wordBreak: 'break-all' }}>
                     {member.profile?.email}
                   </p>

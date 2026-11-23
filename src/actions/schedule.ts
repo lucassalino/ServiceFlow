@@ -37,29 +37,35 @@ export async function fetchEventSetupAction(eventId: string): Promise<{
   timeline: EventTimelineItemInput[];
 }> {
   const supabase = await createClient();
-  const { data: rawMins, error: minsErr } = await supabase
-    .from('event_ministries').select('*').eq('event_id', eventId);
-  if (minsErr) throw new Error(minsErr.message);
 
-  const eventMins = (rawMins ?? []) as { id: string; ministry_id: string }[];
-  const ministryIds: string[] = [];
+  // As três consultas abaixo são independentes entre si — correm em paralelo
+  // em vez de em série (eram 3+N pedidos sequenciais, um por ministério).
+  const [minsRes, setlistRes, timelineRes] = await Promise.all([
+    supabase.from('event_ministries').select('id, ministry_id').eq('event_id', eventId),
+    supabase.from('event_setlists').select('song_id, musical_key, note').eq('event_id', eventId).order('order_index'),
+    supabase.from('event_timeline_items').select('time, title').eq('event_id', eventId).order('order_index'),
+  ]);
+  if (minsRes.error) throw new Error(minsRes.error.message);
+
+  const eventMins = (minsRes.data ?? []) as { id: string; ministry_id: string }[];
+  const ministryIds = eventMins.map((em) => em.ministry_id);
+
+  // Um único pedido para as escalas de todos os ministérios (em vez de um por ministério).
   const membersByMinistry: Record<string, { userId: string; functions: string[] }[]> = {};
-
-  for (const em of eventMins) {
-    ministryIds.push(em.ministry_id);
+  if (eventMins.length > 0) {
     const { data: rawSched } = await supabase
-      .from('event_schedules').select('*').eq('event_ministry_id', em.id);
-    const schedules = (rawSched ?? []) as { user_id: string; functions: string[] }[];
-    membersByMinistry[em.ministry_id] = schedules.map((s) => ({
-      userId: s.user_id,
-      functions: s.functions ?? [],
-    }));
+      .from('event_schedules').select('event_ministry_id, user_id, functions')
+      .in('event_ministry_id', eventMins.map((em) => em.id));
+    const schedules = (rawSched ?? []) as { event_ministry_id: string; user_id: string; functions: string[] }[];
+    for (const em of eventMins) membersByMinistry[em.ministry_id] = [];
+    const emById = new Map(eventMins.map((em) => [em.id, em.ministry_id]));
+    for (const s of schedules) {
+      const ministryId = emById.get(s.event_ministry_id);
+      if (ministryId) membersByMinistry[ministryId].push({ userId: s.user_id, functions: s.functions ?? [] });
+    }
   }
 
-  const { data: rawSetlist } = await supabase
-    .from('event_setlists').select('*').eq('event_id', eventId).order('order_index');
-  const setlist = (rawSetlist ?? []) as { song_id: string; musical_key: string | null; note: string | null }[];
-
+  const setlist = (setlistRes.data ?? []) as { song_id: string; musical_key: string | null; note: string | null }[];
   const songKeys: Record<string, string> = {};
   const songNotes: Record<string, string> = {};
   for (const s of setlist) {
@@ -67,9 +73,7 @@ export async function fetchEventSetupAction(eventId: string): Promise<{
     if (s.note) songNotes[s.song_id] = s.note;
   }
 
-  const { data: rawTimeline } = await supabase
-    .from('event_timeline_items').select('time, title').eq('event_id', eventId).order('order_index');
-  const timeline = (rawTimeline ?? []) as EventTimelineItemInput[];
+  const timeline = (timelineRes.data ?? []) as EventTimelineItemInput[];
 
   return {
     ministryIds,
@@ -227,6 +231,8 @@ export async function replaceEventSetupAction(
   }
 
   await logEventActivity(supabase, orgId, eventId, user.id, messages);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await supabase.from('events').update({ recurrence_reviewed: true } as any).eq('id', eventId);
 
   return { ok: true, data: undefined };
 }

@@ -28,7 +28,13 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: (payload: EventPayload) =>
       createEventAction(activeOrg!.id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['events', activeOrg?.id] }),
+    onSuccess: (created) => {
+      // Mostra o evento na lista já nesta renderização — sem isto, quem cria
+      // um evento tinha de sair da tela de Eventos e voltar para o ver.
+      qc.setQueryData(['events', activeOrg?.id], (prev: Event[] | undefined) =>
+        prev ? [...prev, created] : [created]);
+      qc.invalidateQueries({ queryKey: ['events', activeOrg?.id] });
+    },
   });
 }
 

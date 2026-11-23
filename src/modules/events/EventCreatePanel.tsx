@@ -6,9 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, ImagePlus, X, ZoomIn, Search,
+  ArrowLeft, ArrowRight, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
-  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp, AlertTriangle,
+  CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp, AlertTriangle, Shuffle,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrgStore } from '@/stores/orgStore';
@@ -20,6 +20,7 @@ import { useOrgFamilies } from '@/hooks/useFamily';
 import { FamilySchedulingHints } from './FamilySchedulingHints';
 import { uploadEventImageAction } from '@/actions/events';
 import { setupEventScheduleAction, setupEventSetlistAction, setupEventTimelineAction } from '@/actions/schedule';
+import { pickRandomSetlistAction } from '@/actions/songs';
 import { unwrapLockGuarded } from '@/lib/downgrade-lock';
 import { resolveFunction, SONG_KEYS } from '@/lib/constants';
 import { findConflictingUnavailability, describeUnavailability } from '@/lib/availability';
@@ -89,10 +90,10 @@ const rowBase: React.CSSProperties = {
 
 // ── Sidebar step list ─────────────────────────────────────────────────────────
 
-function Sidebar({ current, onBack, onStepClick, step1Done }: {
+function Sidebar({ current, onBack, onStepClick, maxStepReached }: {
   current: number; onBack: () => void;
   onStepClick: (step: number) => void;
-  step1Done: boolean;
+  maxStepReached: number;
 }) {
   return (
     <div className="ep-sidebar" style={{
@@ -129,7 +130,7 @@ function Sidebar({ current, onBack, onStepClick, step1Done }: {
           const num = i + 1;
           const done = current > num;
           const active = current === num;
-          const enabled = num === 1 || step1Done;
+          const enabled = num <= maxStepReached;
           return (
             <button
               key={i}
@@ -174,9 +175,11 @@ function Sidebar({ current, onBack, onStepClick, step1Done }: {
 
 // ── Save bar (grava todas as tabs de uma vez) ──────────────────────────────────
 
-function SaveBar({ onCancel, onSave, saving }: {
-  onCancel: () => void; onSave: () => void; saving: boolean;
+function SaveBar({ step, totalSteps, onCancel, onPrev, onNext, saving }: {
+  step: number; totalSteps: number;
+  onCancel: () => void; onPrev: () => void; onNext: () => void; saving: boolean;
 }) {
+  const isLast = step === totalSteps;
   return (
     <div className="ep-savebar" style={{
       display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem',
@@ -186,9 +189,24 @@ function SaveBar({ onCancel, onSave, saving }: {
       <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onCancel} disabled={saving}>
         Cancelar
       </button>
-      <button type="button" style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onSave} disabled={saving}>
-        <Check style={{ width: '0.9rem', height: '0.9rem' }} />
-        {saving ? 'A criar…' : 'Criar evento'}
+      {step > 1 && (
+        <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onPrev} disabled={saving}>
+          <ArrowLeft style={{ width: '0.9rem', height: '0.9rem' }} />
+          Voltar
+        </button>
+      )}
+      <button type="button" style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onNext} disabled={saving}>
+        {isLast ? (
+          <>
+            <Check style={{ width: '0.9rem', height: '0.9rem' }} />
+            {saving ? 'A criar…' : 'Criar evento'}
+          </>
+        ) : (
+          <>
+            Próximo
+            <ArrowRight style={{ width: '0.9rem', height: '0.9rem' }} />
+          </>
+        )}
       </button>
     </div>
   );
@@ -208,6 +226,9 @@ export function EventCreatePanel({ onBack }: Props) {
   const { data: unavailabilityByUser } = useOrgUnavailability();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  // Até onde o utilizador já avançou com "Próximo" — trava saltar passos
+  // pelo menu/abas sem antes passar pelos anteriores (recuar é sempre livre).
+  const [maxStepReached, setMaxStepReached] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [saving, setSaving] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -243,7 +264,7 @@ export function EventCreatePanel({ onBack }: Props) {
   const [newTimelineTime, setNewTimelineTime] = useState('');
   const [newTimelineTitle, setNewTimelineTitle] = useState('');
 
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, watch, trigger, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: { name: '', date: '', time: '', arrival_time: '', location: '', description: '', observations: '', is_published: false },
   });
@@ -265,7 +286,7 @@ export function EventCreatePanel({ onBack }: Props) {
         for (const [mid, members] of results) {
           map[mid] = members.map((m) => ({
             userId: m.user_id,
-            name: m.profile?.full_name || m.profile?.email || 'Sem nome',
+            name: m.profile?.full_name || 'Sem nome',
             avatarUrl: m.profile?.avatar_url ?? null,
             functions: m.functions ?? [],
           }));
@@ -336,6 +357,25 @@ export function EventCreatePanel({ onBack }: Props) {
     });
   }
 
+  const [autoCount, setAutoCount] = useState(4);
+  const [autoPicking, setAutoPicking] = useState(false);
+  async function handleAutoPick() {
+    if (autoCount <= 0 || !activeOrg) return;
+    setAutoPicking(true);
+    try {
+      const picked = await pickRandomSetlistAction(activeOrg.id, autoCount);
+      setSelectedSongIds(picked.map((s) => s.id));
+      const keys: Record<string, string> = {};
+      for (const s of picked) if (s.musical_key) keys[s.id] = s.musical_key;
+      setSongKeys((k) => ({ ...k, ...keys }));
+      toast.success(`${picked.length} música(s) selecionada(s)`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao selecionar músicas');
+    } finally {
+      setAutoPicking(false);
+    }
+  }
+
   function setSongKey(songId: string, key: string) {
     setSongKeys((prev) => {
       if (!key) { const next = { ...prev }; delete next[songId]; return next; }
@@ -402,6 +442,28 @@ export function EventCreatePanel({ onBack }: Props) {
     () => { setStep(1); toast.error('Preenche o nome, a data e a hora'); },
   );
 
+  async function handleNext() {
+    if (step === 1) {
+      const valid = await trigger();
+      if (!valid) { toast.error('Preenche o nome, a data e a hora'); return; }
+      setStep(2);
+      setMaxStepReached((m) => Math.max(m, 2) as typeof m);
+      return;
+    }
+    if (step < STEPS.length) {
+      const next = (step + 1) as typeof step;
+      setStep(next);
+      setMaxStepReached((m) => Math.max(m, next) as typeof m);
+      return;
+    }
+    await doSaveAll();
+  }
+
+  function goToStep(num: number) {
+    if (num > maxStepReached) return; // só recuar ou ir até onde já se chegou
+    setStep(num as typeof step);
+  }
+
   const activeMinistries = (ministries as unknown as { id: string; name: string; icon: string; color: string; is_active: boolean }[]).filter((m) => m.is_active);
   const filteredSongs = useMemo(() => {
     const q = songSearch.trim().toLowerCase();
@@ -447,7 +509,7 @@ export function EventCreatePanel({ onBack }: Props) {
       <div className="dash-purple-bg ep-layout">
 
         {/* ── Sidebar ──────────────────────────────────────────────────── */}
-        <Sidebar current={step} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4 | 5)} step1Done={true} />
+        <Sidebar current={step} onBack={onBack} onStepClick={goToStep} maxStepReached={maxStepReached} />
 
         {/* ── Content ──────────────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto' }} className="ep-content">
@@ -457,18 +519,21 @@ export function EventCreatePanel({ onBack }: Props) {
             {STEPS.map((s, i) => {
               const num = (i + 1) as 1 | 2 | 3 | 4 | 5;
               const active = step === num;
+              const enabled = num <= maxStepReached;
               return (
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setStep(num)}
+                  onClick={() => goToStep(num)}
+                  disabled={!enabled}
                   style={{
                     flexShrink: 0, padding: '0.4rem 0.8rem', borderRadius: '9999px',
-                    fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: 'pointer',
+                    fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: enabled ? 'pointer' : 'default',
                     background: active ? 'var(--wis-blue)' : 'var(--wis-surface-3)',
                     color: active ? '#fff' : 'var(--wis-text-2)',
                     border: `1px solid ${active ? 'var(--wis-border)' : 'var(--wis-border-strong)'}`,
                     whiteSpace: 'nowrap',
+                    opacity: enabled ? 1 : 0.45,
                   }}
                 >
                   {i + 1}. {s.label}
@@ -489,7 +554,7 @@ export function EventCreatePanel({ onBack }: Props) {
 
           {/* ─── Step 1: Informações ──────────────────────────────────── */}
           {step === 1 && (
-            <form ref={formRef} onSubmit={doSaveAll} className="dark-inputs">
+            <form ref={formRef} onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="dark-inputs">
               <div className="ep-two-col">
 
                 {/* Left column */}
@@ -783,6 +848,29 @@ export function EventCreatePanel({ onBack }: Props) {
                     </button>
                   </div>
 
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} className="dark-inputs">
+                    <Input
+                      type="number" min={1} max={30} value={autoCount}
+                      onChange={(e) => setAutoCount(Number(e.target.value))}
+                      style={{ width: '4.5rem', flexShrink: 0 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAutoPick}
+                      disabled={autoPicking}
+                      title="Escolhe músicas priorizando as menos tocadas recentemente"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+                        padding: '0.5rem 0.85rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600,
+                        background: 'var(--wis-surface-3)', border: '1px solid var(--wis-border-strong)',
+                        color: 'var(--wis-text-2)', cursor: autoPicking ? 'default' : 'pointer',
+                      }}
+                    >
+                      <Shuffle style={{ width: '0.9rem', height: '0.9rem' }} />
+                      {autoPicking ? 'A selecionar…' : 'Selecionar automaticamente'}
+                    </button>
+                  </div>
+
                   <div style={{ ...card, maxHeight: '22rem', overflowY: 'auto' }}>
                     {filteredSongs.length === 0 ? (
                       <div style={{ padding: '2.5rem', textAlign: 'center' }}>
@@ -957,7 +1045,13 @@ export function EventCreatePanel({ onBack }: Props) {
           )}
 
           {/* Barra de gravação única — cria o evento com todas as tabs (desktop) */}
-          <SaveBar onCancel={onBack} onSave={() => doSaveAll()} saving={saving || isPending} />
+          <SaveBar
+            step={step} totalSteps={STEPS.length}
+            onCancel={onBack}
+            onPrev={() => setStep((s) => (s - 1) as typeof step)}
+            onNext={handleNext}
+            saving={saving || isPending}
+          />
 
         </div>
       </div>

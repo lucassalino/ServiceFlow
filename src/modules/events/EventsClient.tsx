@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
-import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays } from 'lucide-react';
+import { Plus, Pencil, Trash2, MapPin, Clock, Search, CalendarDays, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEvents, useDeleteEvent } from '@/hooks/useEvents';
+import { useGenerateRecurrenceEvents } from '@/hooks/useRecurrences';
 import { useOrgStore } from '@/stores/orgStore';
 import type { Event } from '@/types/models';
 import { Input } from '@/components/ui/input';
@@ -12,9 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { formatTime, eventPeriod } from '@/lib/utils';
-import { EventCreatePanel } from './EventCreatePanel';
-import { EventDetailPanel } from './EventDetailPanel';
-import { EventEditPanel } from './EventEditPanel';
+
+// Painéis só carregados quando abertos — poupa JS no carregamento inicial da lista.
+const PanelLoading = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-3)' }} />
+  </div>
+);
+const EventCreatePanel = dynamic(() => import('./EventCreatePanel').then((m) => m.EventCreatePanel), { loading: PanelLoading, ssr: false });
+const EventDetailPanel = dynamic(() => import('./EventDetailPanel').then((m) => m.EventDetailPanel), { loading: PanelLoading, ssr: false });
+const EventEditPanel = dynamic(() => import('./EventEditPanel').then((m) => m.EventEditPanel), { loading: PanelLoading, ssr: false });
 
 interface Props { orgId: string }
 
@@ -78,6 +87,26 @@ export function EventsClient({ orgId: _orgId }: Props) {
     const found = events.find((e) => e.id === eventParam);
     if (found) setDetailEvent(found);
   }, [events]);
+
+  // Abre o painel de criação direto, vindo da Dashboard (?create=1) — sem
+  // precisar de chegar à lista e clicar em "Novo Evento".
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('create') !== '1') return;
+    setCreateMode(true);
+    // Limpa o parâmetro para não reabrir ao navegar de volta a esta tela.
+    params.delete('create');
+    const query = params.toString();
+    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+  }, []);
+
+  // Gera (se faltarem) os eventos das recorrências ativas deste mês/mês
+  // seguinte, sempre como rascunho — só uma vez por visita à tela.
+  const generateRecurrenceEvents = useGenerateRecurrenceEvents();
+  useEffect(() => {
+    if (canManage) generateRecurrenceEvents.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage]);
 
   function handleNew() { setCreateMode(true); }
   function handleEdit(_e: Event) { setEditMode(true); }
@@ -254,6 +283,11 @@ export function EventsClient({ orgId: _orgId }: Props) {
                             {event.name}
                           </span>
                           {!event.is_published && <span className="wis-pill">Rascunho</span>}
+                          {event.recurrence_id && !event.recurrence_reviewed && (
+                            <span className="wis-pill" style={{ background: 'var(--wis-warning-bg)', color: 'var(--wis-warning)' }}>
+                              Gerado automaticamente · por rever
+                            </span>
+                          )}
                           {period && <span className="wis-pill wis-pill-accent">{period.label}</span>}
                         </span>
                         <span style={{

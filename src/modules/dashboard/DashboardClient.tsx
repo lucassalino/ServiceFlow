@@ -127,7 +127,7 @@ export function DashboardClient({ upcomingEvents, birthdayPeople, orgId }: Props
             <CalendarDays style={{ width: '2rem', height: '2rem', margin: '0 auto 0.75rem', color: 'var(--wis-text-4)' }} />
             <p style={{ fontSize: '0.9rem', color: 'var(--wis-text-2)' }}>Nenhum evento agendado.</p>
             {isAdmin && (
-              <Link href={`/${orgId}/events`} className="dark-primary-btn" style={{ marginTop: '1rem' }}>
+              <Link href={`/${orgId}/events?create=1`} className="dark-primary-btn" style={{ marginTop: '1rem' }}>
                 Criar evento <ArrowRight style={{ width: '0.9rem', height: '0.9rem' }} />
               </Link>
             )}

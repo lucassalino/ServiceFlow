@@ -12,20 +12,25 @@ export default async function DashboardPage({ params }: Props) {
 
   const { data: { user } } = await getAuthUser();
 
-  // Papel do utilizador nesta organização
-  const { data: membership } = await supabase
-    .from('organization_members').select('role')
-    .eq('org_id', orgId).eq('user_id', user?.id ?? '').maybeSingle();
-  const isAdmin = (membership as { role?: string } | null)?.role === 'admin';
+  // Papel, eventos e aniversariantes não dependem uns dos outros — pedidos em
+  // paralelo em vez de um atrás do outro.
+  const [membershipRes, eventsRes, memberRowsRes] = await Promise.all([
+    supabase.from('organization_members').select('role')
+      .eq('org_id', orgId).eq('user_id', user?.id ?? '').maybeSingle(),
+    supabase.from('events').select('*').eq('org_id', orgId).gte('date', today).order('date'),
+    supabase.from('organization_members')
+      .select('user_id, profile:profiles(full_name, avatar_url, birthday)')
+      .eq('org_id', orgId).eq('is_active', true),
+  ]);
+  const role = (membershipRes.data as { role?: string } | null)?.role;
+  const canManage = role === 'admin' || role === 'leader';
+  const memberRows = memberRowsRes.data;
 
-  const { data: eventsData } = await supabase
-    .from('events').select('*').eq('org_id', orgId)
-    .gte('date', today).order('date');
+  let visibleEvents = (eventsRes.data ?? []) as Event[];
 
-  let visibleEvents = (eventsData ?? []) as Event[];
-
-  // Não-admin: apenas eventos publicados + eventos onde está escalado
-  if (!isAdmin && user) {
+  // Admin e líder veem tudo (incluindo rascunhos); os restantes só publicados
+  // ou onde estão escalados.
+  if (!canManage && user) {
     const { data: schedules } = await supabase
       .from('event_schedules').select('event_ministry_id').eq('user_id', user.id)
       .returns<{ event_ministry_id: string }[]>();
@@ -64,10 +69,6 @@ export default async function DashboardPage({ params }: Props) {
 
   // ── Aniversariantes do mês ──────────────────────────────────────────────
   const currentMonth = new Date().getMonth() + 1; // 1-12
-  const { data: memberRows } = await supabase
-    .from('organization_members')
-    .select('user_id, profile:profiles(full_name, avatar_url, birthday)')
-    .eq('org_id', orgId).eq('is_active', true);
 
   type MemberRow = {
     profile: { full_name: string; avatar_url: string | null; birthday: string | null } | null;

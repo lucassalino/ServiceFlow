@@ -9,6 +9,7 @@ export interface SongPayload {
   bpm: number | null; lyrics: string | null; chords: string | null;
   youtube_url: string | null; spotify_url: string | null; ministry_id: string | null;
   duration: string | null; bible_reference: string | null;
+  tags?: string[];
 }
 
 export async function fetchSongsAction(orgId: string): Promise<Song[]> {
@@ -66,6 +67,49 @@ export async function fetchSongsRankingAction(orgId: string): Promise<SongRankin
     .sort((a, b) => b.timesPlayed - a.timesPlayed || a.name.localeCompare(b.name));
 }
 
+/**
+ * Escolhe `count` músicas do catálogo da organização para uma setlist,
+ * priorizando as menos tocadas recentemente (nunca tocadas primeiro),
+ * com um desempate aleatório para não repetir sempre a mesma ordem.
+ * `tags`, se vier preenchido, restringe às músicas que tenham pelo menos
+ * uma das tags pedidas.
+ */
+export async function pickRandomSetlistAction(
+  orgId: string,
+  count: number,
+  tags: string[] = [],
+): Promise<Song[]> {
+  if (count <= 0) return [];
+  const supabase = await createClient();
+
+  let query = supabase.from('songs').select('*').eq('org_id', orgId);
+  if (tags.length > 0) query = query.overlaps('tags', tags);
+  const { data: songs, error } = await query;
+  if (error) throw new Error(error.message);
+  const songList = (songs ?? []) as Song[];
+  if (songList.length === 0) return [];
+
+  const { data: setlistRows } = await supabase
+    .from('event_setlists')
+    .select('song_id, event:events(date)')
+    .in('song_id', songList.map((s) => s.id));
+  const lastPlayedBySong = new Map<string, string>();
+  for (const row of (setlistRows ?? []) as { song_id: string; event: { date: string } | null }[]) {
+    if (!row.event?.date) continue;
+    const prev = lastPlayedBySong.get(row.song_id);
+    if (!prev || row.event.date > prev) lastPlayedBySong.set(row.song_id, row.event.date);
+  }
+
+  const shuffled = [...songList].sort(() => Math.random() - 0.5);
+  shuffled.sort((a, b) => {
+    const lastA = lastPlayedBySong.get(a.id) ?? '';
+    const lastB = lastPlayedBySong.get(b.id) ?? '';
+    return lastA.localeCompare(lastB); // nunca tocadas ('') e mais antigas primeiro
+  });
+
+  return shuffled.slice(0, count);
+}
+
 // ── Catálogo global partilhado ─────────────────────────────────────────────
 // A lógica de dedup vive em '@/lib/songs-catalog' (partilhada com o importador).
 
@@ -84,7 +128,7 @@ export async function searchCatalogSongsAction(term: string): Promise<CatalogSug
   const { data, error } = await supabase.from('catalog_songs')
     .select('id, name, artist, lyrics, chords, youtube_url, spotify_url, bpm')
     .or(`name.ilike.${like},artist.ilike.${like}`)
-    .order('name').limit(10);
+    .order('name').limit(20);
   if (error) return [];
   return (data ?? []) as CatalogSuggestion[];
 }
@@ -122,6 +166,22 @@ export async function deleteSongAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+
+  // Não deixa remover uma música que ainda está no repertório de um evento
+  // futuro — evitaria uma setlist a apontar para uma música inexistente.
+  const today = new Date().toISOString().split('T')[0];
+  const { data: setlistRows } = await supabase
+    .from('event_setlists')
+    .select('event:events(name, date)')
+    .eq('song_id', id);
+  const rows = (setlistRows ?? []) as unknown as { event: { name: string; date: string } | null }[];
+  const nextEvent = rows.map((r) => r.event)
+    .filter((e): e is { name: string; date: string } => !!e && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
+  if (nextEvent) {
+    throw new Error(`Esta música está no repertório de "${nextEvent.name}" (${nextEvent.date}) — remove-a de lá primeiro.`);
+  }
+
   const { error } = await supabase.from('songs').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }

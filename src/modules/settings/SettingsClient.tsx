@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getInitials } from '@/lib/utils';
 import { MyFunctionsSection } from './MyFunctionsSection';
 import { FamilySection } from './FamilySection';
+import { RecurrencesSection } from './RecurrencesSection';
 import { EmailPreferencesSection } from './EmailPreferencesSection';
 import { CalendarSyncSection } from './CalendarSyncSection';
 import { PlanSection } from './PlanSection';
@@ -649,6 +650,13 @@ export function SettingsClient({ orgId }: Props) {
               funcionalidade não apaga os dados — só a esconde do menu.
             </p>
             <FeatureVisibilitySection orgId={orgId} />
+          </Section>
+        )}
+
+        {/* ── Eventos recorrentes ───────────────────────── */}
+        {isAdmin && activeOrg && (
+          <Section title="Eventos recorrentes">
+            <RecurrencesSection orgId={orgId} />
           </Section>
         )}
           </div>

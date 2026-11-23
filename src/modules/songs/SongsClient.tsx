@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic, FileUp } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Plus, Trash2, Pencil, Search, Music, Youtube, Guitar, FileText, Trophy, ListMusic, FileUp, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSongs, useSongsRanking, useDeleteSong } from '@/hooks/useSongs';
 import { useMinistries } from '@/hooks/useMinistries';
@@ -11,9 +12,15 @@ import type { Song } from '@/types/models';
 import type { SongRankingEntry } from '@/actions/songs';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { SongFormPanel } from './SongFormPanel';
-import { SongDetailPanel } from './SongDetailPanel';
-import { SongCsvImportDialog } from './SongCsvImportDialog';
+
+const PanelLoading = () => (
+  <div className="flex items-center justify-center p-16">
+    <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--wis-text-3)' }} />
+  </div>
+);
+const SongFormPanel = dynamic(() => import('./SongFormPanel').then((m) => m.SongFormPanel), { loading: PanelLoading, ssr: false });
+const SongDetailPanel = dynamic(() => import('./SongDetailPanel').then((m) => m.SongDetailPanel), { loading: PanelLoading, ssr: false });
+const SongCsvImportDialog = dynamic(() => import('./SongCsvImportDialog').then((m) => m.SongCsvImportDialog), { ssr: false });
 
 function Chip({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
@@ -248,7 +255,6 @@ export function SongsClient() {
                       onClick={() => setDetailSong(song)}
                       onEdit={() => handleEdit(song)}
                       onDelete={() => setDeleteTarget(song)}
-                      isAdmin={isAdmin}
                       canManage={canManage}
                     />
                   );
@@ -366,14 +372,13 @@ function RankingRow({
 // ── Song row ─────────────────────────────────────────────────────────────────
 
 function SongRow({
-  song, ministryName, onClick, onEdit, onDelete, isAdmin, canManage,
+  song, ministryName, onClick, onEdit, onDelete, canManage,
 }: {
   song: Song;
   ministryName?: string;
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  isAdmin: boolean;
   canManage: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -464,16 +469,18 @@ function SongRow({
         )}
       </div>
 
-      {/* Actions — gestor (admin/líder), on hover */}
+      {/* Actions — gestor (admin/líder), só no desktop (hover) — no mobile já
+          há editar/remover dentro do detalhe da música, ao tocar na linha. */}
       {canManage && (
         <div
-          style={{ display: 'flex', gap: '0.25rem', flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
+          className="hidden sm:flex"
+          style={{ gap: '0.25rem', flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
           onClick={(e) => e.stopPropagation()}
         >
           <button className="dark-icon-btn" onClick={onEdit} title="Editar">
             <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
           </button>
-          {isAdmin && (
+          {canManage && (
             <button className="dark-icon-btn danger" onClick={onDelete} title="Remover">
               <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
             </button>
