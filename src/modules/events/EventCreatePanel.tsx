@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, ImagePlus, X, ZoomIn, Search,
+  ArrowLeft, ArrowRight, ImagePlus, X, ZoomIn, Search,
   Check, Users, LayoutGrid, ListMusic,
   CalendarDays, Music2, Clock, Plus, CalendarOff, FileUp, AlertTriangle, Shuffle,
 } from 'lucide-react';
@@ -175,9 +175,11 @@ function Sidebar({ current, onBack, onStepClick, step1Done }: {
 
 // ── Save bar (grava todas as tabs de uma vez) ──────────────────────────────────
 
-function SaveBar({ onCancel, onSave, saving }: {
-  onCancel: () => void; onSave: () => void; saving: boolean;
+function SaveBar({ step, totalSteps, onCancel, onPrev, onNext, saving }: {
+  step: number; totalSteps: number;
+  onCancel: () => void; onPrev: () => void; onNext: () => void; saving: boolean;
 }) {
+  const isLast = step === totalSteps;
   return (
     <div className="ep-savebar" style={{
       display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem',
@@ -187,9 +189,24 @@ function SaveBar({ onCancel, onSave, saving }: {
       <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onCancel} disabled={saving}>
         Cancelar
       </button>
-      <button type="button" style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onSave} disabled={saving}>
-        <Check style={{ width: '0.9rem', height: '0.9rem' }} />
-        {saving ? 'A criar…' : 'Criar evento'}
+      {step > 1 && (
+        <button type="button" style={{ ...ghostBtn, opacity: saving ? 0.5 : 1 }} onClick={onPrev} disabled={saving}>
+          <ArrowLeft style={{ width: '0.9rem', height: '0.9rem' }} />
+          Voltar
+        </button>
+      )}
+      <button type="button" style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }} onClick={onNext} disabled={saving}>
+        {isLast ? (
+          <>
+            <Check style={{ width: '0.9rem', height: '0.9rem' }} />
+            {saving ? 'A criar…' : 'Criar evento'}
+          </>
+        ) : (
+          <>
+            Próximo
+            <ArrowRight style={{ width: '0.9rem', height: '0.9rem' }} />
+          </>
+        )}
       </button>
     </div>
   );
@@ -244,7 +261,7 @@ export function EventCreatePanel({ onBack }: Props) {
   const [newTimelineTime, setNewTimelineTime] = useState('');
   const [newTimelineTitle, setNewTimelineTitle] = useState('');
 
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, watch, trigger, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: { name: '', date: '', time: '', arrival_time: '', location: '', description: '', observations: '', is_published: false },
   });
@@ -422,6 +439,17 @@ export function EventCreatePanel({ onBack }: Props) {
     () => { setStep(1); toast.error('Preenche o nome, a data e a hora'); },
   );
 
+  async function handleNext() {
+    if (step === 1) {
+      const valid = await trigger();
+      if (!valid) { toast.error('Preenche o nome, a data e a hora'); return; }
+      setStep(2);
+      return;
+    }
+    if (step < STEPS.length) { setStep((s) => (s + 1) as typeof step); return; }
+    await doSaveAll();
+  }
+
   const activeMinistries = (ministries as unknown as { id: string; name: string; icon: string; color: string; is_active: boolean }[]).filter((m) => m.is_active);
   const filteredSongs = useMemo(() => {
     const q = songSearch.trim().toLowerCase();
@@ -509,7 +537,7 @@ export function EventCreatePanel({ onBack }: Props) {
 
           {/* ─── Step 1: Informações ──────────────────────────────────── */}
           {step === 1 && (
-            <form ref={formRef} onSubmit={doSaveAll} className="dark-inputs">
+            <form ref={formRef} onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="dark-inputs">
               <div className="ep-two-col">
 
                 {/* Left column */}
@@ -1000,7 +1028,13 @@ export function EventCreatePanel({ onBack }: Props) {
           )}
 
           {/* Barra de gravação única — cria o evento com todas as tabs (desktop) */}
-          <SaveBar onCancel={onBack} onSave={() => doSaveAll()} saving={saving || isPending} />
+          <SaveBar
+            step={step} totalSteps={STEPS.length}
+            onCancel={onBack}
+            onPrev={() => setStep((s) => (s - 1) as typeof step)}
+            onNext={handleNext}
+            saving={saving || isPending}
+          />
 
         </div>
       </div>
