@@ -469,10 +469,12 @@ function SongRow({
         )}
       </div>
 
-      {/* Actions — gestor (admin/líder), on hover */}
+      {/* Actions — gestor (admin/líder), só no desktop (hover) — no mobile já
+          há editar/remover dentro do detalhe da música, ao tocar na linha. */}
       {canManage && (
         <div
-          style={{ display: 'flex', gap: '0.25rem', flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
+          className="hidden sm:flex"
+          style={{ gap: '0.25rem', flexShrink: 0, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
           onClick={(e) => e.stopPropagation()}
         >
           <button className="dark-icon-btn" onClick={onEdit} title="Editar">
