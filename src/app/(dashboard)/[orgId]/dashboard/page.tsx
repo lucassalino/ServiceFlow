@@ -16,7 +16,8 @@ export default async function DashboardPage({ params }: Props) {
   const { data: membership } = await supabase
     .from('organization_members').select('role')
     .eq('org_id', orgId).eq('user_id', user?.id ?? '').maybeSingle();
-  const isAdmin = (membership as { role?: string } | null)?.role === 'admin';
+  const role = (membership as { role?: string } | null)?.role;
+  const canManage = role === 'admin' || role === 'leader';
 
   const { data: eventsData } = await supabase
     .from('events').select('*').eq('org_id', orgId)
@@ -24,8 +25,9 @@ export default async function DashboardPage({ params }: Props) {
 
   let visibleEvents = (eventsData ?? []) as Event[];
 
-  // Não-admin: apenas eventos publicados + eventos onde está escalado
-  if (!isAdmin && user) {
+  // Admin e líder veem tudo (incluindo rascunhos); os restantes só publicados
+  // ou onde estão escalados.
+  if (!canManage && user) {
     const { data: schedules } = await supabase
       .from('event_schedules').select('event_ministry_id').eq('user_id', user.id)
       .returns<{ event_ministry_id: string }[]>();

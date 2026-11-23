@@ -70,7 +70,7 @@ export function SongDetailPanel({ song, ministryName, ministryIcon, eventNote, o
                 <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
                 Editar
               </button>
-              {isAdmin && (
+              {canManage && (
                 <button
                   onClick={onDelete}
                   style={{

@@ -166,6 +166,22 @@ export async function deleteSongAction(id: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error('Sessão expirada');
+
+  // Não deixa remover uma música que ainda está no repertório de um evento
+  // futuro — evitaria uma setlist a apontar para uma música inexistente.
+  const today = new Date().toISOString().split('T')[0];
+  const { data: setlistRows } = await supabase
+    .from('event_setlists')
+    .select('event:events(name, date)')
+    .eq('song_id', id);
+  const rows = (setlistRows ?? []) as unknown as { event: { name: string; date: string } | null }[];
+  const nextEvent = rows.map((r) => r.event)
+    .filter((e): e is { name: string; date: string } => !!e && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
+  if (nextEvent) {
+    throw new Error(`Esta música está no repertório de "${nextEvent.name}" (${nextEvent.date}) — remove-a de lá primeiro.`);
+  }
+
   const { error } = await supabase.from('songs').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }

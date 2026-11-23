@@ -255,7 +255,6 @@ export function SongsClient() {
                       onClick={() => setDetailSong(song)}
                       onEdit={() => handleEdit(song)}
                       onDelete={() => setDeleteTarget(song)}
-                      isAdmin={isAdmin}
                       canManage={canManage}
                     />
                   );
@@ -373,14 +372,13 @@ function RankingRow({
 // ── Song row ─────────────────────────────────────────────────────────────────
 
 function SongRow({
-  song, ministryName, onClick, onEdit, onDelete, isAdmin, canManage,
+  song, ministryName, onClick, onEdit, onDelete, canManage,
 }: {
   song: Song;
   ministryName?: string;
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  isAdmin: boolean;
   canManage: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -480,7 +478,7 @@ function SongRow({
           <button className="dark-icon-btn" onClick={onEdit} title="Editar">
             <Pencil style={{ width: '0.75rem', height: '0.75rem' }} />
           </button>
-          {isAdmin && (
+          {canManage && (
             <button className="dark-icon-btn danger" onClick={onDelete} title="Remover">
               <Trash2 style={{ width: '0.75rem', height: '0.75rem' }} />
             </button>

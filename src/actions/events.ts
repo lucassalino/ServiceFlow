@@ -35,7 +35,8 @@ export async function fetchEventsAction(orgId: string): Promise<Event[]> {
   const { data: membership } = await supabase
     .from('organization_members').select('role')
     .eq('org_id', orgId).eq('user_id', user.id).maybeSingle();
-  const isAdmin = (membership as { role?: string } | null)?.role === 'admin';
+  const role = (membership as { role?: string } | null)?.role;
+  const canManage = role === 'admin' || role === 'leader';
 
   // RLS ("events: org members can read") já restringe às organizações do
   // utilizador — o filtro de orgId abaixo é só para a query, não é ele que
@@ -46,8 +47,8 @@ export async function fetchEventsAction(orgId: string): Promise<Event[]> {
   if (error) throw new Error(error.message);
   const all = (data ?? []) as Event[];
 
-  // Admin vê tudo (incluindo rascunhos)
-  if (isAdmin) return all;
+  // Admin e líder veem tudo (incluindo rascunhos)
+  if (canManage) return all;
 
   // Não-admin: apenas eventos publicados + eventos onde está escalado
   const scheduledIds = await scheduledEventIdSet(supabase, user.id);
