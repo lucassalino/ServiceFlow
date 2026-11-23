@@ -90,10 +90,10 @@ const rowBase: React.CSSProperties = {
 
 // ── Sidebar step list ─────────────────────────────────────────────────────────
 
-function Sidebar({ current, onBack, onStepClick, step1Done }: {
+function Sidebar({ current, onBack, onStepClick, maxStepReached }: {
   current: number; onBack: () => void;
   onStepClick: (step: number) => void;
-  step1Done: boolean;
+  maxStepReached: number;
 }) {
   return (
     <div className="ep-sidebar" style={{
@@ -130,7 +130,7 @@ function Sidebar({ current, onBack, onStepClick, step1Done }: {
           const num = i + 1;
           const done = current > num;
           const active = current === num;
-          const enabled = num === 1 || step1Done;
+          const enabled = num <= maxStepReached;
           return (
             <button
               key={i}
@@ -226,6 +226,9 @@ export function EventCreatePanel({ onBack }: Props) {
   const { data: unavailabilityByUser } = useOrgUnavailability();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  // Até onde o utilizador já avançou com "Próximo" — trava saltar passos
+  // pelo menu/abas sem antes passar pelos anteriores (recuar é sempre livre).
+  const [maxStepReached, setMaxStepReached] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [saving, setSaving] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -444,10 +447,21 @@ export function EventCreatePanel({ onBack }: Props) {
       const valid = await trigger();
       if (!valid) { toast.error('Preenche o nome, a data e a hora'); return; }
       setStep(2);
+      setMaxStepReached((m) => Math.max(m, 2) as typeof m);
       return;
     }
-    if (step < STEPS.length) { setStep((s) => (s + 1) as typeof step); return; }
+    if (step < STEPS.length) {
+      const next = (step + 1) as typeof step;
+      setStep(next);
+      setMaxStepReached((m) => Math.max(m, next) as typeof m);
+      return;
+    }
     await doSaveAll();
+  }
+
+  function goToStep(num: number) {
+    if (num > maxStepReached) return; // só recuar ou ir até onde já se chegou
+    setStep(num as typeof step);
   }
 
   const activeMinistries = (ministries as unknown as { id: string; name: string; icon: string; color: string; is_active: boolean }[]).filter((m) => m.is_active);
@@ -495,7 +509,7 @@ export function EventCreatePanel({ onBack }: Props) {
       <div className="dash-purple-bg ep-layout">
 
         {/* ── Sidebar ──────────────────────────────────────────────────── */}
-        <Sidebar current={step} onBack={onBack} onStepClick={(n) => setStep(n as 1 | 2 | 3 | 4 | 5)} step1Done={true} />
+        <Sidebar current={step} onBack={onBack} onStepClick={goToStep} maxStepReached={maxStepReached} />
 
         {/* ── Content ──────────────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto' }} className="ep-content">
@@ -505,18 +519,21 @@ export function EventCreatePanel({ onBack }: Props) {
             {STEPS.map((s, i) => {
               const num = (i + 1) as 1 | 2 | 3 | 4 | 5;
               const active = step === num;
+              const enabled = num <= maxStepReached;
               return (
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setStep(num)}
+                  onClick={() => goToStep(num)}
+                  disabled={!enabled}
                   style={{
                     flexShrink: 0, padding: '0.4rem 0.8rem', borderRadius: '9999px',
-                    fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: 'pointer',
+                    fontSize: '0.78rem', fontWeight: active ? 600 : 500, cursor: enabled ? 'pointer' : 'default',
                     background: active ? 'var(--wis-blue)' : 'var(--wis-surface-3)',
                     color: active ? '#fff' : 'var(--wis-text-2)',
                     border: `1px solid ${active ? 'var(--wis-border)' : 'var(--wis-border-strong)'}`,
                     whiteSpace: 'nowrap',
+                    opacity: enabled ? 1 : 0.45,
                   }}
                 >
                   {i + 1}. {s.label}
