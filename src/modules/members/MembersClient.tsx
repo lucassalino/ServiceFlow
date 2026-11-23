@@ -44,6 +44,7 @@ export function MembersClient() {
   const currentUserId = activeMembership?.user_id;
   const isAdmin = currentRole === 'admin';
   const canInvite = currentRole === 'admin' || currentRole === 'leader'; // convidar pessoas
+  const canSeeEmail = canInvite; // email só é visível para admin/líder — membros só veem nome e foto
 
   function canManage(_targetRole: OrgRole, targetUserId: string): boolean {
     if (!isAdmin) return false;
@@ -174,6 +175,7 @@ export function MembersClient() {
       <MemberDetailPanel
         member={detailMember}
         isAdmin={isAdmin}
+        canSeeEmail={canSeeEmail}
         onBack={() => setDetailMember(null)}
       />
     );
@@ -229,7 +231,7 @@ export function MembersClient() {
           <div className="space-y-2.5">
             {typedMembers.map((member) => {
               const profile = member.profile;
-              const name = profile?.full_name ?? (isAdmin ? profile?.email : undefined) ?? '?';
+              const name = profile?.full_name ?? (canSeeEmail ? profile?.email : undefined) ?? '?';
               const role = member.role as OrgRole;
 
               return (
@@ -267,7 +269,7 @@ export function MembersClient() {
                         </span>
                       )}
                     </div>
-                    {isAdmin && (
+                    {canSeeEmail && (
                       <p className="text-xs mt-0.5 truncate"
                         style={{ color: 'var(--wis-text-3)' }}>
                         {profile?.email}

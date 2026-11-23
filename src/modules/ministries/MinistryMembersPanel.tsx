@@ -161,7 +161,7 @@ export function MinistryMembersPanel({ ministry, onBack }: Props) {
               </p>
             </div>
           ) : activeMembers.map((member, i) => {
-            const name = member.profile?.full_name || member.profile?.email || '?';
+            const name = member.profile?.full_name || '?';
             const selected = isSelected(member.user_id);
             const fns = getFns(member.user_id);
             return (

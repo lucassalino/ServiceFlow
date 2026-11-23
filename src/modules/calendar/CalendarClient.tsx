@@ -40,7 +40,7 @@ export function CalendarClient({ orgId }: Props) {
     const map = new Map<string, { name: string; avatarUrl: string | null }>();
     for (const m of orgMembers) {
       map.set(m.user_id, {
-        name: m.profile?.full_name || m.profile?.email || 'Sem nome',
+        name: m.profile?.full_name || 'Sem nome',
         avatarUrl: m.profile?.avatar_url ?? null,
       });
     }

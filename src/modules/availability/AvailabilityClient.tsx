@@ -70,7 +70,7 @@ export function AvailabilityClient() {
           ) : (
             <div className="px-5 pb-5 space-y-2.5">
               {membersWithUnavailability.map(({ m, entries }) => {
-                const name = m.profile?.full_name ?? m.profile?.email ?? '?';
+                const name = m.profile?.full_name ?? '?';
                 return (
                   <div key={m.user_id} style={{
                     display: 'flex', gap: '0.75rem',

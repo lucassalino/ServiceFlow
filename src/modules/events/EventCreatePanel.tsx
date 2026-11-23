@@ -286,7 +286,7 @@ export function EventCreatePanel({ onBack }: Props) {
         for (const [mid, members] of results) {
           map[mid] = members.map((m) => ({
             userId: m.user_id,
-            name: m.profile?.full_name || m.profile?.email || 'Sem nome',
+            name: m.profile?.full_name || 'Sem nome',
             avatarUrl: m.profile?.avatar_url ?? null,
             functions: m.functions ?? [],
           }));

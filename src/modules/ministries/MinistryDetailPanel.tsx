@@ -236,7 +236,7 @@ export function MinistryDetailPanel({
                   user_id: string; functions: string[];
                   profile?: { full_name: string; email: string; avatar_url: string | null };
                 }[]).map((m) => {
-                  const name = m.profile?.full_name ?? m.profile?.email ?? '?';
+                  const name = m.profile?.full_name ?? '?';
                   return (
                     <div key={m.user_id} style={{
                       display: 'flex', alignItems: 'flex-start', gap: '0.625rem',

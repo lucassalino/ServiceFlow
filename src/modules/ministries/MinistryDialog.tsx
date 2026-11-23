@@ -103,7 +103,7 @@ export function MinistryDialog({ ministry, open, onOpenChange }: Props) {
             <ScrollArea className="max-h-[50vh] rounded-md border">
               <div className="p-2 space-y-0.5">
                 {activeMembers.map((member) => {
-                  const name = member.profile?.full_name || member.profile?.email || '?';
+                  const name = member.profile?.full_name || '?';
                   const selected = isSelected(member.user_id);
                   const fns = getFns(member.user_id);
 
