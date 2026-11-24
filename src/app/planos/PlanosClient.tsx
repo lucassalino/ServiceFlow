@@ -11,7 +11,7 @@ import { annualSavingsPercent, detectDefaultCurrency, type PlanDef, type Currenc
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle, Sparkle } from './Doodles';
+import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -34,6 +34,18 @@ const FEATURES = [
   { icon: BarChart3, label: 'Relatórios e insights', desc: 'Acompanhe participação e histórico.' },
   { icon: Building2, label: 'Multi-organização', desc: 'Gerencie várias igrejas em uma conta.' },
 ];
+
+/**
+ * Vitrine com capturas reais do app — mostra 3 das funcionalidades acima
+ * (mesmo texto, sem duplicar na grelha de ícones abaixo). O objetivo é
+ * provar a funcionalidade em vez de só prometer com um ícone.
+ */
+const SHOWCASE = [
+  { feature: 'Escalas inteligentes', src: '/screenshots/web-escala-publicar.webp', kind: 'web' as const, alt: 'Tela de publicar a escala de um culto no WIS, com a equipe por ministério' },
+  { feature: 'Setlists e repertório', src: '/screenshots/web-repertorio-ranking.webp', kind: 'web' as const, alt: 'Ranking de músicas mais tocadas no repertório do WIS' },
+  { feature: 'Ministérios e funções', src: '/screenshots/mobile-funcoes.webp', kind: 'mobile' as const, alt: 'Tela do WIS no celular com as funções de um ministério' },
+];
+const SHOWCASE_LABELS = new Set(SHOWCASE.map((s) => s.feature));
 
 /**
  * Rótulos em pt-BR para as chaves de `plans.features` (ver migração 028 /
@@ -231,9 +243,6 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
               <span className="wis-note" style={{ top: '4%', left: '-2%' }}>
                 Mais tempo para o que realmente importa.
               </span>
-
-              <Sparkle style={{ position: 'absolute', bottom: '12%', right: '4%', width: '1.7rem', color: 'var(--yellow)', zIndex: 4 }} />
-              <Sparkle style={{ position: 'absolute', bottom: '5%', right: '13%', width: '1rem', color: 'var(--yellow)', zIndex: 4 }} />
             </div>
           </div>
         </div>
@@ -254,8 +263,39 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
               </span>
             </h2>
 
+            <div className="wis-showcase">
+              {SHOWCASE.map((s, i) => {
+                const f = FEATURES.find((x) => x.label === s.feature)!;
+                return (
+                  <Reveal key={s.feature} className={`wis-showcase-row${i % 2 === 1 ? ' is-reverse' : ''}`}>
+                    <div className="wis-showcase-text">
+                      <f.icon size={28} strokeWidth={1.6} aria-hidden />
+                      <h3>{f.label}</h3>
+                      <p>{f.desc}</p>
+                    </div>
+                    <div className="wis-showcase-art">
+                      {s.kind === 'web' ? (
+                        <div className="wis-browser-frame">
+                          <div className="wis-browser-bar">
+                            <span /><span /><span />
+                          </div>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={s.src} alt={s.alt} loading="lazy" width={960} height={600} />
+                        </div>
+                      ) : (
+                        <div className="wis-phone wis-phone-showcase">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={s.src} alt={s.alt} loading="lazy" width={390} height={792} />
+                        </div>
+                      )}
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+
             <div className="wis-feature-grid">
-              {FEATURES.map((f) => (
+              {FEATURES.filter((f) => !SHOWCASE_LABELS.has(f.label)).map((f) => (
                 <div key={f.label} className="wis-feature">
                   <f.icon size={26} strokeWidth={1.6} aria-hidden />
                   <h3>{f.label}</h3>
