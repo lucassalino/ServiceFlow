@@ -415,28 +415,7 @@
   border-radius: 9999px;
   background: rgba(5, 5, 5, 0.18);
 }
-
-/* Recorte com zoom: a captura é do desktop (tem barra lateral e texto
-   pequeno) — em vez de encolher tudo, corta a margem esquerda e amplia
-   o essencial, para o conteúdo continuar legível num ecrã estreito. */
-.wis-browser-shot {
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-}
-.wis-browser-shot img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 68% 0%;
-  transform: scale(1.18);
-  transform-origin: 68% 0%;
-}
-
-@media (max-width: 860px) {
-  .wis-browser-shot { aspect-ratio: 4 / 3; }
-  .wis-browser-shot img { transform: scale(1.4); }
-}
+.wis-browser-frame img { display: block; width: 100%; height: auto; }
 
 .wis-phone-showcase {
   transform: none;

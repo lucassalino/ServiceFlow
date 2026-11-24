@@ -277,10 +277,8 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
                           <div className="wis-browser-bar">
                             <span /><span /><span />
                           </div>
-                          <div className="wis-browser-shot">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={s.src} alt={s.alt} loading="lazy" width={960} height={600} />
-                          </div>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={s.src} alt={s.alt} loading="lazy" width={960} height={600} />
                         </div>
                       ) : (
                         <div className="wis-phone wis-phone-showcase">
