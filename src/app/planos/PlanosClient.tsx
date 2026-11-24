@@ -11,7 +11,7 @@ import { annualSavingsPercent, detectDefaultCurrency, type PlanDef, type Currenc
 import { APP_URL } from '@/lib/app-url';
 import { SUPPORT_EMAIL } from '@/lib/email/templates/layout';
 import { createCheckoutSessionAction } from '@/actions/stripe-checkout';
-import { TearDivider, InkBlob, HandArrow, BrushUnderline, ScribbleCircle } from './Doodles';
+import { InkBlob, HandArrow, BrushUnderline, ScribbleCircle } from './Doodles';
 import './planos.css';
 
 const INK = '#050505';
@@ -248,13 +248,11 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
         </div>
       </section>
 
-      <TearDivider fill={PAPER} />
-
       {/* ── Recursos ───────────────────────────────────── */}
-      <section id="recursos" className="wis-paper wis-grain" style={{ paddingBottom: '1rem' }}>
+      <section id="recursos" className="wis-grain" style={{ paddingBottom: '1rem' }}>
         <div className="wis-wrap" style={{ paddingTop: '3rem' }}>
           <Reveal>
-            <p className="wis-kicker">Recursos</p>
+            <p className="wis-kicker" style={{ color: 'var(--blue)' }}>Recursos</p>
             <h2 className="wis-display wis-h2" style={{ marginTop: '0.75rem', maxWidth: '20ch' }}>
               Tudo que sua igreja precisa para estar{' '}
               <span style={{ position: 'relative', display: 'inline-block' }}>
@@ -320,7 +318,7 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
           {/* ── Como funciona ────────────────────────────── */}
           <Reveal id="como-funciona">
             <div style={{ paddingTop: '2rem' }}>
-              <p className="wis-kicker">Como funciona</p>
+              <p className="wis-kicker" style={{ color: 'var(--blue)' }}>Como funciona</p>
               <h2 className="wis-display wis-h2" style={{ marginTop: '0.75rem' }}>
                 Começar é<br /><span className="wis-blue">muito simples</span>
               </h2>
@@ -341,8 +339,6 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
           <div style={{ height: '3rem' }} />
         </div>
       </section>
-
-      <TearDivider fill={INK} />
 
       {/* ── Planos ─────────────────────────────────────── */}
       <section id="planos" className="wis-grain" style={{ background: INK, paddingTop: '2.5rem', paddingBottom: '4rem' }}>
@@ -395,13 +391,11 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
         </div>
       </section>
 
-      <TearDivider fill={PAPER} />
-
       {/* ── FAQ ────────────────────────────────────────── */}
-      <section id="faq" className="wis-paper wis-grain">
+      <section id="faq" className="wis-grain">
         <div className="wis-wrap" style={{ paddingTop: '3rem', paddingBottom: '3.5rem' }}>
           <Reveal>
-            <p className="wis-kicker">FAQ</p>
+            <p className="wis-kicker" style={{ color: 'var(--blue)' }}>FAQ</p>
             <h2 className="wis-display wis-h2" style={{ margin: '0.75rem 0 2rem' }}>
               Perguntas<br />frequentes
             </h2>
