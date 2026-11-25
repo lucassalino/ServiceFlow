@@ -109,39 +109,39 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.95rem 1.6rem;
+  padding: 0.85rem 1.6rem;
   font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   border: 2px solid transparent;
-  border-radius: 2px;
+  border-radius: 9999px;
   cursor: pointer;
-  transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease;
+  transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
   white-space: nowrap;
 }
-.wis-btn:hover { transform: translate(-2px, -2px); }
-.wis-btn:active { transform: translate(0, 0); }
+.wis-btn:hover { transform: translateY(-2px); }
+.wis-btn:active { transform: translateY(0); }
 .wis-btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
 
-.wis-btn-blue { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--blue-deep); }
-.wis-btn-blue:hover { box-shadow: 7px 7px 0 var(--blue-deep); }
+.wis-btn-blue { background: var(--blue); color: #fff; box-shadow: 0 10px 24px -8px rgba(20, 92, 255, 0.65); }
+.wis-btn-blue:hover { box-shadow: 0 14px 30px -8px rgba(20, 92, 255, 0.75); }
 
-.wis-btn-ink { background: var(--ink); color: var(--paper); box-shadow: 4px 4px 0 var(--blue); }
-.wis-btn-ink:hover { box-shadow: 7px 7px 0 var(--blue); }
+.wis-btn-ink { background: var(--ink); color: var(--paper); box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.6); }
+.wis-btn-ink:hover { box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.7); }
 
 .wis-btn-outline {
   background: transparent;
   color: var(--paper);
   border-color: rgba(243, 241, 236, 0.45);
 }
-.wis-btn-outline:hover { background: rgba(243, 241, 236, 0.08); transform: translate(-2px, -2px); }
+.wis-btn-outline:hover { background: rgba(243, 241, 236, 0.08); transform: translateY(-2px); }
 
 .wis-paper .wis-btn-outline { color: var(--ink); border-color: rgba(5, 5, 5, 0.35); }
 .wis-paper .wis-btn-outline:hover { background: rgba(5, 5, 5, 0.06); }
 
-.wis-btn-sm { padding: 0.55rem 1rem; font-size: 0.78rem; box-shadow: 3px 3px 0 var(--blue-deep); }
+.wis-btn-sm { padding: 0.5rem 1rem; font-size: 0.78rem; box-shadow: 0 8px 18px -8px rgba(20, 92, 255, 0.5); }
 
 /* ── Header ─────────────────────────────────────────────────────────── */
 
@@ -351,6 +351,12 @@
   border-color: rgba(243, 241, 236, 0.18);
   transform: translateY(-2px);
 }
+.wis-feature-chevron {
+  color: rgba(243, 241, 236, 0.3);
+  margin-top: 0.3rem;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+.wis-feature:hover .wis-feature-chevron { color: var(--blue); transform: translateX(3px); }
 .wis-feature h3 {
   font-size: 0.98rem;
   font-weight: 800;
@@ -473,26 +479,32 @@
 /* ── Métricas ───────────────────────────────────────────────────────── */
 
 .wis-metrics {
-  background: var(--ink-soft);
-  border-block: 1px solid rgba(243, 241, 236, 0.1);
-  transform: rotate(-1deg) scale(1.03);
-  padding: clamp(1.75rem, 3.5vw, 2.5rem) 0;
+  background: transparent;
+  padding: 1rem 0 clamp(1.75rem, 3.5vw, 2.5rem);
   margin: 3rem 0;
   position: relative;
-  overflow: hidden;
 }
 .wis-metrics-inner {
-  transform: rotate(1deg);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.1rem;
   max-width: 72rem;
   margin: 0 auto;
   padding-inline: 1.5rem;
   position: relative;
   z-index: 2;
 }
-.wis-metric { text-align: center; }
+/* Cartões "desalinhados" — cada um com o seu próprio fundo/sombra,
+   deslocados verticalmente de forma alternada em vez de uma barra única. */
+.wis-metric {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border-radius: 1rem;
+  background: var(--ink-soft);
+  border: 1px solid rgba(243, 241, 236, 0.1);
+  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.7);
+}
+.wis-metric:nth-child(even) { transform: translateY(0.9rem); }
 .wis-metric-icon {
   display: inline-flex;
   align-items: center;
@@ -521,7 +533,6 @@
   text-transform: uppercase;
   color: rgba(243, 241, 236, 0.55);
 }
-.wis-metric + .wis-metric { border-left: 1px solid rgba(243, 241, 236, 0.14); }
 
 /* ── Como funciona ──────────────────────────────────────────────────── */
 
@@ -616,39 +627,39 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 1.6rem 1.4rem;
-  border: 2px solid rgba(243, 241, 236, 0.2);
-  border-radius: 2px;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid rgba(243, 241, 236, 0.14);
+  border-radius: 1.25rem;
   background: rgba(243, 241, 236, 0.03);
-  transition: transform 0.16s ease, border-color 0.16s ease;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
-.wis-plan:hover { transform: translateY(-5px); border-color: rgba(243, 241, 236, 0.45); }
+.wis-plan:hover { transform: translateY(-5px); border-color: rgba(243, 241, 236, 0.3); }
 
 /* Cada plano ganha um pouco mais de presença que o anterior — a escada
    é visível antes mesmo de se ler os números. */
 .wis-plan[data-tier='0'] { background: transparent; }
-.wis-plan[data-tier='1'] { border-color: rgba(243, 241, 236, 0.3); }
+.wis-plan[data-tier='1'] { border-color: rgba(243, 241, 236, 0.22); }
 .wis-plan[data-tier='2'] {
   border-color: var(--blue);
   background: linear-gradient(180deg, rgba(20, 92, 255, 0.16) 0%, rgba(20, 92, 255, 0.03) 100%);
-  box-shadow: 8px 8px 0 var(--blue-deep);
+  box-shadow: 0 24px 48px -20px rgba(20, 92, 255, 0.55);
   transform: translateY(-10px);
 }
 .wis-plan[data-tier='2']:hover { transform: translateY(-15px); }
-.wis-plan[data-tier='3'] { border-color: var(--paper); }
+.wis-plan[data-tier='3'] { border-color: rgba(243, 241, 236, 0.3); }
 
 .wis-plan-flag {
   position: absolute;
-  top: -0.85rem;
-  left: 1.1rem;
-  background: var(--yellow);
-  color: var(--ink);
+  top: 1.1rem;
+  right: 1.1rem;
+  background: var(--blue);
+  color: #fff;
   font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0.25rem 0.65rem;
-  transform: rotate(-2deg);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
 }
 
 .wis-plan-name {
@@ -915,12 +926,10 @@
   .wis-hero-art { min-height: 21rem; }
   .wis-feature-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .wis-metrics-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.5rem; }
-  .wis-metric:nth-child(odd) { border-left: none; }
-  .wis-metric:nth-child(3) { border-left: none; }
+  .wis-metric { transform: none !important; }
   .wis-steps { grid-template-columns: minmax(0, 1fr); }
   .wis-step-arrow { display: none !important; }
   .wis-plan-grid { grid-template-columns: minmax(0, 1fr); }
-  .wis-metrics { transform: rotate(-1deg); }
 }
 
 @media (min-width: 768px) {

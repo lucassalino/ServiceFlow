@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   CalendarCheck, Music2, Users, Bell, ListChecks, Building2,
   BarChart3, Layers, Apple, Play, ArrowRight, ArrowUpRight, Check, Loader2, Menu, X,
-  Smartphone, Globe2,
+  Smartphone, Globe2, ChevronRight,
 } from 'lucide-react';
 import { annualSavingsPercent, detectDefaultCurrency, type PlanDef, type Currency } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
@@ -297,7 +297,10 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
             <div className="wis-feature-grid">
               {FEATURES.filter((f) => !SHOWCASE_LABELS.has(f.label)).map((f) => (
                 <div key={f.label} className="wis-feature">
-                  <span className="wis-icon-chip"><f.icon size={22} strokeWidth={1.7} aria-hidden /></span>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <span className="wis-icon-chip"><f.icon size={22} strokeWidth={1.7} aria-hidden /></span>
+                    <ChevronRight size={16} className="wis-feature-chevron" aria-hidden />
+                  </div>
                   <h3>{f.label}</h3>
                   <p>{f.desc}</p>
                 </div>
