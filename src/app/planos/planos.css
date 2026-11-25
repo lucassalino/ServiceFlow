@@ -340,13 +340,21 @@
 }
 
 .wis-feature {
-  border-top: 3px solid rgba(243, 241, 236, 0.18);
-  padding-top: 0.9rem;
+  padding: 1.25rem 1.1rem;
+  border-radius: 0.875rem;
+  background: rgba(243, 241, 236, 0.04);
+  border: 1px solid rgba(243, 241, 236, 0.1);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.wis-feature:hover {
+  background: rgba(243, 241, 236, 0.07);
+  border-color: rgba(243, 241, 236, 0.18);
+  transform: translateY(-2px);
 }
 .wis-feature h3 {
   font-size: 0.98rem;
   font-weight: 800;
-  margin: 0.7rem 0 0.35rem;
+  margin: 0.9rem 0 0.35rem;
 }
 .wis-feature p {
   font-size: 0.85rem;
@@ -354,53 +362,86 @@
   color: rgba(243, 241, 236, 0.55);
   margin: 0;
 }
-.wis-feature svg { color: var(--blue); }
-/* Cada quarta funcionalidade puxa a régua azul — quebra a grelha perfeita. */
-.wis-feature:nth-child(4n + 2) { border-top-color: var(--blue); }
+
+/* Ícone num "chip" — quadrado arredondado com fundo tingido de azul,
+   em vez do ícone solto. */
+.wis-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.7rem;
+  background: rgba(20, 92, 255, 0.15);
+  color: var(--blue);
+}
 
 /* ── Vitrine (capturas reais do app) ───────────────────────────────────── */
 
+/* Grelha de cartões (estilo "portfólio") — imagem em cima, texto embaixo,
+   seta no canto. A imagem continua inteira (sem recorte/zoom). */
 .wis-showcase {
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.75rem;
   margin-top: 3rem;
 }
 
-.wis-showcase-row {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: 2.5rem;
-  align-items: center;
+.wis-showcase-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
 }
-.wis-showcase-row.is-reverse .wis-showcase-text { order: 2; }
-.wis-showcase-row.is-reverse .wis-showcase-art { order: 1; }
+
+.wis-showcase-media {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  border-radius: 1rem;
+  background: rgba(243, 241, 236, 0.04);
+  border: 1px solid rgba(243, 241, 236, 0.1);
+  min-height: 14rem;
+}
+
+.wis-showcase-arrow {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 8px 20px -6px rgba(20, 92, 255, 0.6);
+}
 
 .wis-showcase-text svg { color: var(--blue); }
 .wis-showcase-text h3 {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  margin: 0.9rem 0 0.5rem;
+  margin: 0.8rem 0 0.4rem;
 }
 .wis-showcase-text p {
-  font-size: 0.95rem;
-  line-height: 1.65;
+  font-size: 0.88rem;
+  line-height: 1.6;
   color: rgba(243, 241, 236, 0.58);
   margin: 0;
-  max-width: 24rem;
 }
-
-.wis-showcase-art { display: flex; justify-content: center; }
 
 /* Moldura tipo browser — ancora o screenshot com uma leitura mais "produto". */
 .wis-browser-frame {
   width: 100%;
-  max-width: 30rem;
+  max-width: 24rem;
   border-radius: 0.75rem;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(243, 241, 236, 0.1);
-  box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 40px -18px rgba(0, 0, 0, 0.6);
+  align-self: center;
 }
 .wis-browser-bar {
   display: flex;
@@ -423,19 +464,17 @@
 }
 
 @media (max-width: 860px) {
-  .wis-showcase-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-  }
-  .wis-showcase-row.is-reverse .wis-showcase-text,
-  .wis-showcase-row.is-reverse .wis-showcase-art { order: unset; }
-  .wis-showcase-text p { max-width: none; }
+  .wis-showcase { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+}
+@media (max-width: 640px) {
+  .wis-showcase { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ── Métricas ───────────────────────────────────────────────────────── */
 
 .wis-metrics {
-  background: var(--ink);
+  background: var(--ink-soft);
+  border-block: 1px solid rgba(243, 241, 236, 0.1);
   transform: rotate(-1deg) scale(1.03);
   padding: clamp(1.75rem, 3.5vw, 2.5rem) 0;
   margin: 3rem 0;
@@ -454,6 +493,17 @@
   z-index: 2;
 }
 .wis-metric { text-align: center; }
+.wis-metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: rgba(20, 92, 255, 0.15);
+  color: var(--blue);
+  margin-bottom: 0.6rem;
+}
 .wis-metric b {
   display: block;
   font-family: var(--wis-display, 'Arial Narrow', Impact, system-ui), sans-serif;

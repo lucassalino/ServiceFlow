@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   CalendarCheck, Music2, Users, Bell, ListChecks, Building2,
   BarChart3, Layers, Apple, Play, ArrowRight, ArrowUpRight, Check, Loader2, Menu, X,
+  Smartphone, Globe2,
 } from 'lucide-react';
 import { annualSavingsPercent, detectDefaultCurrency, type PlanDef, type Currency } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
@@ -73,10 +74,10 @@ const PLAN_TAGLINES: Record<string, string> = {
 };
 
 const METRICS = [
-  { value: '7', label: 'módulos integrados' },
-  { value: 'PWA', label: 'instala sem loja' },
-  { value: '1 conta', label: 'várias igrejas' },
-  { value: '€ / R$', label: 'Portugal e Brasil' },
+  { icon: Layers, value: '7', label: 'módulos integrados' },
+  { icon: Smartphone, value: 'PWA', label: 'instala sem loja' },
+  { icon: Building2, value: '1 conta', label: 'várias igrejas' },
+  { icon: Globe2, value: '€ / R$', label: 'Portugal e Brasil' },
 ];
 
 const STEPS = [
@@ -262,16 +263,11 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
             </h2>
 
             <div className="wis-showcase">
-              {SHOWCASE.map((s, i) => {
+              {SHOWCASE.map((s) => {
                 const f = FEATURES.find((x) => x.label === s.feature)!;
                 return (
-                  <Reveal key={s.feature} className={`wis-showcase-row${i % 2 === 1 ? ' is-reverse' : ''}`}>
-                    <div className="wis-showcase-text">
-                      <f.icon size={28} strokeWidth={1.6} aria-hidden />
-                      <h3>{f.label}</h3>
-                      <p>{f.desc}</p>
-                    </div>
-                    <div className="wis-showcase-art">
+                  <Reveal key={s.feature} className="wis-showcase-card">
+                    <div className="wis-showcase-media">
                       {s.kind === 'web' ? (
                         <div className="wis-browser-frame">
                           <div className="wis-browser-bar">
@@ -286,6 +282,12 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
                           <img src={s.src} alt={s.alt} loading="lazy" width={390} height={792} />
                         </div>
                       )}
+                      <span className="wis-showcase-arrow" aria-hidden><ArrowUpRight size={16} /></span>
+                    </div>
+                    <div className="wis-showcase-text">
+                      <span className="wis-icon-chip"><f.icon size={22} strokeWidth={1.7} aria-hidden /></span>
+                      <h3>{f.label}</h3>
+                      <p>{f.desc}</p>
                     </div>
                   </Reveal>
                 );
@@ -295,7 +297,7 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
             <div className="wis-feature-grid">
               {FEATURES.filter((f) => !SHOWCASE_LABELS.has(f.label)).map((f) => (
                 <div key={f.label} className="wis-feature">
-                  <f.icon size={26} strokeWidth={1.6} aria-hidden />
+                  <span className="wis-icon-chip"><f.icon size={22} strokeWidth={1.7} aria-hidden /></span>
                   <h3>{f.label}</h3>
                   <p>{f.desc}</p>
                 </div>
@@ -308,6 +310,7 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
             <div className="wis-metrics-inner">
               {METRICS.map((m) => (
                 <div key={m.label} className="wis-metric">
+                  <span className="wis-metric-icon"><m.icon size={18} strokeWidth={1.8} aria-hidden /></span>
                   <b>{m.value}</b>
                   <span>{m.label}</span>
                 </div>
