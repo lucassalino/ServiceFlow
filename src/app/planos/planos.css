@@ -413,32 +413,6 @@
   align-items: flex-end;
   justify-content: space-between;
 }
-.wis-plans-toggle-wrap { display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-end; }
-
-.wis-toggle {
-  display: inline-flex;
-  padding: 0.3rem;
-  border-radius: 9999px;
-  background: rgba(244, 246, 251, 0.06);
-  border: 1px solid var(--line-2);
-}
-.wis-toggle button {
-  padding: 0.5rem 1.1rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-2);
-  background: transparent;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-}
-.wis-toggle button[aria-pressed='true'] {
-  background: var(--text);
-  color: var(--navy-deep);
-}
-
-.wis-note-annual { font-size: 0.82rem; color: var(--blue-hi); margin: 0; }
-
 .wis-plan-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -614,18 +588,6 @@
   gap: 0.6rem;
   margin-top: 1.75rem;
 }
-.wis-store-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.65rem 1.1rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
-  background: rgba(244, 246, 251, 0.06);
-  border: 1px solid var(--line-2);
-  border-radius: 9999px;
-}
 .wis-cta-visual { display: flex; justify-content: center; }
 .wis-cta-visual img {
   width: min(13rem, 100%);
@@ -697,7 +659,6 @@
   .wis-cta-panel { grid-template-columns: minmax(0, 1fr); }
   .wis-cta-visual { display: none; }
   .wis-footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .wis-plans-toggle-wrap { align-items: flex-start; }
 }
 
 @media (max-width: 560px) {

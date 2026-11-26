@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   CalendarCheck, Music2, Users, Bell, ListChecks, Building2,
-  BarChart3, Layers, Apple, Play, ArrowRight, ArrowUpRight, Check, Loader2, Menu, X, ChevronDown,
+  BarChart3, Layers, ArrowRight, ArrowUpRight, Check, Loader2, Menu, X, ChevronDown,
 } from 'lucide-react';
 import { annualSavingsPercent, detectDefaultCurrency, type PlanDef, type Currency } from '@/lib/plans';
 import { APP_URL } from '@/lib/app-url';
@@ -72,7 +72,6 @@ function Reveal({ children, className = '', id }: { children: React.ReactNode; c
 interface Props { plans: PlanDef[]; adminOrgId: string | null; initialCurrency?: Currency }
 
 export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
-  const [annual, setAnnual] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currency, setCurrency] = useState<Currency>(initialCurrency ?? 'EUR');
 
@@ -226,13 +225,6 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
               <h2 className="wis-h2">{PLANOS.titulo}</h2>
             </div>
 
-            <div className="wis-plans-toggle-wrap">
-              <div className="wis-toggle" role="group" aria-label="Periodicidade da cobrança">
-                <button type="button" onClick={() => setAnnual(false)} aria-pressed={!annual}>{PLANOS.toggleMensal}</button>
-                <button type="button" onClick={() => setAnnual(true)} aria-pressed={annual}>{PLANOS.toggleAnual}</button>
-              </div>
-              <p className="wis-note-annual">{PLANOS.notaAnual}</p>
-            </div>
           </div>
 
           <div className="wis-plan-grid">
@@ -241,7 +233,6 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
                 key={plan.key}
                 plan={plan}
                 tier={i}
-                annual={annual}
                 currency={currency}
                 previousFeatures={i > 0 ? plans[i - 1].features : []}
                 previousLabel={i > 0 ? plans[i - 1].label : null}
@@ -280,8 +271,6 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
                 <p>{INSTALACAO.texto}</p>
 
                 <div className="wis-store-row">
-                  <span className="wis-store-btn"><Apple size={18} strokeWidth={1.8} aria-hidden /> {INSTALACAO.lojaApple}</span>
-                  <span className="wis-store-btn"><Play size={16} strokeWidth={1.8} aria-hidden /> {INSTALACAO.lojaGoogle}</span>
                   <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="wis-btn wis-btn-blue wis-btn-sm">
                     {INSTALACAO.entrarPwa} <ArrowUpRight size={16} />
                   </a>
@@ -335,14 +324,13 @@ function FooterCol({ title, links }: { title: string; links: { href: string; lab
 
 // ── Cartão de plano ─────────────────────────────────────────────────────────
 
-function PlanCard({ plan, tier, annual, currency, previousFeatures, previousLabel, adminOrgId }: {
-  plan: PlanDef; tier: number; annual: boolean; currency: Currency;
+function PlanCard({ plan, tier, currency, previousFeatures, previousLabel, adminOrgId }: {
+  plan: PlanDef; tier: number; currency: Currency;
   previousFeatures: string[]; previousLabel: string | null; adminOrgId: string | null;
 }) {
   const [loading, setLoading] = useState(false);
   const monthlyPrice = currency === 'BRL' ? plan.priceMonthlyBRL : plan.priceMonthly;
   const annualPrice = currency === 'BRL' ? plan.priceAnnualBRL : plan.priceAnnual;
-  const price = annual ? annualPrice : monthlyPrice;
   const savings = annualSavingsPercent(plan, currency);
   const popular = plan.key === 'colheita';
 
@@ -350,7 +338,7 @@ function PlanCard({ plan, tier, annual, currency, previousFeatures, previousLabe
     if (!adminOrgId) return;
     setLoading(true);
     try {
-      const result = await createCheckoutSessionAction(adminOrgId, plan.key, annual ? 'annual' : 'monthly', currency);
+      const result = await createCheckoutSessionAction(adminOrgId, plan.key, 'monthly', currency);
       if (result.ok) {
         window.location.href = result.url;
         return;
@@ -382,17 +370,15 @@ function PlanCard({ plan, tier, annual, currency, previousFeatures, previousLabe
       <p className="wis-plan-tagline">{AVISO_CHECKOUT[plan.key as keyof typeof AVISO_CHECKOUT] ?? ''}</p>
 
       <p className="wis-price">
-        {fmtPrice(price, currency)}
-        <small>/{annual ? 'ano' : 'mês'}</small>
+        {fmtPrice(monthlyPrice, currency)}
+        <small>/mês</small>
       </p>
 
       {monthlyPrice === 0 ? (
         <p className="wis-price-alt">Grátis</p>
       ) : (
         <p className="wis-price-alt">
-          {annual
-            ? `${fmtPrice(monthlyPrice, currency)} se pagar ao mês`
-            : `${fmtPrice(annualPrice, currency)} no plano anual`}
+          {`${fmtPrice(annualPrice, currency)} no plano anual`}
           {savings > 0 && <span className="wis-save-tag">{savings}% off</span>}
         </p>
       )}
