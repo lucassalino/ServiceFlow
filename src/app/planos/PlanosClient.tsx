@@ -154,7 +154,7 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
             <div className="wis-device">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/screenshots/mobile-eventos-equipa.webp"
+                src="/screenshots/app-mobile-evento.webp"
                 alt={HERO.imagemAlt}
                 width={390}
                 height={792}
@@ -172,6 +172,17 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
           <Reveal>
             <p className="wis-kicker">{RECURSOS.kicker}</p>
             <h2 className="wis-h2">{RECURSOS.titulo}</h2>
+
+            <div className="wis-app-showcase">
+              <figure className="wis-app-shot wis-app-shot-desktop">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/screenshots/app-desktop-painel.webp" alt="Painel do WIS no computador, com os próximos eventos e aniversariantes do mês" loading="lazy" width={1400} height={700} />
+              </figure>
+              <figure className="wis-app-shot wis-app-shot-desktop">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/screenshots/app-desktop-eventos.webp" alt="Lista de eventos do WIS no computador, agrupada por mês" loading="lazy" width={1400} height={695} />
+              </figure>
+            </div>
 
             <div className="wis-feature-grid">
               {FEATURES.map((f, i) => {
@@ -279,7 +290,7 @@ export function PlanosClient({ plans, adminOrgId, initialCurrency }: Props) {
 
               <div className="wis-cta-visual">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/screenshots/mobile-setlist.webp" alt="" loading="lazy" width={390} height={792} />
+                <img src="/screenshots/app-mobile-inicio.webp" alt="" loading="lazy" width={390} height={792} />
               </div>
             </div>
           </Reveal>

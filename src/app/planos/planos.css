@@ -668,3 +668,31 @@
   .wis-footer-grid { grid-template-columns: minmax(0, 1fr); }
   .wis-float-note { display: none; }
 }
+
+/* ── Capturas reais da app ──────────────────────────────────────────── */
+
+.wis-app-showcase {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+.wis-app-shot {
+  margin: 0;
+  padding: 0.6rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, rgba(244, 246, 251, 0.06), rgba(244, 246, 251, 0.015));
+  border: 1px solid var(--line-2);
+  box-shadow: 0 40px 70px -36px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+.wis-app-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.9rem;
+}
+
+@media (max-width: 860px) {
+  .wis-app-showcase { grid-template-columns: minmax(0, 1fr); }
+}
